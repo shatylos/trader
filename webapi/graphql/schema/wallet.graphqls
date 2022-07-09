@@ -1,0 +1,12 @@
+extend type Query {
+    wallet: Wallet
+}
+
+type Wallet {
+    totalAmount: Float
+    brokerWallets: [BrokerWallet]
+}
+
+type BrokerWallet {
+    amount: Float
+}
