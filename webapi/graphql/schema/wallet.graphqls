@@ -1,12 +1,20 @@
 extend type Query {
-    wallet: Wallet
+    wallet: Wallet!
 }
 
 type Wallet {
-    totalAmount: Float
-    brokerWallets: [BrokerWallet]
+    totalAvailableAmount: [WalletBrokerWalletCoinItem!]
+    totalReservedAmount: [WalletBrokerWalletCoinItem!]
+    brokerWallets: [WalletBrokerWallet]
 }
 
-type BrokerWallet {
-    amount: Float
+type WalletBrokerWallet {
+    domainCode: String!
+    Available: [WalletBrokerWalletCoinItem!]
+    Reserved: [WalletBrokerWalletCoinItem!]
+}
+
+type WalletBrokerWalletCoinItem {
+    Coin: String!
+    Amount: Float!
 }

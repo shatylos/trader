@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"bitbucket.org/shatylos/trader/webapi/graphql/model"
 	"github.com/99designs/gqlgen/graphql"
@@ -42,17 +43,25 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	BrokerWallet struct {
-		Amount func(childComplexity int) int
-	}
-
 	Query struct {
 		Wallet func(childComplexity int) int
 	}
 
 	Wallet struct {
-		BrokerWallets func(childComplexity int) int
-		TotalAmount   func(childComplexity int) int
+		BrokerWallets        func(childComplexity int) int
+		TotalAvailableAmount func(childComplexity int) int
+		TotalReservedAmount  func(childComplexity int) int
+	}
+
+	WalletBrokerWallet struct {
+		Available  func(childComplexity int) int
+		DomainCode func(childComplexity int) int
+		Reserved   func(childComplexity int) int
+	}
+
+	WalletBrokerWalletCoinItem struct {
+		Amount func(childComplexity int) int
+		Coin   func(childComplexity int) int
 	}
 }
 
@@ -75,13 +84,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "BrokerWallet.amount":
-		if e.complexity.BrokerWallet.Amount == nil {
-			break
-		}
-
-		return e.complexity.BrokerWallet.Amount(childComplexity), true
-
 	case "Query.wallet":
 		if e.complexity.Query.Wallet == nil {
 			break
@@ -96,12 +98,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Wallet.BrokerWallets(childComplexity), true
 
-	case "Wallet.totalAmount":
-		if e.complexity.Wallet.TotalAmount == nil {
+	case "Wallet.totalAvailableAmount":
+		if e.complexity.Wallet.TotalAvailableAmount == nil {
 			break
 		}
 
-		return e.complexity.Wallet.TotalAmount(childComplexity), true
+		return e.complexity.Wallet.TotalAvailableAmount(childComplexity), true
+
+	case "Wallet.totalReservedAmount":
+		if e.complexity.Wallet.TotalReservedAmount == nil {
+			break
+		}
+
+		return e.complexity.Wallet.TotalReservedAmount(childComplexity), true
+
+	case "WalletBrokerWallet.Available":
+		if e.complexity.WalletBrokerWallet.Available == nil {
+			break
+		}
+
+		return e.complexity.WalletBrokerWallet.Available(childComplexity), true
+
+	case "WalletBrokerWallet.domainCode":
+		if e.complexity.WalletBrokerWallet.DomainCode == nil {
+			break
+		}
+
+		return e.complexity.WalletBrokerWallet.DomainCode(childComplexity), true
+
+	case "WalletBrokerWallet.Reserved":
+		if e.complexity.WalletBrokerWallet.Reserved == nil {
+			break
+		}
+
+		return e.complexity.WalletBrokerWallet.Reserved(childComplexity), true
+
+	case "WalletBrokerWalletCoinItem.Amount":
+		if e.complexity.WalletBrokerWalletCoinItem.Amount == nil {
+			break
+		}
+
+		return e.complexity.WalletBrokerWalletCoinItem.Amount(childComplexity), true
+
+	case "WalletBrokerWalletCoinItem.Coin":
+		if e.complexity.WalletBrokerWalletCoinItem.Coin == nil {
+			break
+		}
+
+		return e.complexity.WalletBrokerWalletCoinItem.Coin(childComplexity), true
 
 	}
 	return 0, false
@@ -157,16 +201,24 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../schema/schema.graphqls", Input: `type Query`, BuiltIn: false},
 	{Name: "../schema/wallet.graphqls", Input: `extend type Query {
-    wallet: Wallet
+    wallet: Wallet!
 }
 
 type Wallet {
-    totalAmount: Float
-    brokerWallets: [BrokerWallet]
+    totalAvailableAmount: [WalletBrokerWalletCoinItem!]
+    totalReservedAmount: [WalletBrokerWalletCoinItem!]
+    brokerWallets: [WalletBrokerWallet]
 }
 
-type BrokerWallet {
-    amount: Float
+type WalletBrokerWallet {
+    domainCode: String!
+    Available: [WalletBrokerWalletCoinItem!]
+    Reserved: [WalletBrokerWalletCoinItem!]
+}
+
+type WalletBrokerWalletCoinItem {
+    Coin: String!
+    Amount: Float!
 }
 `, BuiltIn: false},
 }
@@ -229,47 +281,6 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _BrokerWallet_amount(ctx context.Context, field graphql.CollectedField, obj *model.BrokerWallet) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BrokerWallet_amount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Amount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*float64)
-	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BrokerWallet_amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BrokerWallet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_wallet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_wallet(ctx, field)
 	if err != nil {
@@ -291,11 +302,14 @@ func (ec *executionContext) _Query_wallet(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Wallet)
 	fc.Result = res
-	return ec.marshalOWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWallet(ctx, field.Selections, res)
+	return ec.marshalNWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWallet(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_wallet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -306,8 +320,10 @@ func (ec *executionContext) fieldContext_Query_wallet(ctx context.Context, field
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalAmount":
-				return ec.fieldContext_Wallet_totalAmount(ctx, field)
+			case "totalAvailableAmount":
+				return ec.fieldContext_Wallet_totalAvailableAmount(ctx, field)
+			case "totalReservedAmount":
+				return ec.fieldContext_Wallet_totalReservedAmount(ctx, field)
 			case "brokerWallets":
 				return ec.fieldContext_Wallet_brokerWallets(ctx, field)
 			}
@@ -446,8 +462,8 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Wallet_totalAmount(ctx context.Context, field graphql.CollectedField, obj *model.Wallet) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Wallet_totalAmount(ctx, field)
+func (ec *executionContext) _Wallet_totalAvailableAmount(ctx context.Context, field graphql.CollectedField, obj *model.Wallet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Wallet_totalAvailableAmount(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -460,7 +476,7 @@ func (ec *executionContext) _Wallet_totalAmount(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalAmount, nil
+		return obj.TotalAvailableAmount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -469,19 +485,72 @@ func (ec *executionContext) _Wallet_totalAmount(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*float64)
+	res := resTmp.([]*model.WalletBrokerWalletCoinItem)
 	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+	return ec.marshalOWalletBrokerWalletCoinItem2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItemᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Wallet_totalAmount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Wallet_totalAvailableAmount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Wallet",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			switch field.Name {
+			case "Coin":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Coin(ctx, field)
+			case "Amount":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Amount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WalletBrokerWalletCoinItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Wallet_totalReservedAmount(ctx context.Context, field graphql.CollectedField, obj *model.Wallet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Wallet_totalReservedAmount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalReservedAmount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.WalletBrokerWalletCoinItem)
+	fc.Result = res
+	return ec.marshalOWalletBrokerWalletCoinItem2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Wallet_totalReservedAmount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Wallet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Coin":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Coin(ctx, field)
+			case "Amount":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Amount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WalletBrokerWalletCoinItem", field.Name)
 		},
 	}
 	return fc, nil
@@ -510,9 +579,9 @@ func (ec *executionContext) _Wallet_brokerWallets(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.BrokerWallet)
+	res := resTmp.([]*model.WalletBrokerWallet)
 	fc.Result = res
-	return ec.marshalOBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐBrokerWallet(ctx, field.Selections, res)
+	return ec.marshalOWalletBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWallet(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Wallet_brokerWallets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -523,10 +592,240 @@ func (ec *executionContext) fieldContext_Wallet_brokerWallets(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "amount":
-				return ec.fieldContext_BrokerWallet_amount(ctx, field)
+			case "domainCode":
+				return ec.fieldContext_WalletBrokerWallet_domainCode(ctx, field)
+			case "Available":
+				return ec.fieldContext_WalletBrokerWallet_Available(ctx, field)
+			case "Reserved":
+				return ec.fieldContext_WalletBrokerWallet_Reserved(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type BrokerWallet", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type WalletBrokerWallet", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WalletBrokerWallet_domainCode(ctx context.Context, field graphql.CollectedField, obj *model.WalletBrokerWallet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WalletBrokerWallet_domainCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DomainCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WalletBrokerWallet_domainCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WalletBrokerWallet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WalletBrokerWallet_Available(ctx context.Context, field graphql.CollectedField, obj *model.WalletBrokerWallet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WalletBrokerWallet_Available(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Available, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.WalletBrokerWalletCoinItem)
+	fc.Result = res
+	return ec.marshalOWalletBrokerWalletCoinItem2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WalletBrokerWallet_Available(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WalletBrokerWallet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Coin":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Coin(ctx, field)
+			case "Amount":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Amount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WalletBrokerWalletCoinItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WalletBrokerWallet_Reserved(ctx context.Context, field graphql.CollectedField, obj *model.WalletBrokerWallet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WalletBrokerWallet_Reserved(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reserved, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.WalletBrokerWalletCoinItem)
+	fc.Result = res
+	return ec.marshalOWalletBrokerWalletCoinItem2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WalletBrokerWallet_Reserved(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WalletBrokerWallet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Coin":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Coin(ctx, field)
+			case "Amount":
+				return ec.fieldContext_WalletBrokerWalletCoinItem_Amount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WalletBrokerWalletCoinItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WalletBrokerWalletCoinItem_Coin(ctx context.Context, field graphql.CollectedField, obj *model.WalletBrokerWalletCoinItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WalletBrokerWalletCoinItem_Coin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Coin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WalletBrokerWalletCoinItem_Coin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WalletBrokerWalletCoinItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WalletBrokerWalletCoinItem_Amount(ctx context.Context, field graphql.CollectedField, obj *model.WalletBrokerWalletCoinItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WalletBrokerWalletCoinItem_Amount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Amount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WalletBrokerWalletCoinItem_Amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WalletBrokerWalletCoinItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2313,31 +2612,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** object.gotpl ****************************
 
-var brokerWalletImplementors = []string{"BrokerWallet"}
-
-func (ec *executionContext) _BrokerWallet(ctx context.Context, sel ast.SelectionSet, obj *model.BrokerWallet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, brokerWalletImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("BrokerWallet")
-		case "amount":
-
-			out.Values[i] = ec._BrokerWallet_amount(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2367,6 +2641,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_wallet(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -2410,14 +2687,89 @@ func (ec *executionContext) _Wallet(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Wallet")
-		case "totalAmount":
+		case "totalAvailableAmount":
 
-			out.Values[i] = ec._Wallet_totalAmount(ctx, field, obj)
+			out.Values[i] = ec._Wallet_totalAvailableAmount(ctx, field, obj)
+
+		case "totalReservedAmount":
+
+			out.Values[i] = ec._Wallet_totalReservedAmount(ctx, field, obj)
 
 		case "brokerWallets":
 
 			out.Values[i] = ec._Wallet_brokerWallets(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var walletBrokerWalletImplementors = []string{"WalletBrokerWallet"}
+
+func (ec *executionContext) _WalletBrokerWallet(ctx context.Context, sel ast.SelectionSet, obj *model.WalletBrokerWallet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, walletBrokerWalletImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WalletBrokerWallet")
+		case "domainCode":
+
+			out.Values[i] = ec._WalletBrokerWallet_domainCode(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Available":
+
+			out.Values[i] = ec._WalletBrokerWallet_Available(ctx, field, obj)
+
+		case "Reserved":
+
+			out.Values[i] = ec._WalletBrokerWallet_Reserved(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var walletBrokerWalletCoinItemImplementors = []string{"WalletBrokerWalletCoinItem"}
+
+func (ec *executionContext) _WalletBrokerWalletCoinItem(ctx context.Context, sel ast.SelectionSet, obj *model.WalletBrokerWalletCoinItem) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, walletBrokerWalletCoinItemImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WalletBrokerWalletCoinItem")
+		case "Coin":
+
+			out.Values[i] = ec._WalletBrokerWalletCoinItem_Coin(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Amount":
+
+			out.Values[i] = ec._WalletBrokerWalletCoinItem_Amount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2762,6 +3114,21 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2775,6 +3142,30 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNWallet2bitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v model.Wallet) graphql.Marshaler {
+	return ec._Wallet(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v *model.Wallet) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Wallet(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNWalletBrokerWalletCoinItem2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItem(ctx context.Context, sel ast.SelectionSet, v *model.WalletBrokerWalletCoinItem) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._WalletBrokerWalletCoinItem(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -3056,7 +3447,23 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐBrokerWallet(ctx context.Context, sel ast.SelectionSet, v []*model.BrokerWallet) graphql.Marshaler {
+func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) marshalOWalletBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWallet(ctx context.Context, sel ast.SelectionSet, v []*model.WalletBrokerWallet) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3083,7 +3490,7 @@ func (ec *executionContext) marshalOBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOBrokerWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐBrokerWallet(ctx, sel, v[i])
+			ret[i] = ec.marshalOWalletBrokerWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWallet(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3097,50 +3504,58 @@ func (ec *executionContext) marshalOBrokerWallet2ᚕᚖbitbucketᚗorgᚋshatylo
 	return ret
 }
 
-func (ec *executionContext) marshalOBrokerWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐBrokerWallet(ctx context.Context, sel ast.SelectionSet, v *model.BrokerWallet) graphql.Marshaler {
+func (ec *executionContext) marshalOWalletBrokerWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWallet(ctx context.Context, sel ast.SelectionSet, v *model.WalletBrokerWallet) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._BrokerWallet(ctx, sel, v)
+	return ec._WalletBrokerWallet(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+func (ec *executionContext) marshalOWalletBrokerWalletCoinItem2ᚕᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WalletBrokerWalletCoinItem) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	res := graphql.MarshalFloatContext(*v)
-	return graphql.WrapContextMarshaler(ctx, res)
-}
-
-func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
 	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWalletBrokerWalletCoinItem2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWalletBrokerWalletCoinItem(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
 
-func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
 	}
-	res := graphql.MarshalString(*v)
-	return res
-}
+	wg.Wait()
 
-func (ec *executionContext) marshalOWallet2ᚖbitbucketᚗorgᚋshatylosᚋtraderᚋwebapiᚋgraphqlᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v *model.Wallet) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
-	return ec._Wallet(ctx, sel, v)
+
+	return ret
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

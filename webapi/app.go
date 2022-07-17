@@ -17,7 +17,7 @@ func init() {
 func StartWebApp() {
 	router.POST("/query", controller.GraphqlHandler())
 	router.GET("/", controller.PlaygroundHandler())
-	port := os.Getenv("TRADER_PORT")
+	port := os.Getenv("TRADER_WEB_PORT")
 	if port == "" {
 		port = defaultPort
 	}

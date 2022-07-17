@@ -2,11 +2,19 @@
 
 package model
 
-type BrokerWallet struct {
-	Amount *float64 `json:"amount"`
+type Wallet struct {
+	TotalAvailableAmount []*WalletBrokerWalletCoinItem `json:"totalAvailableAmount"`
+	TotalReservedAmount  []*WalletBrokerWalletCoinItem `json:"totalReservedAmount"`
+	BrokerWallets        []*WalletBrokerWallet         `json:"brokerWallets"`
 }
 
-type Wallet struct {
-	TotalAmount   *float64        `json:"totalAmount"`
-	BrokerWallets []*BrokerWallet `json:"brokerWallets"`
+type WalletBrokerWallet struct {
+	DomainCode string                        `json:"domainCode"`
+	Available  []*WalletBrokerWalletCoinItem `json:"Available"`
+	Reserved   []*WalletBrokerWalletCoinItem `json:"Reserved"`
+}
+
+type WalletBrokerWalletCoinItem struct {
+	Coin   string  `json:"Coin"`
+	Amount float64 `json:"Amount"`
 }
