@@ -5,7 +5,9 @@ import (
 	"bitbucket.org/shatylos/trader/domain/structs"
 )
 
-type DomainExmo struct{}
+type DomainExmo struct {
+	isDemo bool `default:"false"`
+}
 
 func (d DomainExmo) GetWallet() (*structs.DomainWallet, error) {
 	userInfo, er := request.GetUserInfo()
@@ -35,4 +37,8 @@ func (d DomainExmo) GetWallet() (*structs.DomainWallet, error) {
 	}
 
 	return &result, nil
+}
+
+func (d DomainExmo) IsDemoMode() bool {
+	return false
 }
