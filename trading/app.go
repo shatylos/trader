@@ -24,6 +24,6 @@ func loadSetupNextStep(bufferChanel chan bool, setupChanelContext chan *setupStr
 
 func handleSetupNextStep(setupChanel chan *setupStructs.Setup) {
 	for setupItem := range setupChanel {
-		setupItem.NextStep()
+		go setupItem.NextStep()
 	}
 }
