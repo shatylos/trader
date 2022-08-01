@@ -1,4 +1,4 @@
-package domainInterface
+package _interface
 
 import "bitbucket.org/shatylos/trader/domain/structs"
 
