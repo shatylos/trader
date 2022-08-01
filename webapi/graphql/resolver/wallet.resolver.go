@@ -25,7 +25,7 @@ func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
 	walletResultFailed = make(map[string]error, 0)
 
 	var wg sync.WaitGroup
-	bufferRequest := make(chan bool, numberParallelRequests)
+	bufferRequest := make(chan bool, getNumberParallelRequests())
 	domainWalletResultChan := make(chan structs.DomainWalletApiResult)
 
 	go walletResponseHandle(&wg, domainWalletResultChan)
@@ -45,20 +45,21 @@ func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
 			Message: msg,
 		}
 	} else {
-		totalAvailablesList := make([]*gqlModel.WalletBrokerWalletCoinItem, 0)
 		totalAvailablesMap := make(map[string]*gqlModel.WalletBrokerWalletCoinItem, 0)
-		totalReservedsList := make([]*gqlModel.WalletBrokerWalletCoinItem, 0)
 		totalReservedsMap := make(map[string]*gqlModel.WalletBrokerWalletCoinItem, 0)
 
 		brokerWallets := make([]*gqlModel.WalletBrokerWallet, 0)
 
-		for _, walletItem := range walletResultSuccess {
+		for key, walletItem := range walletResultSuccess {
 			for _, walletAvItem := range walletItem.Available {
 				if walletAvItem.Amount > 0 {
 					if _, ok := totalAvailablesMap[walletAvItem.Coin]; ok {
 						totalAvailablesMap[walletAvItem.Coin].Amount += walletAvItem.Amount
 					} else {
-						totalAvailablesMap[walletAvItem.Coin] = walletAvItem
+						totalAvailablesMap[walletAvItem.Coin] = &gqlModel.WalletBrokerWalletCoinItem{
+							Coin:   walletAvItem.Coin,
+							Amount: walletAvItem.Amount,
+						}
 					}
 				}
 			}
@@ -67,15 +68,21 @@ func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
 					if _, ok := totalReservedsMap[walletResItem.Coin]; ok {
 						totalReservedsMap[walletResItem.Coin].Amount += walletResItem.Amount
 					} else {
-						totalReservedsMap[walletResItem.Coin] = walletResItem
+						totalReservedsMap[walletResItem.Coin] = &gqlModel.WalletBrokerWalletCoinItem{
+							Coin:   walletResItem.Coin,
+							Amount: walletResItem.Amount,
+						}
 					}
 				}
 			}
-			brokerWallets = append(brokerWallets, &walletItem)
+			brokerWallets = append(brokerWallets, &walletResultSuccess[key])
 		}
+
+		totalAvailablesList := make([]*gqlModel.WalletBrokerWalletCoinItem, 0)
 		for _, coinItem := range totalAvailablesMap {
 			totalAvailablesList = append(totalAvailablesList, coinItem)
 		}
+		totalReservedsList := make([]*gqlModel.WalletBrokerWalletCoinItem, 0)
 		for _, coinItem := range totalReservedsMap {
 			totalReservedsList = append(totalReservedsList, coinItem)
 		}
@@ -103,7 +110,10 @@ var (
 	walletResultFailed     = make(map[string]error, 0)
 )
 
-func init() {
+func getNumberParallelRequests() int64 {
+	if numberParallelRequests != 0 {
+		return numberParallelRequests
+	}
 	envNumParRuq := os.Getenv("TRADER_NUMBER_PARALLEL_REQUESTS")
 	numberParallelRequests = defaultNumberParallelRequests
 	if envNumParRuq != "" {
@@ -114,6 +124,7 @@ func init() {
 			println(fmt.Sprintf("Environment variable TRADER_NUMBER_PARALLEL_REQUESTS set not correctly. Use default value %d", defaultNumberParallelRequests))
 		}
 	}
+	return numberParallelRequests
 }
 
 func walletResponseHandle(wg *sync.WaitGroup, domainWalletResult chan structs.DomainWalletApiResult) {

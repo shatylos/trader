@@ -5,29 +5,27 @@ import (
 	"bitbucket.org/shatylos/trader/domain/structs"
 )
 
-type DomainExmo struct {
+type DomainExmoMargin struct {
 	isDemo bool
 }
 
-func (d *DomainExmo) GetWallet() (*structs.DomainWallet, error) {
-	userInfo, er := request.GetUserInfo()
+func (d *DomainExmoMargin) GetWallet() (*structs.DomainWallet, error) {
+	marginWalletList, er := request.GetMarginWalletList()
 	if er != nil {
 		return nil, er
 	}
 
 	var availableCoins []structs.DomainWalletCoinItem
-	for coinCode, coinAmount := range userInfo.Balances {
+	var reservedCoins []structs.DomainWalletCoinItem
+
+	for coinCode, coinValues := range marginWalletList.Wallets {
 		availableCoins = append(availableCoins, structs.DomainWalletCoinItem{
 			Coin:   coinCode,
-			Amount: coinAmount,
+			Amount: coinValues.Free,
 		})
-	}
-
-	var reservedCoins []structs.DomainWalletCoinItem
-	for coinCode, coinAmount := range userInfo.Reserved {
 		reservedCoins = append(reservedCoins, structs.DomainWalletCoinItem{
 			Coin:   coinCode,
-			Amount: coinAmount,
+			Amount: coinValues.Used,
 		})
 	}
 
@@ -39,6 +37,6 @@ func (d *DomainExmo) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainExmo) IsDemoMode() bool {
+func (d *DomainExmoMargin) IsDemoMode() bool {
 	return false
 }

@@ -37,7 +37,7 @@ func apiQuery(method string, params ApiParams) (map[string]interface{}, error) {
 
 	sign := doSign(postContent, secret)
 
-	req, _ := http.NewRequest("POST", "https://api.exmo.com/v1/"+method, bytes.NewBuffer([]byte(postContent)))
+	req, _ := http.NewRequest("POST", "https://api.exmo.com/v1.1/"+method, bytes.NewBuffer([]byte(postContent)))
 	req.Header.Set("Key", key)
 	req.Header.Set("Sign", sign)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")

@@ -14,7 +14,10 @@ var (
 
 func init() {
 	domainList = append(domainList, "exmo")
-	domainInterfaceList["exmo"] = exmo.DomainExmo{}
+	domainList = append(domainList, "exmoMargin")
+
+	domainInterfaceList["exmo"] = &exmo.DomainExmo{}
+	domainInterfaceList["exmoMargin"] = &exmo.DomainExmoMargin{}
 }
 
 func GetDomainList() []string {
