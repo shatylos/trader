@@ -25,6 +25,15 @@ func (s *Setup) SetStatus(status int64) {
 func (s *Setup) NextStep() {
 	strategy := s.Strategy
 
+	if !strategy.IsInit() {
+		err := strategy.Initialise()
+		if err != nil {
+			utils.LogError(err.Error())
+			s.SetStatus(StatusError)
+			return
+		}
+	}
+
 	err := strategy.GetData()
 	if err != nil {
 		utils.LogError(err.Error())

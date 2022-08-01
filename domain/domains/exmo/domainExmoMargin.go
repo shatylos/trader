@@ -1,12 +1,17 @@
 package exmo
 
 import (
+	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/exmo/request"
 	"bitbucket.org/shatylos/trader/domain/structs"
 )
 
 type DomainExmoMargin struct {
 	isDemo bool
+}
+
+func (d *DomainExmoMargin) GetType() int64 {
+	return constant.DomainTypeMargin
 }
 
 func (d *DomainExmoMargin) GetWallet() (*structs.DomainWallet, error) {

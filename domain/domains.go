@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/exmo"
 	"bitbucket.org/shatylos/trader/domain/interface"
 	"bitbucket.org/shatylos/trader/utils"
@@ -13,11 +14,11 @@ var (
 )
 
 func init() {
-	domainList = append(domainList, "exmo")
-	domainList = append(domainList, "exmoMargin")
+	domainList = append(domainList, constant.DomainExmo)
+	domainList = append(domainList, constant.DomainExmoMargin)
 
-	domainInterfaceList["exmo"] = &exmo.DomainExmo{}
-	domainInterfaceList["exmoMargin"] = &exmo.DomainExmoMargin{}
+	domainInterfaceList[constant.DomainExmo] = &exmo.DomainExmo{}
+	domainInterfaceList[constant.DomainExmoMargin] = &exmo.DomainExmoMargin{}
 }
 
 func GetDomainList() []string {

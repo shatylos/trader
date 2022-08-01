@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"bitbucket.org/shatylos/trader/domain/constant"
 	setupStructs "bitbucket.org/shatylos/trader/setup/structs"
 	"bitbucket.org/shatylos/trader/strategy/strategies"
 	"time"
@@ -17,9 +18,9 @@ func setupListInit() {
 
 	setupList = append(setupList, &setupStructs.Setup{
 		Strategy: &strategies.ScalpByProbabilityStrategy{
-			DomainCode:  "exmo",
-			CoinPare:    "BTCUSD",
-			WaitSeconds: 5,
+			DomainCode:     constant.DomainExmoMargin,
+			CoinPare:       "BTCUSD",
+			TimeoutSeconds: 5,
 		},
 	})
 }
