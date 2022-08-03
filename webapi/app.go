@@ -1,9 +1,9 @@
 package webapi
 
 import (
+	"bitbucket.org/shatylos/trader/utils"
 	"bitbucket.org/shatylos/trader/webapi/controller"
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
 const defaultPort = "8080"
@@ -17,10 +17,7 @@ func init() {
 func StartWebApp() {
 	router.POST("/query", controller.GraphqlHandler())
 	router.GET("/", controller.PlaygroundHandler())
-	port := os.Getenv("TRADER_WEB_PORT")
-	if port == "" {
-		port = defaultPort
-	}
+	port := utils.AppConfig("TRADER_WEB_PORT", defaultPort)
 
 	if err := router.Run(":" + port); err != nil {
 		panic(err)

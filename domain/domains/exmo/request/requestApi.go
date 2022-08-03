@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha512"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 )
@@ -19,8 +19,8 @@ import (
 type ApiParams map[string]string
 
 func apiQuery(method string, params ApiParams) (map[string]interface{}, error) {
-	key := os.Getenv("TRADER_EXMO_KEY")
-	secret := os.Getenv("TRADER_EXMO_SECRET")
+	key := utils.AppConfig("TRADER_EXMO_KEY")
+	secret := utils.AppConfig("TRADER_EXMO_SECRET")
 
 	if key == "" || secret == "" {
 		return nil, utils.AppError{Message: "Exmo env variables TRADER_EXMO_KEY, TRADER_EXMO_SECRET are not set"}
@@ -43,7 +43,16 @@ func apiQuery(method string, params ApiParams) (map[string]interface{}, error) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(postContent)))
 
-	client := &http.Client{}
+	config := tls.Config{}
+	if utils.AppConfig("INSECURE_REQUEST") == "yes" {
+		config = tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &config,
+	}}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

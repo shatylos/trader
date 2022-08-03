@@ -12,7 +12,6 @@ import (
 	"bitbucket.org/shatylos/trader/webapi/helper"
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"sync"
 )
@@ -114,7 +113,7 @@ func getNumberParallelRequests() int64 {
 	if numberParallelRequests != 0 {
 		return numberParallelRequests
 	}
-	envNumParRuq := os.Getenv("TRADER_NUMBER_PARALLEL_REQUESTS")
+	envNumParRuq := utils.AppConfig("TRADER_NUMBER_PARALLEL_REQUESTS")
 	numberParallelRequests = defaultNumberParallelRequests
 	if envNumParRuq != "" {
 		intNumParRuq, err := strconv.ParseInt(envNumParRuq, 0, 8)
