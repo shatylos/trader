@@ -1,0 +1,43 @@
+version: '3'
+services:
+  goapp:
+    container_name: 'trader-go-app'
+    build: ./
+    ports:
+      - "8080:8080"
+      - "40000:40000"
+    environment:
+      DD_DB_HOST: db
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    command: /app/dlv --headless --listen=:40000 --api-version=2 exec /app/server
+    volumes:
+      - ./.env:/app/.env
+    depends_on:
+      - postgres
+      - mongo
+  postgres:
+    container_name: 'trader-postgres'
+    image: postgres:14.4-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: trader
+      POSTGRES_PASSWORD: trader
+      POSTGRES_DB: trader
+    volumes:
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+  mongo:
+    image: 'mongo'
+    container_name: 'trader-mongo'
+    environment:
+      - MONGO_INITDB_DATABASE=trader
+      - MONGO_INITDB_ROOT_USERNAME=trader
+      - MONGO_INITDB_ROOT_PASSWORD=trader
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'
