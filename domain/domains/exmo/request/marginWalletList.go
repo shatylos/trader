@@ -74,7 +74,7 @@ func mapWalletList(source map[string]interface{}) (*MarginWalletListStruct, erro
 }
 
 func parseFloat(sourceValue string) (float64, error) {
-	balanceFloat, er := strconv.ParseFloat(sourceValue, 8)
+	balanceFloat, er := strconv.ParseFloat(sourceValue, 64)
 	if er != nil {
 		return 0, er
 	}

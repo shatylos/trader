@@ -47,3 +47,30 @@ func (d *DomainExmo) GetWallet() (*structs.DomainWallet, error) {
 func (d *DomainExmo) IsDemoMode() bool {
 	return false
 }
+
+func (d *DomainExmo) LoadCandleHistory(symbol string, resolution string, from int64, to int64) ([]structs.DomainCandle, error) {
+	// No need to map symbols or resolution. We use the same symbols like exmo
+
+	candles, err := request.LoadCandleHistory(symbol, resolution, from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	candlesResult := make([]structs.DomainCandle, len(candles))
+
+	for i, candle := range candles {
+		candlesResult[i] = structs.DomainCandle{
+			Time:  candle.T / 1000,
+			High:  candle.H,
+			Low:   candle.L,
+			Open:  candle.O,
+			Close: candle.C,
+		}
+	}
+
+	return candlesResult, nil
+}
+
+func (d *DomainExmo) GetPositionList() ([]structs.DomainPosition, error) {
+	panic("Not implemented")
+}
