@@ -1,6 +1,9 @@
 package request
 
-import "encoding/json"
+import (
+	"bitbucket.org/shatylos/trader/utils"
+	"encoding/json"
+)
 
 type WalletBalance struct {
 	Equity           float64 `json:"equity"`
@@ -27,10 +30,17 @@ func GetWalletBalance(isDemo bool) (*map[string]WalletBalance, error) {
 	return mapWalletBalance(queryResp)
 }
 
-func mapWalletBalance(source map[string]interface{}) (*map[string]WalletBalance, error) {
+func mapWalletBalance(source interface{}) (*map[string]WalletBalance, error) {
 	result := map[string]WalletBalance{}
 
-	for coin, coinValues := range source {
+	sourceMap, ok := source.(map[string]interface{})
+	if ok == false {
+		return nil, utils.AppError{
+			Message: "Error parse WalletBalance response for ByBit",
+		}
+	}
+
+	for coin, coinValues := range sourceMap {
 		coinValuesBytes, er := json.Marshal(coinValues)
 		if er != nil {
 			return nil, er

@@ -22,7 +22,7 @@ type ApiParams map[string]string
 const testEndpoint = "https://api-testnet.bybit.com"
 const liveEndpoint = "https://api.bybit.com"
 
-func apiQueryGet(method string, params ApiParams, isDemo bool) (map[string]interface{}, error) {
+func apiQueryGet(method string, params ApiParams, isDemo bool) (interface{}, error) {
 	key := utils.AppConfig("TRADER_BYBIT_API_KEY")
 	secret := utils.AppConfig("TRADER_BYBIT_SECRET_API_KEY")
 
@@ -82,7 +82,7 @@ func apiQueryGet(method string, params ApiParams, isDemo bool) (map[string]inter
 		return nil, errors.New(dat["ret_msg"].(string))
 	}
 
-	return dat["result"].(map[string]interface{}), nil
+	return dat["result"].(interface{}), nil
 }
 
 func getSignature(params ApiParams, key string) string {

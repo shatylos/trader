@@ -4,6 +4,9 @@ import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
 	"bitbucket.org/shatylos/trader/domain/structs"
+	"bitbucket.org/shatylos/trader/utils"
+	"fmt"
+	"strconv"
 )
 
 type DomainBybitMargin struct {
@@ -49,28 +52,48 @@ func (d *DomainBybitMargin) IsDemoMode() bool {
 	return d.IsDemo
 }
 
-func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, from int64, to int64) ([]structs.DomainCandle, error) {
-	panic("Not implemented")
-	// No need to map symbols or resolution. We use the same symbols like exmo
+func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
 
-	//candles, err := request.LoadCandleHistory(symbol, resolution, from, to)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//candlesResult := make([]structs.DomainCandle, len(candles))
-	//
-	//for i, candle := range candles {
-	//	candlesResult[i] = structs.DomainCandle{
-	//		Time:  candle.T / 1000,
-	//		High:  candle.H,
-	//		Low:   candle.L,
-	//		Open:  candle.O,
-	//		Close: candle.C,
-	//	}
-	//}
-	//
-	//return candlesResult, nil
+	candles, err := request.GetKlineList(symbol, resolution, from, limit, d.IsDemo)
+	if err != nil {
+		return nil, err
+	}
+
+	candlesResult := make([]structs.DomainCandle, len(candles))
+
+	for i, candle := range candles {
+		high, er := strconv.ParseFloat(candle.High, 64)
+		if er != nil {
+			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.High. Source value is \"%s\"", candle.High)}
+		}
+		low, er := strconv.ParseFloat(candle.Low, 64)
+		if er != nil {
+			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Low. Source value is \"%s\"", candle.Low)}
+		}
+		open, er := strconv.ParseFloat(candle.Open, 64)
+		if er != nil {
+			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Open. Source value is \"%s\"", candle.Open)}
+		}
+		_close, er := strconv.ParseFloat(candle.Close, 64)
+		if er != nil {
+			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Close. Source value is \"%s\"", candle.Close)}
+		}
+		volume, er := strconv.ParseFloat(candle.Volume, 64)
+		if er != nil {
+			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Volume. Source value is \"%s\"", candle.Volume)}
+		}
+
+		candlesResult[i] = structs.DomainCandle{
+			Time:   int64(candle.OpenTime),
+			High:   high,
+			Low:    low,
+			Open:   open,
+			Close:  _close,
+			Volume: volume,
+		}
+	}
+
+	return candlesResult, nil
 }
 
 func (d *DomainBybitMargin) GetPositionList() ([]structs.DomainPosition, error) {

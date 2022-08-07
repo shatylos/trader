@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/exmo/request"
 	"bitbucket.org/shatylos/trader/domain/structs"
+	tradingConstant "bitbucket.org/shatylos/trader/trading/constant"
 )
 
 type DomainExmoMargin struct {
@@ -46,9 +47,8 @@ func (d *DomainExmoMargin) IsDemoMode() bool {
 	return false
 }
 
-func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, from int64, to int64) ([]structs.DomainCandle, error) {
-	// No need to map symbols or resolution. We use the same symbols like exmo
-
+func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
+	to := from + (tradingConstant.ResolToSec[resolution] * limit)
 	candles, err := request.LoadCandleHistory(symbol, resolution, from, to)
 	if err != nil {
 		return nil, err
@@ -58,11 +58,12 @@ func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, f
 
 	for i, candle := range candles {
 		candlesResult[i] = structs.DomainCandle{
-			Time:  candle.T / 1000,
-			High:  candle.H,
-			Low:   candle.L,
-			Open:  candle.O,
-			Close: candle.C,
+			Time:   candle.T / 1000,
+			High:   candle.H,
+			Low:    candle.L,
+			Open:   candle.O,
+			Close:  candle.C,
+			Volume: candle.V,
 		}
 	}
 
