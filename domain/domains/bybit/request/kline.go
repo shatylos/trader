@@ -7,15 +7,18 @@ import (
 )
 
 type Candle struct {
-	Symbol   string  `json:"symbol"`
+	Close    float64 `json:"close"`
+	High     float64 `json:"high"`
+	Id       float64 `json:"id"`
 	Interval string  `json:"interval"`
-	Open     string  `json:"open"`
-	High     string  `json:"high"`
-	Low      string  `json:"low"`
+	Low      float64 `json:"low"`
+	Open     float64 `json:"open"`
 	OpenTime float64 `json:"open_time"`
-	Close    string  `json:"close"`
-	Volume   string  `json:"volume"`
-	Turnover string  `json:"turnover"`
+	Period   string  `json:"period"`
+	StartAt  float64 `json:"start_at"`
+	Symbol   string  `json:"symbol"`
+	Turnover float64 `json:"turnover"`
+	Volume   float64 `json:"volume"`
 }
 
 func GetKlineList(symbol string, resolution string, from int64, limit int64, isDemo bool) ([]Candle, error) {
@@ -25,7 +28,7 @@ func GetKlineList(symbol string, resolution string, from int64, limit int64, isD
 	params["from"] = strconv.FormatInt(from, 10)
 	params["limit"] = strconv.FormatInt(limit, 10)
 
-	queryResp, er := apiQueryGet("/v2/public/kline/list", params, isDemo)
+	queryResp, er := apiQueryGet("/public/linear/kline", params, isDemo)
 	if er != nil {
 		return nil, er
 	}

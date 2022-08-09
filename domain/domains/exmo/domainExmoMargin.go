@@ -70,7 +70,7 @@ func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, f
 	return candlesResult, nil
 }
 
-func (d *DomainExmoMargin) GetPositionList() ([]structs.DomainPosition, error) {
+func (d *DomainExmoMargin) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
 	marginPositions, err := request.GetMarginPositionList()
 	if err != nil {
 		return nil, err
@@ -80,22 +80,18 @@ func (d *DomainExmoMargin) GetPositionList() ([]structs.DomainPosition, error) {
 
 	for i, position := range marginPositions {
 		result[i] = structs.DomainPosition{
-			Margin:          position.Margin,
-			Type:            position.Type,
-			Quantity:        position.Quantity,
-			Leverage:        position.Leverage,
-			BasePrice:       position.BasePrice,
-			Pair:            position.Pair,
-			FundingQuantity: position.FundingQuantity,
-			TakeProfit:      position.TakeProfit,
-			StopLoss:        position.StopLoss,
-			MarginCurrency:  position.MarginCurrency,
-			Roe:             position.Roe,
-			PositionId:      position.PositionId,
-			UnrealizedPnl:   position.UnrealizedPnl,
-			RealizedPnl:     position.RealizedPnl,
-			PnlCurrency:     position.PnlCurrency,
-			FundingCurrency: position.FundingCurrency,
+			EntryPrice:       position.BasePrice,
+			Leverage:         position.Leverage,
+			LiquidationPrice: position.LiquidationPrice,
+			Margin:           position.Margin,
+			Pair:             position.Pair,
+			Quantity:         position.Quantity,
+			RealizedPnl:      position.RealizedPnl,
+			StopLoss:         position.StopLoss,
+			TakeProfit:       position.TakeProfit,
+			Type:             position.Type,
+			UnrealizedPnl:    position.UnrealizedPnl,
+			Value:            position.FundingQuantity,
 		}
 	}
 

@@ -4,9 +4,6 @@ import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
 	"bitbucket.org/shatylos/trader/domain/structs"
-	"bitbucket.org/shatylos/trader/utils"
-	"fmt"
-	"strconv"
 )
 
 type DomainBybitMargin struct {
@@ -62,40 +59,44 @@ func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, 
 	candlesResult := make([]structs.DomainCandle, len(candles))
 
 	for i, candle := range candles {
-		high, er := strconv.ParseFloat(candle.High, 64)
-		if er != nil {
-			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.High. Source value is \"%s\"", candle.High)}
-		}
-		low, er := strconv.ParseFloat(candle.Low, 64)
-		if er != nil {
-			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Low. Source value is \"%s\"", candle.Low)}
-		}
-		open, er := strconv.ParseFloat(candle.Open, 64)
-		if er != nil {
-			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Open. Source value is \"%s\"", candle.Open)}
-		}
-		_close, er := strconv.ParseFloat(candle.Close, 64)
-		if er != nil {
-			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Close. Source value is \"%s\"", candle.Close)}
-		}
-		volume, er := strconv.ParseFloat(candle.Volume, 64)
-		if er != nil {
-			return nil, utils.AppError{Message: fmt.Sprintf("Can not parse float value in candle.Volume. Source value is \"%s\"", candle.Volume)}
-		}
-
 		candlesResult[i] = structs.DomainCandle{
 			Time:   int64(candle.OpenTime),
-			High:   high,
-			Low:    low,
-			Open:   open,
-			Close:  _close,
-			Volume: volume,
+			High:   candle.High,
+			Low:    candle.Low,
+			Open:   candle.Open,
+			Close:  candle.Close,
+			Volume: candle.Volume,
 		}
 	}
 
 	return candlesResult, nil
 }
 
-func (d *DomainBybitMargin) GetPositionList() ([]structs.DomainPosition, error) {
-	panic("Not implemented")
+func (d *DomainBybitMargin) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
+
+	positions, err := request.GetPositionList(coinPare, d.IsDemo)
+	if err != nil {
+		return nil, err
+	}
+	resultPositions := make([]structs.DomainPosition, len(positions))
+
+	for i, position := range positions {
+		resultPosition := structs.DomainPosition{
+			EntryPrice:       position.EntryPrice,
+			Leverage:         int64(position.Leverage),
+			LiquidationPrice: position.BustPrice,
+			Margin:           position.PositionMargin,
+			Pair:             position.Symbol,
+			Quantity:         position.Size,
+			RealizedPnl:      position.RealisedPnl,
+			StopLoss:         position.StopLoss,
+			TakeProfit:       position.TakeProfit,
+			Type:             position.Side,
+			UnrealizedPnl:    position.UnrealisedPnl,
+			Value:            position.PositionValue,
+		}
+		resultPositions[i] = resultPosition
+	}
+
+	return resultPositions, nil
 }
