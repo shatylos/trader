@@ -17,12 +17,41 @@ import (
 	"time"
 )
 
-type ApiParams map[string]string
+type ApiParams map[string]interface{}
 
 const testEndpoint = "https://api-testnet.bybit.com"
 const liveEndpoint = "https://api.bybit.com"
 
-func apiQueryGet(method string, params ApiParams, isDemo bool) (interface{}, error) {
+func apiQueryGet(uri string, params ApiParams, isDemo bool) (interface{}, error) {
+	return apiQuery(uri, params, isDemo, "GET",
+		func(params ApiParams) (string, *bytes.Buffer, error) {
+			queryParams := url.Values{}
+			for key, value := range params {
+				v, ok := value.(string)
+				if !ok {
+					return "", nil, utils.AppError{Message: "ByBit request parameter is not a string"}
+				}
+				queryParams.Add(key, v)
+			}
+			queryString := "?" + queryParams.Encode()
+			buffer := bytes.NewBuffer(nil)
+			return queryString, buffer, nil
+		})
+}
+
+func apiQueryPost(uri string, params ApiParams, isDemo bool) (interface{}, error) {
+	return apiQuery(uri, params, isDemo, "POST",
+		func(params ApiParams) (string, *bytes.Buffer, error) {
+			postContent, err := json.Marshal(params)
+			if err != nil {
+				return "", nil, err
+			}
+			buffer := bytes.NewBuffer(postContent)
+			return "", buffer, nil
+		})
+}
+
+func apiQuery(uri string, params ApiParams, isDemo bool, method string, getRequestData func(params ApiParams) (string, *bytes.Buffer, error)) (interface{}, error) {
 	key := utils.AppConfig("TRADER_BYBIT_API_KEY")
 	secret := utils.AppConfig("TRADER_BYBIT_SECRET_API_KEY")
 
@@ -34,18 +63,17 @@ func apiQueryGet(method string, params ApiParams, isDemo bool) (interface{}, err
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())
 	params["sign"] = getSignature(params, secret)
 
-	queryParams := url.Values{}
-	for key, value := range params {
-		queryParams.Add(key, value)
+	queryString, requestBody, err := getRequestData(params)
+	if err != nil {
+		return nil, err
 	}
-	queryString := queryParams.Encode()
 
 	endpoint := liveEndpoint
 	if isDemo {
 		endpoint = testEndpoint
 	}
-
-	req, _ := http.NewRequest("GET", endpoint+method+"?"+queryString, bytes.NewBuffer(nil))
+	req, _ := http.NewRequest(method, endpoint+uri+queryString, requestBody)
+	req.Header.Add("Content-Type", "application/json")
 
 	config := tls.Config{}
 	if utils.AppConfig("INSECURE_REQUEST") == "yes" {
@@ -95,7 +123,17 @@ func getSignature(params ApiParams, key string) string {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		_val += k + "=" + params[k] + "&"
+		strValue, isString := params[k].(string)
+		if isString {
+			_val += k + "=" + strValue + "&"
+		} else {
+			boolValue, _ := params[k].(bool)
+			if boolValue {
+				_val += k + "=true&"
+			} else {
+				_val += k + "=false&"
+			}
+		}
 	}
 	_val = _val[0 : len(_val)-1]
 	h := hmac.New(sha256.New, []byte(key))

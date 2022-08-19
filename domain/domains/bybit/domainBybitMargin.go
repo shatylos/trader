@@ -100,3 +100,27 @@ func (d *DomainBybitMargin) GetPositionList(coinPare string) ([]structs.DomainPo
 
 	return resultPositions, nil
 }
+
+func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
+
+	orderRequest := request.OrderRequest{
+		CloseOnTrigger: false,
+		OrderLinkId:    positionRequest.PositionId,
+		OrderType:      positionRequest.Type,
+		Price:          positionRequest.Price,
+		Qty:            positionRequest.Qty,
+		ReduceOnly:     false,
+		Side:           positionRequest.Side,
+		StopLoss:       positionRequest.StopLoss,
+		Symbol:         positionRequest.Symbol,
+		TakeProfit:     positionRequest.TakeProfit,
+		TimeInForce:    "FillOrKill",
+	}
+
+	order, err := request.CreateOrder(orderRequest, d.IsDemo)
+	if err != nil {
+		return "", err
+	}
+
+	return order.OrderId, nil
+}

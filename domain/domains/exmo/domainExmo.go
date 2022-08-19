@@ -75,3 +75,7 @@ func (d *DomainExmo) LoadCandleHistory(symbol string, resolution string, from in
 func (d *DomainExmo) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
 	panic("Not implemented")
 }
+
+func (d *DomainExmo) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
+	panic("Not implemented")
+}

@@ -97,3 +97,7 @@ func (d *DomainExmoMargin) GetPositionList(coinPare string) ([]structs.DomainPos
 
 	return result, nil
 }
+
+func (d *DomainExmoMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
+	panic("Not implemented")
+}
