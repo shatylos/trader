@@ -7,6 +7,7 @@ import (
 	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
 	"bitbucket.org/shatylos/trader/trading/services"
 	"bitbucket.org/shatylos/trader/utils"
+	"fmt"
 	"time"
 )
 
@@ -98,15 +99,17 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 
 	if doOpenBuy {
 		if currentCost < avgCost-avgCostShift {
-			println("Add position to buy")
+			tp := currentCost + s.TakeProfitSize
+			sl := currentCost - s.StopLossSize
+			println(fmt.Sprintf("Add position to buy. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
-				Leverage:   s.Leverage,                     //1,         //         int64
-				Qty:        s.Qty,                          //0.005,     //              float64
-				Side:       "Buy",                          //             string //@TODO move the value to a constant
-				TakeProfit: currentCost + s.TakeProfitSize, //23600,     //       float64
-				StopLoss:   currentCost - s.StopLossSize,   //22800,     //         float64
-				Symbol:     s.CoinPare,                     //"BTCUSDT", //           string
-				Type:       "Market",                       //@TODO move the value to a constant
+				Leverage:   s.Leverage, //1,         //         int64
+				Qty:        s.Qty,      //0.005,     //              float64
+				Side:       "Buy",      //             string //@TODO move the value to a constant
+				TakeProfit: tp,         //23600,     //       float64
+				StopLoss:   sl,         //22800,     //         float64
+				Symbol:     s.CoinPare, //"BTCUSDT", //           string
+				Type:       "Market",   //@TODO move the value to a constant
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
@@ -114,15 +117,17 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 
 	if doOpenSell {
 		if currentCost > avgCost+avgCostShift {
-			println("Add position to sell")
+			tp := currentCost - s.TakeProfitSize
+			sl := currentCost + s.StopLossSize
+			println(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
-				Leverage:   s.Leverage,                     //1,         //         int64
-				Qty:        s.Qty,                          //0.005,     //              float64
-				Side:       "Sell",                         //             string //@TODO move the value to a constant
-				TakeProfit: currentCost - s.TakeProfitSize, //23600,     //       float64
-				StopLoss:   currentCost + s.StopLossSize,   //22800,     //         float64
-				Symbol:     s.CoinPare,                     //"BTCUSDT", //           string
-				Type:       "Market",                       //@TODO move the value to a constant
+				Leverage:   s.Leverage, //1,         //         int64
+				Qty:        s.Qty,      //0.005,     //              float64
+				Side:       "Sell",     //             string //@TODO move the value to a constant
+				TakeProfit: tp,         //23600,     //       float64
+				StopLoss:   sl,         //22800,     //         float64
+				Symbol:     s.CoinPare, //"BTCUSDT", //           string
+				Type:       "Market",   //@TODO move the value to a constant
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
