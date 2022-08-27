@@ -28,9 +28,6 @@ func (s *Setup) SetStatus(status int64) {
 func (s *Setup) NextStep() {
 	strategy := s.Strategy
 
-	println(fmt.Sprintf("s.errorCount start: %d", s.errorCount))
-	println(fmt.Sprintf("MaxErrorsCount start: %d", MaxErrorsCount))
-
 	if !strategy.IsInit() {
 		err := strategy.Initialise()
 		if err != nil {
