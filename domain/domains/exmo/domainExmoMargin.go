@@ -80,18 +80,15 @@ func (d *DomainExmoMargin) GetPositionList(coinPare string) ([]structs.DomainPos
 
 	for i, position := range marginPositions {
 		result[i] = structs.DomainPosition{
-			EntryPrice:       position.BasePrice,
-			Leverage:         position.Leverage,
-			LiquidationPrice: position.LiquidationPrice,
-			Margin:           position.Margin,
-			Pair:             position.Pair,
-			Quantity:         position.Quantity,
-			RealizedPnl:      position.RealizedPnl,
-			StopLoss:         position.StopLoss,
-			TakeProfit:       position.TakeProfit,
-			Type:             position.Type,
-			UnrealizedPnl:    position.UnrealizedPnl,
-			Value:            position.FundingQuantity,
+			Price:         position.BasePrice,
+			Leverage:      position.Leverage,
+			Symbol:        position.Pair,
+			Qty:           position.Quantity,
+			RealizedPnl:   position.RealizedPnl,
+			StopLoss:      position.StopLoss,
+			TakeProfit:    position.TakeProfit,
+			Type:          position.Type,
+			UnrealizedPnl: position.UnrealizedPnl,
 		}
 	}
 

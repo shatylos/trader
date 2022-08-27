@@ -82,18 +82,15 @@ func (d *DomainBybitMargin) GetPositionList(coinPare string) ([]structs.DomainPo
 
 	for i, position := range positions {
 		resultPosition := structs.DomainPosition{
-			EntryPrice:       position.EntryPrice,
-			Leverage:         int64(position.Leverage),
-			LiquidationPrice: position.BustPrice,
-			Margin:           position.PositionMargin,
-			Pair:             position.Symbol,
-			Quantity:         position.Size,
-			RealizedPnl:      position.RealisedPnl,
-			StopLoss:         position.StopLoss,
-			TakeProfit:       position.TakeProfit,
-			Type:             position.Side,
-			UnrealizedPnl:    position.UnrealisedPnl,
-			Value:            position.PositionValue,
+			Price:         position.EntryPrice,
+			Leverage:      int64(position.Leverage),
+			Symbol:        position.Symbol,
+			Qty:           position.Size,
+			RealizedPnl:   position.RealisedPnl,
+			StopLoss:      position.StopLoss,
+			TakeProfit:    position.TakeProfit,
+			Side:          position.Side,
+			UnrealizedPnl: position.UnrealisedPnl,
 		}
 		resultPositions[i] = resultPosition
 	}
