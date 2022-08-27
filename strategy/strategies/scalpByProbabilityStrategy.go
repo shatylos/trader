@@ -7,7 +7,6 @@ import (
 	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
 	"bitbucket.org/shatylos/trader/trading/services"
 	"bitbucket.org/shatylos/trader/utils"
-	"fmt"
 	"time"
 )
 
@@ -96,8 +95,6 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		return err
 	}
 	avgCostShift := s.AvgCostShift
-
-	println(fmt.Sprintf("Current cost: %d, avg cost: %d", currentCost, avgCost))
 
 	if doOpenBuy {
 		if currentCost < avgCost-avgCostShift {
