@@ -29,6 +29,7 @@ func (s *Setup) NextStep() {
 	strategy := s.Strategy
 
 	println(fmt.Sprintf("s.errorCount start: %d", s.errorCount))
+	println(fmt.Sprintf("MaxErrorsCount start: %d", MaxErrorsCount))
 
 	if !strategy.IsInit() {
 		err := strategy.Initialise()
@@ -38,6 +39,8 @@ func (s *Setup) NextStep() {
 			println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 			if s.errorCount >= MaxErrorsCount {
 				s.SetStatus(StatusError)
+			} else {
+				s.SetStatus(StatusReadyForNext)
 			}
 			return
 		}
@@ -50,6 +53,8 @@ func (s *Setup) NextStep() {
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		if s.errorCount >= MaxErrorsCount {
 			s.SetStatus(StatusError)
+		} else {
+			s.SetStatus(StatusReadyForNext)
 		}
 		return
 	}
@@ -60,6 +65,8 @@ func (s *Setup) NextStep() {
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		if s.errorCount >= MaxErrorsCount {
 			s.SetStatus(StatusError)
+		} else {
+			s.SetStatus(StatusReadyForNext)
 		}
 		return
 	}
@@ -70,6 +77,8 @@ func (s *Setup) NextStep() {
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		if s.errorCount >= MaxErrorsCount {
 			s.SetStatus(StatusError)
+		} else {
+			s.SetStatus(StatusReadyForNext)
 		}
 		return
 	}
