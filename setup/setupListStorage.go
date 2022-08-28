@@ -24,11 +24,11 @@ func setupListInit() {
 			Resolution:       tradingConstant.Resol30m,
 			CandlesToAnalyse: 7,
 			TimeoutSeconds:   10,
-			AvgCostShift:     50,
+			AvgCostShift:     30,
 			Leverage:         1,
 			Qty:              0.005,
-			TakeProfitSize:   300,
-			StopLossSize:     900,
+			TakeProfitSize:   200,
+			StopLossSize:     600,
 		},
 	})
 }
