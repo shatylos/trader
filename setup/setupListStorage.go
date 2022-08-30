@@ -24,7 +24,7 @@ func setupListInit() {
 			Resolution:       tradingConstant.Resol30m,
 			CandlesToAnalyse: 7,
 			TimeoutSeconds:   10,
-			AvgCostShift:     30,
+			AvgCostShift:     100,
 			Leverage:         1,
 			Qty:              0.05,
 			TakeProfitSize:   400,
