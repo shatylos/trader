@@ -53,9 +53,6 @@ func (s *ScalpByProbabilityStrategy) GetData() error {
 		return err
 	}
 	positions = _positions
-	if len(positions) >= 2 {
-		return nil
-	}
 
 	now := time.Now()
 	to := now.Unix()
@@ -74,19 +71,6 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	doOpenBuy := true
 	doOpenSell := true
 
-	for _, position := range positions {
-		if position.Side == tradeConst.SideBuy {
-			doOpenBuy = false
-		}
-		if position.Side == tradeConst.SideSell {
-			doOpenSell = false
-		}
-	}
-
-	if !doOpenBuy && !doOpenSell {
-		return nil
-	}
-
 	avgCost, err := s.getAverageCost()
 	if err != nil {
 		return err
@@ -96,6 +80,19 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		return err
 	}
 	avgCostShift := s.AvgCostShift
+
+	for _, position := range positions {
+		if position.Side == tradeConst.SideBuy && position.Price-avgCostShift < currentCost {
+			doOpenBuy = false
+		}
+		if position.Side == tradeConst.SideSell && position.Price+avgCostShift > currentCost {
+			doOpenSell = false
+		}
+	}
+
+	if !doOpenBuy && !doOpenSell {
+		return nil
+	}
 
 	if doOpenBuy {
 		if currentCost < avgCost-avgCostShift {
