@@ -82,10 +82,10 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	avgCostShift := s.AvgCostShift
 
 	for _, position := range positions {
-		if position.Side == tradeConst.SideBuy && position.Price-avgCostShift < currentCost {
+		if position.Side == tradeConst.SideBuy {
 			doOpenBuy = false
 		}
-		if position.Side == tradeConst.SideSell && position.Price+avgCostShift > currentCost {
+		if position.Side == tradeConst.SideSell {
 			doOpenSell = false
 		}
 	}
