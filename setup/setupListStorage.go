@@ -22,7 +22,7 @@ func setupListInit() {
 			DomainCode:       constant.DomainBybitMarginDemo,
 			CoinPare:         "BTCUSDT",
 			Resolution:       tradingConstant.Resol30m,
-			CandlesToAnalyse: 15,
+			CandlesToAnalyse: 10,
 			TimeoutSeconds:   5,
 			AvgCostShift:     70,
 			Leverage:         1,
