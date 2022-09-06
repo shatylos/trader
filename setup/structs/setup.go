@@ -4,6 +4,7 @@ import (
 	strategyInterface "bitbucket.org/shatylos/trader/strategy/interface"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"time"
 )
 
 const StatusReadyForNext = 0
@@ -34,11 +35,8 @@ func (s *Setup) NextStep() {
 			utils.LogError(err.Error())
 			s.errorCount++
 			println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-			if s.errorCount >= MaxErrorsCount {
-				s.SetStatus(StatusError)
-			} else {
-				s.SetStatus(StatusReadyForNext)
-			}
+			time.Sleep(time.Second * time.Duration(s.errorCount))
+			s.SetStatus(StatusReadyForNext)
 			return
 		}
 	}
@@ -48,11 +46,8 @@ func (s *Setup) NextStep() {
 		utils.LogError(err.Error())
 		s.errorCount++
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-		if s.errorCount >= MaxErrorsCount {
-			s.SetStatus(StatusError)
-		} else {
-			s.SetStatus(StatusReadyForNext)
-		}
+		time.Sleep(time.Second * time.Duration(s.errorCount))
+		s.SetStatus(StatusReadyForNext)
 		return
 	}
 	err = strategy.Analyse()
@@ -60,11 +55,8 @@ func (s *Setup) NextStep() {
 		utils.LogError(err.Error())
 		s.errorCount++
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-		if s.errorCount >= MaxErrorsCount {
-			s.SetStatus(StatusError)
-		} else {
-			s.SetStatus(StatusReadyForNext)
-		}
+		time.Sleep(time.Second * time.Duration(s.errorCount))
+		s.SetStatus(StatusReadyForNext)
 		return
 	}
 	err = strategy.DoAction()
@@ -72,11 +64,8 @@ func (s *Setup) NextStep() {
 		utils.LogError(err.Error())
 		s.errorCount++
 		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-		if s.errorCount >= MaxErrorsCount {
-			s.SetStatus(StatusError)
-		} else {
-			s.SetStatus(StatusReadyForNext)
-		}
+		time.Sleep(time.Second * time.Duration(s.errorCount))
+		s.SetStatus(StatusReadyForNext)
 		return
 	}
 
