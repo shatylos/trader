@@ -18,6 +18,8 @@ type OrderRequest struct {
 	TakeProfit     float64 //			not mandatory
 	StopLoss       float64 //			not mandatory
 	OrderLinkId    string  //			not mandatory
+	SlTriggerBy    string  //			not mandatory
+	TpTriggerBy    string  //			not mandatory
 }
 
 type OrderResponse struct {
@@ -68,6 +70,12 @@ func CreateOrder(orderRequest OrderRequest, isDemo bool) (*OrderResponse, error)
 	}
 	if orderRequest.OrderLinkId != "" {
 		params["order_link_id"] = orderRequest.OrderLinkId
+	}
+	if orderRequest.TpTriggerBy != "" {
+		params["tp_trigger_by"] = orderRequest.TpTriggerBy
+	}
+	if orderRequest.SlTriggerBy != "" {
+		params["sl_trigger_by"] = orderRequest.SlTriggerBy
 	}
 
 	queryResp, err := apiQueryPost("/private/linear/order/create", params, isDemo)

@@ -112,6 +112,8 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 		Symbol:         positionRequest.Symbol,
 		TakeProfit:     positionRequest.TakeProfit,
 		TimeInForce:    "FillOrKill",
+		SlTriggerBy:    "IndexPrice", // LastPrice IndexPrice MarkPrice
+		TpTriggerBy:    "IndexPrice",
 	}
 
 	order, err := request.CreateOrder(orderRequest, d.IsDemo)

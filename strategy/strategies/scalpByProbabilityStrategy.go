@@ -106,7 +106,8 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 				TakeProfit: tp,         //23600,     //       float64
 				StopLoss:   sl,         //22800,     //         float64
 				Symbol:     s.CoinPare, //"BTCUSDT", //           string
-				Type:       "Market",   //@TODO move the value to a constant
+				Type:       "Limit",    //@TODO move the value to a constant
+				Price:      currentCost,
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
@@ -124,7 +125,8 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 				TakeProfit: tp,         //23600,     //       float64
 				StopLoss:   sl,         //22800,     //         float64
 				Symbol:     s.CoinPare, //"BTCUSDT", //           string
-				Type:       "Market",   //@TODO move the value to a constant
+				Type:       "Limit",    //@TODO move the value to a constant
+				Price:      currentCost,
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
