@@ -12,17 +12,18 @@ import (
 )
 
 type ScalpByProbabilityStrategy struct {
-	AvgCostShift     float64
-	CandlesToAnalyse int64
-	CoinPare         string
-	DomainCode       string
-	isInit           bool
-	Resolution       string
-	TimeoutSeconds   time.Duration
-	Leverage         int64
-	Qty              float64
-	TakeProfitSize   float64
-	StopLossSize     float64
+	AvgCostShift        float64
+	CandlesToAnalyse    int64
+	CoinPare            string
+	CostDiffToStopTrade float64
+	DomainCode          string
+	isInit              bool
+	Leverage            int64
+	Qty                 float64
+	Resolution          string
+	StopLossSize        float64
+	TakeProfitSize      float64
+	TimeoutSeconds      time.Duration
 }
 
 var candles []structs.DomainCandle
@@ -79,6 +80,8 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	if err != nil {
 		return err
 	}
+	costDiff := s.getCostDiff()
+
 	avgCostShift := s.AvgCostShift
 
 	for _, position := range positions {
@@ -95,7 +98,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	}
 
 	if doOpenBuy {
-		if currentCost < avgCost-avgCostShift {
+		if currentCost < avgCost-avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost + s.TakeProfitSize
 			sl := currentCost - s.StopLossSize
 			println(fmt.Sprintf("Add position to buy. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
@@ -114,7 +117,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	}
 
 	if doOpenSell {
-		if currentCost > avgCost+avgCostShift {
+		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost - s.TakeProfitSize
 			sl := currentCost + s.StopLossSize
 			println(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
@@ -175,4 +178,20 @@ func (s *ScalpByProbabilityStrategy) getCurrentCost() (float64, error) {
 		}
 	}
 	return candles[0].Close, nil
+}
+
+func (s *ScalpByProbabilityStrategy) getCostDiff() float64 {
+	minCost := 0.0
+	maxCost := 0.0
+
+	for _, candle := range candles {
+		if candle.High > maxCost {
+			maxCost = candle.High
+		}
+		if candle.Low < minCost || minCost == 0.0 {
+			minCost = candle.Low
+		}
+	}
+
+	return maxCost - minCost
 }

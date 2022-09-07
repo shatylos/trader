@@ -19,16 +19,17 @@ func setupListInit() {
 
 	setupList = append(setupList, &setupStructs.Setup{
 		Strategy: &strategies.ScalpByProbabilityStrategy{
-			DomainCode:       constant.DomainBybitMarginDemo,
-			CoinPare:         "BTCUSDT",
-			Resolution:       tradingConstant.Resol30m,
-			CandlesToAnalyse: 10,
-			TimeoutSeconds:   5,
-			AvgCostShift:     70,
-			Leverage:         1,
-			Qty:              0.05,
-			TakeProfitSize:   200,
-			StopLossSize:     600,
+			DomainCode:          constant.DomainBybitMarginDemo,
+			CoinPare:            "BTCUSDT",
+			Resolution:          tradingConstant.Resol30m,
+			CandlesToAnalyse:    10,
+			TimeoutSeconds:      5,
+			CostDiffToStopTrade: 800,
+			AvgCostShift:        70,
+			Leverage:            1,
+			Qty:                 0.05,
+			TakeProfitSize:      200,
+			StopLossSize:        600,
 		},
 	})
 }
