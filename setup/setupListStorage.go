@@ -25,10 +25,10 @@ func setupListInit() {
 			CandlesToAnalyse:    10,
 			TimeoutSeconds:      5,
 			CostDiffToStopTrade: 800,
-			AvgCostShift:        70,
+			AvgCostShift:        50,
 			Leverage:            1,
 			Qty:                 0.05,
-			TakeProfitSize:      200,
+			TakeProfitSize:      150,
 			StopLossSize:        600,
 		},
 	})
