@@ -34,7 +34,7 @@ func (s *Setup) NextStep() {
 		if err != nil {
 			utils.LogError(err.Error())
 			s.errorCount++
-			println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+			utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 			time.Sleep(time.Second * time.Duration(s.errorCount))
 			s.SetStatus(StatusReadyForNext)
 			return
@@ -45,7 +45,7 @@ func (s *Setup) NextStep() {
 	if err != nil {
 		utils.LogError(err.Error())
 		s.errorCount++
-		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+		utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		time.Sleep(time.Second * time.Duration(s.errorCount))
 		s.SetStatus(StatusReadyForNext)
 		return
@@ -54,7 +54,7 @@ func (s *Setup) NextStep() {
 	if err != nil {
 		utils.LogError(err.Error())
 		s.errorCount++
-		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+		utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		time.Sleep(time.Second * time.Duration(s.errorCount))
 		s.SetStatus(StatusReadyForNext)
 		return
@@ -63,7 +63,7 @@ func (s *Setup) NextStep() {
 	if err != nil {
 		utils.LogError(err.Error())
 		s.errorCount++
-		println(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+		utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		time.Sleep(time.Second * time.Duration(s.errorCount))
 		s.SetStatus(StatusReadyForNext)
 		return

@@ -101,7 +101,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if currentCost < avgCost-avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost + s.TakeProfitSize
 			sl := currentCost - s.StopLossSize
-			println(fmt.Sprintf("Add position to buy. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
+			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:   s.Leverage, //1,         //         int64
 				Qty:        s.Qty,      //0.005,     //              float64
@@ -120,7 +120,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost - s.TakeProfitSize
 			sl := currentCost + s.StopLossSize
-			println(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
+			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:   s.Leverage, //1,         //         int64
 				Qty:        s.Qty,      //0.005,     //              float64
@@ -145,7 +145,7 @@ func (s *ScalpByProbabilityStrategy) DoAction() error {
 		if err != nil {
 			return err
 		}
-		println("Position id:", positionId)
+		utils.LogSuccess(fmt.Sprintf("Position id: %s", positionId))
 	}
 	positionsToOpen = make([]structs.DomainPositionRequest, 0)
 	return nil

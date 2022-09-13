@@ -120,7 +120,7 @@ func getNumberParallelRequests() int64 {
 		if err == nil {
 			numberParallelRequests = intNumParRuq
 		} else {
-			println(fmt.Sprintf("Environment variable TRADER_NUMBER_PARALLEL_REQUESTS set not correctly. Use default value %d", defaultNumberParallelRequests))
+			utils.LogError(fmt.Sprintf("Environment variable TRADER_NUMBER_PARALLEL_REQUESTS set not correctly. Use default value %d", defaultNumberParallelRequests))
 		}
 	}
 	return numberParallelRequests
