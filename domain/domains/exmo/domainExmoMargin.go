@@ -70,6 +70,10 @@ func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, f
 	return candlesResult, nil
 }
 
+func (d *DomainExmoMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
+	panic("not implemented")
+}
+
 func (d *DomainExmoMargin) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
 	marginPositions, err := request.GetMarginPositionList()
 	if err != nil {
@@ -96,5 +100,9 @@ func (d *DomainExmoMargin) GetPositionList(coinPare string) ([]structs.DomainPos
 }
 
 func (d *DomainExmoMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
+	panic("Not implemented")
+}
+
+func (d *DomainExmoMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
 	panic("Not implemented")
 }

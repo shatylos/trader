@@ -86,6 +86,42 @@ func CreateOrder(orderRequest OrderRequest, isDemo bool) (*OrderResponse, error)
 	return mapOrderResponse(queryResp)
 }
 
+func GetOrderList(coinPare string, status string, isDemo bool) ([]*OrderResponse, error) {
+	params := make(ApiParams, 0)
+	params["symbol"] = coinPare
+	params["order_status"] = status
+	orders := make([]*OrderResponse, 0)
+
+	queryResp, er := apiQueryGet("/private/linear/order/list", params, isDemo)
+	if er != nil {
+		return nil, er
+	}
+
+	queryRespMap, ok := queryResp.(map[string]interface{})
+	if !ok {
+		return nil, utils.AppError{Message: "Can not parse order list query response"}
+	}
+
+	if queryRespMap["data"] == nil {
+		return orders, nil
+	}
+
+	queryRespData, ok := queryRespMap["data"].([]interface{})
+	if !ok {
+		return nil, utils.AppError{Message: "Can not parse order list data values"}
+	}
+
+	for _, queryRespOrderItem := range queryRespData {
+		order, err := mapOrderResponse(queryRespOrderItem)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 func mapOrderResponse(queryResp interface{}) (*OrderResponse, error) {
 
 	orderResponseBytes, err := json.Marshal(queryResp)

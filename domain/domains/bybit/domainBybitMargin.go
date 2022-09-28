@@ -72,6 +72,34 @@ func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, 
 	return candlesResult, nil
 }
 
+func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
+	orders, err := request.GetOrderList(coinPare, "New", d.IsDemo)
+	if err != nil {
+		return nil, err
+	}
+
+	domainOrders := make([]structs.DomainOrder, len(orders))
+
+	for key, order := range orders {
+		domainOrder := structs.DomainOrder{
+			CreatedTime: order.CreatedTime,
+			OrderId:     order.OrderId,
+			OrderStatus: order.OrderStatus,
+			OrderType:   order.OrderType,
+			Price:       order.Price,
+			Qty:         order.Qty,
+			ReduceOnly:  order.ReduceOnly,
+			Side:        order.Side,
+			Symbol:      order.Symbol,
+			TimeInForce: order.TimeInForce,
+			UpdatedTime: order.UpdatedTime,
+		}
+		domainOrders[key] = domainOrder
+	}
+
+	return domainOrders, nil
+}
+
 func (d *DomainBybitMargin) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
 
 	positions, err := request.GetPositionList(coinPare, d.IsDemo)
@@ -106,17 +134,38 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 		OrderType:      positionRequest.Type,
 		Price:          positionRequest.Price,
 		Qty:            positionRequest.Qty,
-		ReduceOnly:     false,
+		ReduceOnly:     positionRequest.ReduceOnly, // false,
 		Side:           positionRequest.Side,
 		StopLoss:       positionRequest.StopLoss,
 		Symbol:         positionRequest.Symbol,
 		TakeProfit:     positionRequest.TakeProfit,
-		TimeInForce:    "FillOrKill",
-		SlTriggerBy:    "IndexPrice", // LastPrice IndexPrice MarkPrice
-		TpTriggerBy:    "IndexPrice",
+		TimeInForce:    positionRequest.TimeInForce, // "FillOrKill", // FillOrKill GoodTillCancel ImmediateOrCancel PostOnly
+		SlTriggerBy:    "LastPrice",                 // LastPrice IndexPrice MarkPrice
+		TpTriggerBy:    "LastPrice",
 	}
 
 	order, err := request.CreateOrder(orderRequest, d.IsDemo)
+	if err != nil {
+		return "", err
+	}
+
+	return order.OrderId, nil
+}
+
+func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
+
+	domainOrderRequest := request.OrderRequest{
+		CloseOnTrigger: false,
+		OrderType:      orderRequest.Type,
+		Price:          orderRequest.Price,
+		Qty:            orderRequest.Qty,
+		ReduceOnly:     orderRequest.ReduceOnly,
+		Side:           orderRequest.Side,
+		Symbol:         orderRequest.Symbol,
+		TimeInForce:    orderRequest.TimeInForce,
+	}
+
+	order, err := request.CreateOrder(domainOrderRequest, d.IsDemo)
 	if err != nil {
 		return "", err
 	}

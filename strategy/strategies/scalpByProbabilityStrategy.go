@@ -27,7 +27,9 @@ type ScalpByProbabilityStrategy struct {
 }
 
 var candles []structs.DomainCandle
+var orders []structs.DomainOrder
 var positions []structs.DomainPosition
+var ordersToOpen []structs.DomainOrderRequest
 var positionsToOpen []structs.DomainPositionRequest
 
 func (s *ScalpByProbabilityStrategy) IsInit() bool {
@@ -55,6 +57,12 @@ func (s *ScalpByProbabilityStrategy) GetData() error {
 	}
 	positions = _positions
 
+	_orders, err := services.GetOpenOrderList(s.DomainCode, s.CoinPare)
+	if err != nil {
+		return err
+	}
+	orders = _orders
+
 	now := time.Now()
 	to := now.Unix()
 	from := to - (tradeConst.ResolToSec[s.Resolution] * s.CandlesToAnalyse)
@@ -69,8 +77,12 @@ func (s *ScalpByProbabilityStrategy) GetData() error {
 
 func (s *ScalpByProbabilityStrategy) Analyse() error {
 
-	doOpenBuy := true
-	doOpenSell := true
+	buyPositionExists := false
+	sellPositionExists := false
+	buyOrderTPExists := false
+	sellOrderTPExists := false
+	buyPositionPrice := 0.0
+	sellPositionPrice := 0.0
 
 	avgCost, err := s.getAverageCost()
 	if err != nil {
@@ -86,50 +98,90 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 
 	for _, position := range positions {
 		if position.Side == tradeConst.SideBuy {
-			doOpenBuy = false
+			buyPositionExists = true
+			buyPositionPrice = position.Price
 		}
 		if position.Side == tradeConst.SideSell {
-			doOpenSell = false
+			sellPositionExists = true
+			sellPositionPrice = position.Price
 		}
 	}
 
-	if !doOpenBuy && !doOpenSell {
-		return nil
+	for _, order := range orders {
+		if order.Side == tradeConst.SideBuy && order.OrderType == "Limit" && order.ReduceOnly {
+			buyOrderTPExists = true
+		}
+		if order.Side == tradeConst.SideSell && order.OrderType == "Limit" && order.ReduceOnly {
+			sellOrderTPExists = true
+		}
 	}
 
-	if doOpenBuy {
+	if buyPositionExists {
+		if !sellOrderTPExists {
+			// do open sell TP order
+			tpPrice := buyPositionPrice + s.TakeProfitSize
+			utils.LogInfo(fmt.Sprintf("Add limit order to sell position (as TP). Position cost: %f, TP: %f", buyPositionPrice, tpPrice))
+			orderToOpen := structs.DomainOrderRequest{
+				Price:       tpPrice,
+				Qty:         s.Qty, //
+				ReduceOnly:  true,
+				Side:        "Sell", // @TODO move the value to a constant
+				Symbol:      s.CoinPare,
+				TimeInForce: "GoodTillCancel",
+				Type:        "Limit", // @TODO move the value to a constant
+			}
+			ordersToOpen = append(ordersToOpen, orderToOpen)
+		}
+	} else {
 		if currentCost < avgCost-avgCostShift && costDiff < s.CostDiffToStopTrade {
-			tp := currentCost + s.TakeProfitSize
 			sl := currentCost - s.StopLossSize
-			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
+			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f", currentCost, sl))
 			positionToAdd := structs.DomainPositionRequest{
-				Leverage:   s.Leverage, //1,         //         int64
-				Qty:        s.Qty,      //0.005,     //              float64
-				Side:       "Buy",      //             string //@TODO move the value to a constant
-				TakeProfit: tp,         //23600,     //       float64
-				StopLoss:   sl,         //22800,     //         float64
-				Symbol:     s.CoinPare, //"BTCUSDT", //           string
-				Type:       "Limit",    //@TODO move the value to a constant
-				Price:      currentCost,
+				Leverage:    s.Leverage, //
+				Price:       currentCost,
+				Qty:         s.Qty, //
+				ReduceOnly:  false,
+				Side:        "Buy", // @TODO move the value to a constant
+				StopLoss:    sl,
+				Symbol:      s.CoinPare,
+				TimeInForce: "FillOrKill",
+				Type:        "Limit", // @TODO move the value to a constant
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
 	}
 
-	if doOpenSell {
+	if sellPositionExists {
+		if !buyOrderTPExists {
+			// do open but TP order
+			tpPrice := sellPositionPrice - s.TakeProfitSize
+			utils.LogInfo(fmt.Sprintf("Add limit order to buy position (as TP). Position cost: %f, TP: %f", sellPositionPrice, tpPrice))
+			orderToOpen := structs.DomainOrderRequest{
+				Price:       tpPrice,
+				Qty:         s.Qty, //
+				ReduceOnly:  true,
+				Side:        "Buy", // @TODO move the value to a constant
+				Symbol:      s.CoinPare,
+				TimeInForce: "GoodTillCancel",
+				Type:        "Limit", // @TODO move the value to a constant
+			}
+			ordersToOpen = append(ordersToOpen, orderToOpen)
+		}
+	} else {
 		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost - s.TakeProfitSize
 			sl := currentCost + s.StopLossSize
 			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
-				Leverage:   s.Leverage, //1,         //         int64
-				Qty:        s.Qty,      //0.005,     //              float64
-				Side:       "Sell",     //             string //@TODO move the value to a constant
-				TakeProfit: tp,         //23600,     //       float64
-				StopLoss:   sl,         //22800,     //         float64
-				Symbol:     s.CoinPare, //"BTCUSDT", //           string
-				Type:       "Limit",    //@TODO move the value to a constant
-				Price:      currentCost,
+				Leverage:    s.Leverage,
+				Price:       currentCost,
+				Qty:         s.Qty,
+				ReduceOnly:  false,
+				Side:        "Sell", //@TODO move the value to a constant
+				StopLoss:    sl,
+				Symbol:      s.CoinPare,
+				TimeInForce: "FillOrKill",
+				Type:        "Limit", //@TODO move the value to a constant
 			}
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
@@ -148,6 +200,16 @@ func (s *ScalpByProbabilityStrategy) DoAction() error {
 		utils.LogSuccess(fmt.Sprintf("Position id: %s", positionId))
 	}
 	positionsToOpen = make([]structs.DomainPositionRequest, 0)
+
+	for _, order := range ordersToOpen {
+		orderId, err := services.OpenOrder(s.DomainCode, order)
+		if err != nil {
+			return err
+		}
+		utils.LogSuccess(fmt.Sprintf("Order id: %s", orderId))
+	}
+	ordersToOpen = make([]structs.DomainOrderRequest, 0)
+
 	return nil
 }
 
