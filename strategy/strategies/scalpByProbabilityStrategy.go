@@ -77,6 +77,9 @@ func (s *ScalpByProbabilityStrategy) GetData() error {
 
 func (s *ScalpByProbabilityStrategy) Analyse() error {
 
+	positionsToOpen = make([]structs.DomainPositionRequest, 0)
+	ordersToOpen = make([]structs.DomainOrderRequest, 0)
+
 	buyPositionExists := false
 	sellPositionExists := false
 	buyOrderTPExists := false
@@ -199,7 +202,6 @@ func (s *ScalpByProbabilityStrategy) DoAction() error {
 		}
 		utils.LogSuccess(fmt.Sprintf("Position id: %s", positionId))
 	}
-	positionsToOpen = make([]structs.DomainPositionRequest, 0)
 
 	for _, order := range ordersToOpen {
 		orderId, err := services.OpenOrder(s.DomainCode, order)
@@ -208,7 +210,6 @@ func (s *ScalpByProbabilityStrategy) DoAction() error {
 		}
 		utils.LogSuccess(fmt.Sprintf("Order id: %s", orderId))
 	}
-	ordersToOpen = make([]structs.DomainOrderRequest, 0)
 
 	return nil
 }
