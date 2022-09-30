@@ -95,7 +95,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	if err != nil {
 		return err
 	}
-	costDiff := s.getCostDiff()
+	costDiff := s.getCandleCostDiff()
 
 	avgCostShift := s.AvgCostShift
 
@@ -243,16 +243,26 @@ func (s *ScalpByProbabilityStrategy) getCurrentCost() (float64, error) {
 	return candles[0].Close, nil
 }
 
-func (s *ScalpByProbabilityStrategy) getCostDiff() float64 {
+func (s *ScalpByProbabilityStrategy) getCandleCostDiff() float64 {
 	minCost := 0.0
 	maxCost := 0.0
 
 	for _, candle := range candles {
-		if candle.High > maxCost {
-			maxCost = candle.High
+
+		high := candle.Open
+		low := candle.Open
+		if candle.Close > high {
+			high = candle.Close
 		}
-		if candle.Low < minCost || minCost == 0.0 {
-			minCost = candle.Low
+		if candle.Close < low {
+			low = candle.Close
+		}
+
+		if high > maxCost {
+			maxCost = high
+		}
+		if low < minCost || minCost == 0.0 {
+			minCost = low
 		}
 	}
 
