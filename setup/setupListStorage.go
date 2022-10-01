@@ -27,7 +27,7 @@ func setupListInit() {
 			CostDiffToStopTrade: 1200,
 			AvgCostShift:        70,
 			Leverage:            1,
-			Qty:                 0.05,
+			Qty:                 0.005,
 			TakeProfitSize:      100,
 			StopLossSize:        1100,
 		},
