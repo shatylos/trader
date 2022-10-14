@@ -5,8 +5,8 @@ import (
 	"bitbucket.org/shatylos/trader/domain/structs"
 )
 
-func LoadWalletInfo(domainCode string, domainWalletResultChan chan structs.DomainWalletApiResult, bufferParReq chan bool) {
-	domainWallet, err := loadWalletInfo(domainCode)
+func LoadWalletInfoToChan(domainCode string, domainWalletResultChan chan structs.DomainWalletApiResult, bufferParReq chan bool) {
+	domainWallet, err := LoadWalletInfo(domainCode)
 
 	if err == nil {
 		domainWalletResultChan <- structs.DomainWalletApiResult{
@@ -25,7 +25,7 @@ func LoadWalletInfo(domainCode string, domainWalletResultChan chan structs.Domai
 	<-bufferParReq
 }
 
-func loadWalletInfo(domainCode string) (*structs.DomainWallet, error) {
+func LoadWalletInfo(domainCode string) (*structs.DomainWallet, error) {
 	domainInterface, err := domain.GetDomainInterface(domainCode)
 	if err != nil {
 		return nil, err

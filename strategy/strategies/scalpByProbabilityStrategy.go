@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/shatylos/trader/trading/services"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -85,7 +86,9 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	buyOrderTPExists := false
 	sellOrderTPExists := false
 	buyPositionPrice := 0.0
+	buyPositionQty := 0.0
 	sellPositionPrice := 0.0
+	sellPositionQty := 0.0
 
 	avgCost, err := s.getAverageCost()
 	if err != nil {
@@ -103,10 +106,12 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if position.Side == tradeConst.SideBuy {
 			buyPositionExists = true
 			buyPositionPrice = position.Price
+			buyPositionQty = position.Qty
 		}
 		if position.Side == tradeConst.SideSell {
 			sellPositionExists = true
 			sellPositionPrice = position.Price
+			sellPositionQty = position.Qty
 		}
 	}
 
@@ -126,7 +131,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 			utils.LogInfo(fmt.Sprintf("Add limit order to sell position (as TP). Position cost: %f, TP: %f", buyPositionPrice, tpPrice))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
-				Qty:         s.Qty, //
+				Qty:         buyPositionQty,
 				ReduceOnly:  true,
 				Side:        "Sell", // @TODO move the value to a constant
 				Symbol:      s.CoinPare,
@@ -138,11 +143,15 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	} else {
 		if currentCost < avgCost-avgCostShift && costDiff < s.CostDiffToStopTrade {
 			sl := currentCost - s.StopLossSize
+			qty, err := s.getQtyByWallet(currentCost)
+			if err != nil {
+				return err
+			}
 			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f", currentCost, sl))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage, //
 				Price:       currentCost,
-				Qty:         s.Qty, //
+				Qty:         qty,
 				ReduceOnly:  false,
 				Side:        "Buy", // @TODO move the value to a constant
 				StopLoss:    sl,
@@ -161,7 +170,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 			utils.LogInfo(fmt.Sprintf("Add limit order to buy position (as TP). Position cost: %f, TP: %f", sellPositionPrice, tpPrice))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
-				Qty:         s.Qty, //
+				Qty:         sellPositionQty,
 				ReduceOnly:  true,
 				Side:        "Buy", // @TODO move the value to a constant
 				Symbol:      s.CoinPare,
@@ -174,11 +183,15 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
 			tp := currentCost - s.TakeProfitSize
 			sl := currentCost + s.StopLossSize
+			qty, err := s.getQtyByWallet(currentCost)
+			if err != nil {
+				return err
+			}
 			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage,
 				Price:       currentCost,
-				Qty:         s.Qty,
+				Qty:         qty,
 				ReduceOnly:  false,
 				Side:        "Sell", //@TODO move the value to a constant
 				StopLoss:    sl,
@@ -267,4 +280,27 @@ func (s *ScalpByProbabilityStrategy) getCandleCostDiff() float64 {
 	}
 
 	return maxCost - minCost
+}
+
+func (s *ScalpByProbabilityStrategy) getQtyByWallet(coinCost float64) (float64, error) {
+
+	walletInfo, err := services.LoadWalletInfo(s.DomainCode)
+
+	if err != nil {
+		return 0, err
+	}
+
+	mainCoinAmount := 0.0
+
+	for _, coin := range walletInfo.Available {
+		if coin.Coin == "USDT" {
+			mainCoinAmount = coin.Amount
+		}
+	}
+
+	if mainCoinAmount == 0.0 {
+		return 0.0, utils.AppError{Message: "Can not find valid amount of main coin in the wallet"}
+	}
+
+	return math.Round(mainCoinAmount/coinCost*1000) / 1000, nil
 }
