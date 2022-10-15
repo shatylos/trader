@@ -181,7 +181,6 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		}
 	} else {
 		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
-			tp := currentCost - s.TakeProfitSize
 			sl := currentCost + s.StopLossSize
 			qty, err := s.getQtyByWallet(currentCost)
 			if err != nil {
