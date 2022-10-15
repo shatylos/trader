@@ -128,7 +128,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if !sellOrderTPExists {
 			// do open sell TP order
 			tpPrice := buyPositionPrice + s.TakeProfitSize
-			utils.LogInfo(fmt.Sprintf("Add limit order to sell position (as TP). Position cost: %f, TP: %f", buyPositionPrice, tpPrice))
+			utils.LogInfo(fmt.Sprintf("Add limit order to sell position (as TP). Position cost: %f, TP: %f, QTY: %f", buyPositionPrice, tpPrice, buyPositionQty))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
 				Qty:         buyPositionQty,
@@ -147,7 +147,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 			if err != nil {
 				return err
 			}
-			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f", currentCost, sl))
+			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage, //
 				Price:       currentCost,
@@ -167,7 +167,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		if !buyOrderTPExists {
 			// do open but TP order
 			tpPrice := sellPositionPrice - s.TakeProfitSize
-			utils.LogInfo(fmt.Sprintf("Add limit order to buy position (as TP). Position cost: %f, TP: %f", sellPositionPrice, tpPrice))
+			utils.LogInfo(fmt.Sprintf("Add limit order to buy position (as TP). Position cost: %f, TP: %f, QTY: %f", sellPositionPrice, tpPrice, sellPositionQty))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
 				Qty:         sellPositionQty,
@@ -187,7 +187,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 			if err != nil {
 				return err
 			}
-			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, TP: %f, SL: %f", currentCost, tp, sl))
+			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage,
 				Price:       currentCost,
