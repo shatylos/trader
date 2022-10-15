@@ -31,7 +31,7 @@ func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
 	for _, domainCode := range domainCodes {
 		bufferRequest <- true
 		wg.Add(1)
-		go tradeServices.LoadWalletInfo(domainCode, domainWalletResultChan, bufferRequest)
+		go tradeServices.LoadWalletInfoToChan(domainCode, domainWalletResultChan, bufferRequest)
 	}
 	wg.Wait()
 
@@ -98,9 +98,9 @@ func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
 // !!! WARNING !!!
 // The code below was going to be deleted when updating resolvers. It has been copied here so you have
 // one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
 const defaultNumberParallelRequests = 5
 
 var (
