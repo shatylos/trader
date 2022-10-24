@@ -21,6 +21,7 @@ type ScalpByProbabilityStrategy struct {
 	isInit              bool
 	Leverage            int64
 	Qty                 float64
+	QtyCoefficient      float64
 	Resolution          string
 	StopLossSize        float64
 	TakeProfitSize      float64
@@ -301,5 +302,5 @@ func (s *ScalpByProbabilityStrategy) getQtyByWallet(coinCost float64) (float64, 
 		return 0.0, utils.AppError{Message: "Can not find valid amount of main coin in the wallet"}
 	}
 
-	return math.Round(mainCoinAmount/coinCost*1000) / 1000, nil
+	return math.Round(mainCoinAmount/coinCost*s.QtyCoefficient*1000) / 1000, nil
 }
