@@ -28,6 +28,7 @@ func setupListInit() {
 			AvgCostShift:        50,
 			Leverage:            1,
 			Qty:                 0.005,
+			QtyCoefficient:      2,
 			TakeProfitSize:      50,
 			StopLossSize:        500,
 		},
