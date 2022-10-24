@@ -26,7 +26,7 @@ func setupListInit() {
 			TimeoutSeconds:      5,
 			CostDiffToStopTrade: 250,
 			AvgCostShift:        50,
-			Leverage:            2,
+			Leverage:            1,
 			Qty:                 0.005,
 			TakeProfitSize:      50,
 			StopLossSize:        250,
