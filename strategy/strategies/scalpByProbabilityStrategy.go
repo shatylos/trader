@@ -143,23 +143,29 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		}
 	} else {
 		if currentCost < avgCost-avgCostShift && costDiff < s.CostDiffToStopTrade {
-			sl := currentCost - s.StopLossSize
 			qty, err := s.getQtyByWallet(currentCost)
 			if err != nil {
 				return err
 			}
-			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
+
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage, //
 				Price:       currentCost,
 				Qty:         qty,
 				ReduceOnly:  false,
 				Side:        "Buy", // @TODO move the value to a constant
-				StopLoss:    sl,
 				Symbol:      s.CoinPare,
 				TimeInForce: "FillOrKill",
 				Type:        "Limit", // @TODO move the value to a constant
 			}
+
+			sl := 0.0
+			if s.StopLossSize > 0 {
+				sl = currentCost - s.StopLossSize
+				positionToAdd.StopLoss = sl
+			}
+
+			utils.LogInfo(fmt.Sprintf("Add position to buy. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
 	}
@@ -182,23 +188,30 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 		}
 	} else {
 		if currentCost > avgCost+avgCostShift && costDiff < s.CostDiffToStopTrade {
-			sl := currentCost + s.StopLossSize
 			qty, err := s.getQtyByWallet(currentCost)
 			if err != nil {
 				return err
 			}
-			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
+
 			positionToAdd := structs.DomainPositionRequest{
 				Leverage:    s.Leverage,
 				Price:       currentCost,
 				Qty:         qty,
 				ReduceOnly:  false,
 				Side:        "Sell", //@TODO move the value to a constant
-				StopLoss:    sl,
 				Symbol:      s.CoinPare,
 				TimeInForce: "FillOrKill",
 				Type:        "Limit", //@TODO move the value to a constant
 			}
+
+			sl := 0.0
+			if s.StopLossSize > 0 {
+				sl = currentCost + s.StopLossSize
+				positionToAdd.StopLoss = sl
+			}
+
+			utils.LogInfo(fmt.Sprintf("Add position to sell. Current cost: %f, SL: %f, QTY: %f", currentCost, sl, qty))
+
 			positionsToOpen = append(positionsToOpen, positionToAdd)
 		}
 	}
