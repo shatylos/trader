@@ -128,7 +128,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	if buyPositionExists {
 		if !sellOrderTPExists {
 			// do open sell TP order
-			tpPrice := buyPositionPrice + s.TakeProfitSize
+			tpPrice := math.Round((buyPositionPrice+s.TakeProfitSize)*100) / 100
 			utils.LogInfo(fmt.Sprintf("Add limit order to sell position (as TP). Position cost: %f, TP: %f, QTY: %f", buyPositionPrice, tpPrice, buyPositionQty))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
@@ -167,7 +167,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	if sellPositionExists {
 		if !buyOrderTPExists {
 			// do open but TP order
-			tpPrice := sellPositionPrice - s.TakeProfitSize
+			tpPrice := math.Round((sellPositionPrice-s.TakeProfitSize)*100) / 100
 			utils.LogInfo(fmt.Sprintf("Add limit order to buy position (as TP). Position cost: %f, TP: %f, QTY: %f", sellPositionPrice, tpPrice, sellPositionQty))
 			orderToOpen := structs.DomainOrderRequest{
 				Price:       tpPrice,
