@@ -30,7 +30,7 @@ func setupListInit() {
 			Qty:                 0.005,
 			QtyCoefficient:      2,
 			TakeProfitSize:      50,
-			StopLossSize:        500,
+			StopLossSize:        0,
 		},
 	})
 }
