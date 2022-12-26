@@ -7,7 +7,11 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error load go dot env")
+		return
+	}
 	go trading.StartTradingApp()
 	webapi.StartWebApp()
 }
