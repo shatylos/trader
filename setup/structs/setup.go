@@ -41,25 +41,7 @@ func (s *Setup) NextStep() {
 		}
 	}
 
-	err := strategy.GetData()
-	if err != nil {
-		utils.LogError(err.Error())
-		s.errorCount++
-		utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-		time.Sleep(time.Second * time.Duration(s.errorCount))
-		s.SetStatus(StatusReadyForNext)
-		return
-	}
-	err = strategy.Analyse()
-	if err != nil {
-		utils.LogError(err.Error())
-		s.errorCount++
-		utils.LogInfo(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-		time.Sleep(time.Second * time.Duration(s.errorCount))
-		s.SetStatus(StatusReadyForNext)
-		return
-	}
-	err = strategy.DoAction()
+	err := strategy.DoAction()
 	if err != nil {
 		utils.LogError(err.Error())
 		s.errorCount++

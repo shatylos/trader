@@ -106,3 +106,11 @@ func (d *DomainExmoMargin) OpenPosition(positionRequest structs.DomainPositionRe
 func (d *DomainExmoMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
 	panic("Not implemented")
 }
+
+func (d *DomainExmoMargin) CancelOrder(orderId string) error {
+	panic("Not implemented")
+}
+
+func (d *DomainExmoMargin) GetHistoryOrders(limit int64) ([]structs.DomainOrder, error) {
+	panic("Not implemented")
+}

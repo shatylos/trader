@@ -1,4 +1,4 @@
-package _interface
+package structs
 
 type SetupInterface interface {
 	GetStatus() int64
