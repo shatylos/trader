@@ -142,7 +142,7 @@ func (s *BuyCheapSellHigh) getBuySellPriceQty(historyOrders []structs.DomainOrde
 	lastOrderPrice := float64(0)
 
 	for _, historyOrder := range historyOrders {
-		if historyOrder.OrderStatus != "FILLED" {
+		if historyOrder.OrderStatus != "FILLED" && historyOrder.OrderStatus != "PARTIALLY_FILLED" {
 			continue
 		}
 		if lastDirection == "" {

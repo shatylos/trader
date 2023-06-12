@@ -106,8 +106,8 @@ func apiQuery(uri string, params ApiParams, isDemo bool, method string, getReque
 		return nil, err2
 	}
 
-	if retCode, ok := dat["ret_code"]; ok && retCode.(float64) != 0 {
-		return nil, errors.New(dat["ret_msg"].(string))
+	if retCode, ok := dat["retCode"]; ok && retCode.(float64) != 0 {
+		return nil, errors.New(dat["retMsg"].(string))
 	}
 
 	return dat["result"].(interface{}), nil
