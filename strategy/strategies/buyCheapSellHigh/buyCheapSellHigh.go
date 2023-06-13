@@ -115,7 +115,7 @@ func (s *BuyCheapSellHigh) cancelAllOrder(order structs.DomainOrder) error {
 }
 
 func (s *BuyCheapSellHigh) getHistoryOrders() ([]structs.DomainOrder, error) {
-	return services.GetHistoryOrders(s.DomainCode, 10)
+	return services.GetHistoryOrders(s.DomainCode, 50)
 }
 
 func (s *BuyCheapSellHigh) getCurrentPrice() (float64, error) {
@@ -239,7 +239,7 @@ func (s *BuyCheapSellHigh) getCurrencyAmounts() (float64, float64, error) {
 func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction string) error {
 
 	request := structs.DomainOrderRequest{
-		OrderId:     strconv.FormatInt(time.Now().Unix(), 10),
+		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
 		Price:       price,
 		Qty:         qty,
 		ReduceOnly:  false,
