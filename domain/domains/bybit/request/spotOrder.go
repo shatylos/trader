@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+/**
+Spot order docs: https://bybit-exchange.github.io/docs/spot/trade/get-order
+*/
+
 type SpotOrderRequest struct {
 	Symbol        string //	Required. Name of the trading pair
 	OrderQty      string //	Required. Order qty. When you place a MARKET BUY order, this param means quote amount. e.g., MARKET BUY BTCUSDT, orderQty should be 200 USDT
