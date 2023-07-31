@@ -43,7 +43,8 @@ func setupListInit() {
 			TimeoutSeconds: 10,
 			Resolution:     tradingConstant.Resol30m,
 			CostRanges:     []int64{300, 600, 900, 1200},
-			PercentRanges:  []int64{3, 6, 9, 12},
+			//PercentRanges:  []int64{3, 6, 9, 12}, // used until 2023/07/31
+			PercentRanges: []int64{7, 8, 10, 12},
 		},
 	})
 }
