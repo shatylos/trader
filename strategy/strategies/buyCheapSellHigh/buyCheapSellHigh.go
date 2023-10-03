@@ -10,15 +10,18 @@ import (
 )
 
 type BuyCheapSellHigh struct {
-	CoinPare       string
-	DomainCode     string
-	MainCurrency   string
-	TradeCurrency  string
-	isInit         bool
-	Resolution     string
-	TimeoutSeconds time.Duration
-	CostRanges     []int64
-	PercentRanges  []int64
+	CoinPare              string
+	DomainCode            string
+	MainCurrency          string
+	TradeCurrency         string
+	isInit                bool
+	Resolution            string
+	TimeoutSeconds        time.Duration
+	CostRanges            []int64
+	PercentRanges         []int64
+	LongTermMaxPrice      float64
+	LongTermMinPrice      float64
+	LongTermPercentBuffer float64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
