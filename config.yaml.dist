@@ -1,0 +1,21 @@
+strategy:
+  buy_cheap_sell_high:
+    - coin_pare: BTCUSDT
+      domain_code: bybitSpot
+      main_currency: USDT
+      trade_currency: BTC
+      timeout_seconds: 10
+      resolution: 30
+      cost_ranges:
+        - 300
+        - 600
+        - 900
+        - 1200
+      percent_ranges:
+        - 7
+        - 8
+        - 10
+        - 12
+      long_term_max_price: 70000
+      long_term_min_price: 10000
+      long_term_percent_buffer: 10
