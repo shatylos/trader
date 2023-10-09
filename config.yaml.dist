@@ -19,3 +19,4 @@ strategy:
       long_term_max_price: 70000
       long_term_min_price: 10000
       long_term_percent_buffer: 10
+      purchase_volume_precision: 6
