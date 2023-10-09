@@ -10,18 +10,19 @@ import (
 )
 
 type BuyCheapSellHigh struct {
-	isInit                bool
-	CoinPare              string        `yaml:"coin_pare"`
-	DomainCode            string        `yaml:"domain_code"`
-	MainCurrency          string        `yaml:"main_currency"`
-	TradeCurrency         string        `yaml:"trade_currency"`
-	Resolution            string        `yaml:"resolution"`
-	TimeoutSeconds        time.Duration `yaml:"timeout_seconds"`
-	CostRanges            []int64       `yaml:"cost_ranges"`
-	PercentRanges         []int64       `yaml:"percent_ranges"`
-	LongTermMaxPrice      float64       `yaml:"long_term_max_price"`
-	LongTermMinPrice      float64       `yaml:"long_term_min_price"`
-	LongTermPercentBuffer float64       `yaml:"long_term_percent_buffer"`
+	isInit                  bool
+	CoinPare                string        `yaml:"coin_pare"`
+	DomainCode              string        `yaml:"domain_code"`
+	MainCurrency            string        `yaml:"main_currency"`
+	TradeCurrency           string        `yaml:"trade_currency"`
+	Resolution              string        `yaml:"resolution"`
+	TimeoutSeconds          time.Duration `yaml:"timeout_seconds"`
+	CostRanges              []int64       `yaml:"cost_ranges"`
+	PercentRanges           []int64       `yaml:"percent_ranges"`
+	LongTermMaxPrice        float64       `yaml:"long_term_max_price"`
+	LongTermMinPrice        float64       `yaml:"long_term_min_price"`
+	LongTermPercentBuffer   float64       `yaml:"long_term_percent_buffer"`
+	PurchaseVolumePrecision int64         `yaml:"purchase_volume_precision"`
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {

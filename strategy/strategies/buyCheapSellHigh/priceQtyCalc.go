@@ -201,5 +201,6 @@ func (s *BuyCheapSellHigh) getRangeKey(orderDirection string, lastDirection stri
 }
 
 func (s *BuyCheapSellHigh) round(value float64) float64 {
-	return math.Round(value*1e6) / 1e6
+	roundNum := math.Pow(10, float64(s.PurchaseVolumePrecision))
+	return math.Round(value*roundNum) / roundNum
 }
