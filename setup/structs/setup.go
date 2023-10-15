@@ -51,7 +51,11 @@ func (s *Setup) NextStep() {
 		return
 	}
 
+	if s.errorCount > 0 {
+		utils.LogSuccess(fmt.Sprintf("Success iteration after %d errors", s.errorCount))
+		s.errorCount = 0
+	}
+
 	strategy.Wait()
-	s.errorCount = 0
 	s.SetStatus(StatusReadyForNext)
 }
