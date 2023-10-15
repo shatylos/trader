@@ -39,6 +39,6 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 		return err
 	}
 
-	utils.LogInfo(fmt.Sprintf("Created order: %s", orderId))
+	utils.LogSuccess(fmt.Sprintf("Created order: %s. Symbol: %s, Side: %s, Price: %f, Qty: %f", orderId, s.CoinPare, direction, price, qty))
 	return nil
 }
