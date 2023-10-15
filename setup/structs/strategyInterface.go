@@ -1,4 +1,4 @@
-package _interface
+package structs
 
 type StrategyInterface interface {
 	IsInit() bool

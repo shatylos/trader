@@ -1,4 +1,4 @@
-package strategies
+package scalpByProbability
 
 import (
 	"bitbucket.org/shatylos/trader/domain"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type ScalpByProbabilityStrategy struct {
+type ScalpByProbability struct {
 	AvgCostShift        float64
 	CandlesToAnalyse    int64
 	CoinPare            string
@@ -34,25 +34,25 @@ var positions []structs.DomainPosition
 var ordersToOpen []structs.DomainOrderRequest
 var positionsToOpen []structs.DomainPositionRequest
 
-func (s *ScalpByProbabilityStrategy) IsInit() bool {
+func (s *ScalpByProbability) IsInit() bool {
 	return s.isInit
 }
 
-func (s *ScalpByProbabilityStrategy) Initialise() error {
+func (s *ScalpByProbability) Initialise() error {
 	domainItem, err := domain.GetDomainInterface(s.DomainCode)
 	if err != nil {
 		return err
 	}
 	if domainItem.GetType() != constant.DomainTypeMargin {
 		return utils.AppError{
-			Message: "Strategy ScalpByProbabilityStrategy works only with margin domain type",
+			Message: "Strategy ScalpByProbability works only with margin domain type",
 		}
 	}
 	s.isInit = true
 	return nil
 }
 
-func (s *ScalpByProbabilityStrategy) GetData() error {
+func (s *ScalpByProbability) GetData() error {
 	_positions, err := services.GetPositionList(s.DomainCode, s.CoinPare)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (s *ScalpByProbabilityStrategy) GetData() error {
 	return nil
 }
 
-func (s *ScalpByProbabilityStrategy) Analyse() error {
+func (s *ScalpByProbability) Analyse() error {
 
 	positionsToOpen = make([]structs.DomainPositionRequest, 0)
 	ordersToOpen = make([]structs.DomainOrderRequest, 0)
@@ -219,7 +219,7 @@ func (s *ScalpByProbabilityStrategy) Analyse() error {
 	return nil
 }
 
-func (s *ScalpByProbabilityStrategy) DoAction() error {
+func (s *ScalpByProbability) DoAction() error {
 
 	for _, position := range positionsToOpen {
 		positionId, err := services.OpenPosition(s.DomainCode, position)
@@ -240,11 +240,11 @@ func (s *ScalpByProbabilityStrategy) DoAction() error {
 	return nil
 }
 
-func (s *ScalpByProbabilityStrategy) Wait() {
+func (s *ScalpByProbability) Wait() {
 	time.Sleep(time.Second * s.TimeoutSeconds)
 }
 
-func (s *ScalpByProbabilityStrategy) getAverageCost() (float64, error) {
+func (s *ScalpByProbability) getAverageCost() (float64, error) {
 	allAvgs := 0.0
 	for _, candle := range candles {
 		maxCost := candle.High
@@ -260,7 +260,7 @@ func (s *ScalpByProbabilityStrategy) getAverageCost() (float64, error) {
 	return avg, nil
 }
 
-func (s *ScalpByProbabilityStrategy) getCurrentCost() (float64, error) {
+func (s *ScalpByProbability) getCurrentCost() (float64, error) {
 	if len(candles) == 0 {
 		return 0, utils.AppError{
 			Message: "Current cost not found",
@@ -269,7 +269,7 @@ func (s *ScalpByProbabilityStrategy) getCurrentCost() (float64, error) {
 	return candles[0].Close, nil
 }
 
-func (s *ScalpByProbabilityStrategy) getCandleCostDiff() float64 {
+func (s *ScalpByProbability) getCandleCostDiff() float64 {
 	minCost := 0.0
 	maxCost := 0.0
 
@@ -295,7 +295,7 @@ func (s *ScalpByProbabilityStrategy) getCandleCostDiff() float64 {
 	return maxCost - minCost
 }
 
-func (s *ScalpByProbabilityStrategy) getQtyByWallet(coinCost float64) (float64, error) {
+func (s *ScalpByProbability) getQtyByWallet(coinCost float64) (float64, error) {
 
 	walletInfo, err := services.LoadWalletInfo(s.DomainCode)
 

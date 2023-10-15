@@ -2,7 +2,7 @@ package reader
 
 import (
 	setupStructs "bitbucket.org/shatylos/trader/setup/structs"
-	"bitbucket.org/shatylos/trader/strategy/strategies/buyCheapSellHigh"
+	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh"
 	"gopkg.in/yaml.v2"
 	"os"
 )

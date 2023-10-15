@@ -4,14 +4,13 @@ import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/bybit"
 	"bitbucket.org/shatylos/trader/domain/domains/exmo"
-	"bitbucket.org/shatylos/trader/domain/interface"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
 )
 
 var (
 	domainList          = make([]string, 0)
-	domainInterfaceList = make(map[string]_interface.DomainInterface, 0)
+	domainInterfaceList = make(map[string]DomainInterface, 0)
 )
 
 func init() {
@@ -34,7 +33,7 @@ func GetDomainList() []string {
 	return domainList
 }
 
-func GetDomainInterface(domainCode string) (_interface.DomainInterface, error) {
+func GetDomainInterface(domainCode string) (DomainInterface, error) {
 	if domainInterfaceObj, ok := domainInterfaceList[domainCode]; ok {
 		return domainInterfaceObj, nil
 	}
