@@ -1,9 +1,7 @@
 package buyCheapSellHigh
 
-import "bitbucket.org/shatylos/trader/trading/services"
-
 func (s *BuyCheapSellHigh) getBalances() (float64, float64, error) {
-	wallet, err := services.LoadWalletInfo(s.DomainCode)
+	wallet, err := s.Domain.GetWallet()
 	if err != nil {
 		return 0, 0, err
 	}

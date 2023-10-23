@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"bitbucket.org/shatylos/trader/strategy"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
 	"time"
@@ -14,7 +15,7 @@ const MaxErrorsCount = 5
 type Setup struct {
 	status     int64
 	errorCount int64
-	Strategy   StrategyInterface
+	Strategy   strategy.StrategyInterface
 }
 
 func (s *Setup) GetStatus() int64 {

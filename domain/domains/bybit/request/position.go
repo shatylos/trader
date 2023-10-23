@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 )
@@ -33,11 +34,11 @@ type Position struct {
 	RiskId              float64 `json:"risk_id"`
 }
 
-func GetPositionList(coinPare string, isDemo bool) ([]Position, error) {
+func GetPositionList(coinPare string, secrets bybitStructs.Secrets) ([]Position, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
 
-	queryResp, er := apiQueryGet("/private/linear/position/list", params, isDemo)
+	queryResp, er := apiQueryGet("/private/linear/position/list", params, secrets)
 	if er != nil {
 		return nil, er
 	}

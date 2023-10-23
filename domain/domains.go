@@ -9,34 +9,33 @@ import (
 )
 
 var (
-	domainList          = make([]string, 0)
-	domainInterfaceList = make(map[string]DomainInterface, 0)
+	domainNameList = make([]string, 0)
 )
 
 func init() {
-	domainList = append(domainList, constant.DomainExmo)
-	domainList = append(domainList, constant.DomainExmoMargin)
-	domainList = append(domainList, constant.DomainBybitMargin)
-	domainList = append(domainList, constant.DomainBybitSpot)
-	domainList = append(domainList, constant.DomainBybitSpotDemo)
-	domainList = append(domainList, constant.DomainBybitMarginDemo)
-
-	domainInterfaceList[constant.DomainExmo] = &exmo.DomainExmo{}
-	domainInterfaceList[constant.DomainExmoMargin] = &exmo.DomainExmoMargin{}
-	domainInterfaceList[constant.DomainBybitMargin] = &bybit.DomainBybitMargin{IsDemo: false}
-	domainInterfaceList[constant.DomainBybitSpot] = &bybit.DomainBybitSpot{IsDemo: false}
-	domainInterfaceList[constant.DomainBybitSpotDemo] = &bybit.DomainBybitSpot{IsDemo: true}
-	domainInterfaceList[constant.DomainBybitMarginDemo] = &bybit.DomainBybitMargin{IsDemo: true}
+	domainNameList = append(domainNameList, constant.DomainExmo)
+	domainNameList = append(domainNameList, constant.DomainExmoMargin)
+	domainNameList = append(domainNameList, constant.DomainBybitMargin)
+	domainNameList = append(domainNameList, constant.DomainBybitSpot)
 }
 
-func GetDomainList() []string {
-	return domainList
+func GetDomainNameList() []string {
+	return domainNameList
 }
 
 func GetDomainInterface(domainCode string) (DomainInterface, error) {
-	if domainInterfaceObj, ok := domainInterfaceList[domainCode]; ok {
-		return domainInterfaceObj, nil
+
+	switch domainCode {
+	case constant.DomainExmo:
+		return &exmo.DomainExmo{}, nil
+	case constant.DomainExmoMargin:
+		return &exmo.DomainExmoMargin{}, nil
+	case constant.DomainBybitMargin:
+		return &bybit.DomainBybitMargin{}, nil
+	case constant.DomainBybitSpot:
+		return &bybit.DomainBybitSpot{}, nil
 	}
+
 	return nil, utils.AppError{
 		Message: fmt.Sprintf("domain with code \"%s\" not implemented", domainCode),
 	}

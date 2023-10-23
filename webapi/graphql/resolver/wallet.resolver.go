@@ -18,7 +18,7 @@ import (
 
 // Wallet is the resolver for the wallet field.
 func (r *queryResolver) Wallet(ctx context.Context) (*gqlModel.Wallet, error) {
-	domainCodes := domain.GetDomainList()
+	domainCodes := domain.GetDomainNameList()
 
 	walletResultSuccess = make([]gqlModel.WalletBrokerWallet, 0)
 	walletResultFailed = make(map[string]error, 0)

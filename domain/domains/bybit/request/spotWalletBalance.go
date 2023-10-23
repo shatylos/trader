@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 )
@@ -13,9 +14,9 @@ type SpotWalletBalance struct {
 	Locked string `json:"locked"` //	Reserved for orders
 }
 
-func GetSpotWalletBalance(isDemo bool) (*map[string]SpotWalletBalance, error) {
+func GetSpotWalletBalance(secrets bybitStructs.Secrets) (*map[string]SpotWalletBalance, error) {
 	params := make(ApiParams, 0)
-	queryResp, er := apiQueryGet("/spot/v3/private/account", params, isDemo)
+	queryResp, er := apiQueryGet("/spot/v3/private/account", params, secrets)
 	if er != nil {
 		return nil, er
 	}

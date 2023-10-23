@@ -3,8 +3,8 @@ package buyCheapSellHigh
 import (
 	"bitbucket.org/shatylos/trader/domain/structs"
 	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
-	"bitbucket.org/shatylos/trader/trading/services"
 	"math"
+	"sort"
 	"time"
 )
 
@@ -32,7 +32,10 @@ func (s *BuyCheapSellHigh) getCurrentPrice() (float64, error) {
 	to := now.Unix()
 	limit := int64(1)
 	from := to - (tradeConst.ResolToSec[s.Resolution] * limit)
-	candles, err := services.GetCandleHistory(s.DomainCode, s.CoinPare, s.Resolution, from, limit)
+	candles, err := s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, limit)
+	sort.Slice(candles, func(i, j int) bool {
+		return candles[i].Time > candles[j].Time
+	})
 	if err != nil {
 		return 0, err
 	}

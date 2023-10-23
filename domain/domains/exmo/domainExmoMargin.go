@@ -11,6 +11,16 @@ type DomainExmoMargin struct {
 	isDemo bool
 }
 
+func (d *DomainExmoMargin) GetCode() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DomainExmoMargin) SetConfig(m map[interface{}]interface{}) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (d *DomainExmoMargin) GetType() int64 {
 	return constant.DomainTypeMargin
 }
@@ -41,10 +51,6 @@ func (d *DomainExmoMargin) GetWallet() (*structs.DomainWallet, error) {
 	}
 
 	return &result, nil
-}
-
-func (d *DomainExmoMargin) IsDemoMode() bool {
-	return false
 }
 
 func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {

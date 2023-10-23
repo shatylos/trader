@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 )
@@ -21,9 +22,9 @@ type WalletBalance struct {
 	GivenCash        float64 `json:"given_cash"`
 }
 
-func GetWalletBalance(isDemo bool) (*map[string]WalletBalance, error) {
+func GetWalletBalance(secrets bybitStructs.Secrets) (*map[string]WalletBalance, error) {
 	params := make(ApiParams, 0)
-	queryResp, er := apiQueryGet("/v2/private/wallet/balance", params, isDemo)
+	queryResp, er := apiQueryGet("/v2/private/wallet/balance", params, secrets)
 	if er != nil {
 		return nil, er
 	}

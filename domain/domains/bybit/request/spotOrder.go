@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 	"strconv"
@@ -79,7 +80,7 @@ type CreateSpotOrderResponse struct {
 	SmpOrderId          string `json:"smpOrderId"`          //	The counterparty's orderID which triggers this SMP execution
 }
 
-func CreateSpotOrder(orderRequest SpotOrderRequest, isDemo bool) (*CreateSpotOrderResponse, error) {
+func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (*CreateSpotOrderResponse, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = orderRequest.Symbol
 	params["orderQty"] = orderRequest.OrderQty
@@ -89,7 +90,7 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, isDemo bool) (*CreateSpotOrd
 	params["orderPrice"] = orderRequest.OrderPrice
 	params["orderLinkId"] = orderRequest.OrderLinkId
 
-	queryResp, err := apiQueryPost("/spot/v3/private/order", params, isDemo)
+	queryResp, err := apiQueryPost("/spot/v3/private/order", params, secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +98,12 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, isDemo bool) (*CreateSpotOrd
 	return mapCreateSpotOrderResponse(queryResp)
 }
 
-func GetSpotOpenOrderList(coinPare string, isDemo bool) ([]*SpotOrderResponse, error) {
+func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponse, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
 	orders := make([]*SpotOrderResponse, 0)
 
-	queryResp, er := apiQueryGet("/spot/v3/private/open-orders", params, isDemo)
+	queryResp, er := apiQueryGet("/spot/v3/private/open-orders", params, secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -132,23 +133,23 @@ func GetSpotOpenOrderList(coinPare string, isDemo bool) ([]*SpotOrderResponse, e
 	return orders, nil
 }
 
-func CancelSpotOrder(orderId string, isDemo bool) error {
+func CancelSpotOrder(orderId string, secrets bybitStructs.Secrets) error {
 	params := make(ApiParams, 0)
 	params["orderId"] = orderId
 
-	_, err := apiQueryPost("/spot/v3/private/cancel-order", params, isDemo)
+	_, err := apiQueryPost("/spot/v3/private/cancel-order", params, secrets)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetSpotOrderHistory(limit int64, isDemo bool) ([]*SpotOrderResponse, error) {
+func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrderResponse, error) {
 	params := make(ApiParams, 0)
 	params["limit"] = strconv.FormatInt(limit, 10)
 	orders := make([]*SpotOrderResponse, 0)
 
-	queryResp, er := apiQueryGet("/spot/v3/private/history-orders", params, isDemo)
+	queryResp, er := apiQueryGet("/spot/v3/private/history-orders", params, secrets)
 	if er != nil {
 		return nil, er
 	}

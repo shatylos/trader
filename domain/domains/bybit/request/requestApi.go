@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"bytes"
 	"crypto/hmac"
@@ -19,11 +20,8 @@ import (
 
 type ApiParams map[string]interface{}
 
-const testEndpoint = "https://api-testnet.bybit.com"
-const liveEndpoint = "https://api.bybit.com"
-
-func apiQueryGet(uri string, params ApiParams, isDemo bool) (interface{}, error) {
-	return apiQuery(uri, params, isDemo, "GET",
+func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
+	return apiQuery(uri, params, secrets, "GET",
 		func(params ApiParams) (string, *bytes.Buffer, error) {
 			queryParams := url.Values{}
 			for key, value := range params {
@@ -39,8 +37,8 @@ func apiQueryGet(uri string, params ApiParams, isDemo bool) (interface{}, error)
 		})
 }
 
-func apiQueryPost(uri string, params ApiParams, isDemo bool) (interface{}, error) {
-	return apiQuery(uri, params, isDemo, "POST",
+func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
+	return apiQuery(uri, params, secrets, "POST",
 		func(params ApiParams) (string, *bytes.Buffer, error) {
 			postContent, err := json.Marshal(params)
 			if err != nil {
@@ -51,28 +49,18 @@ func apiQueryPost(uri string, params ApiParams, isDemo bool) (interface{}, error
 		})
 }
 
-func apiQuery(uri string, params ApiParams, isDemo bool, method string, getRequestData func(params ApiParams) (string, *bytes.Buffer, error)) (interface{}, error) {
-	key := utils.AppConfig("TRADER_BYBIT_API_KEY")
-	secret := utils.AppConfig("TRADER_BYBIT_SECRET_API_KEY")
+func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams) (string, *bytes.Buffer, error)) (interface{}, error) {
 
-	if key == "" || secret == "" {
-		return nil, utils.AppError{Message: "Bybit env variables TRADER_BYBIT_API_KEY, TRADER_BYBIT_SECRET_API_KEY are not set"}
-	}
-
-	params["api_key"] = key
+	params["api_key"] = secrets.Key
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())
-	params["sign"] = getSignature(params, secret)
+	params["sign"] = getSignature(params, secrets.Pass)
 
 	queryString, requestBody, err := getRequestData(params)
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint := liveEndpoint
-	if isDemo {
-		endpoint = testEndpoint
-	}
-	req, _ := http.NewRequest(method, endpoint+uri+queryString, requestBody)
+	req, _ := http.NewRequest(method, secrets.ApiEndpoint+uri+queryString, requestBody)
 	req.Header.Add("Content-Type", "application/json")
 
 	config := tls.Config{}

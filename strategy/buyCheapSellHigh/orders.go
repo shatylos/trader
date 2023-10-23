@@ -2,7 +2,6 @@ package buyCheapSellHigh
 
 import (
 	"bitbucket.org/shatylos/trader/domain/structs"
-	"bitbucket.org/shatylos/trader/trading/services"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
 	"strconv"
@@ -10,15 +9,15 @@ import (
 )
 
 func (s *BuyCheapSellHigh) getOpenOrders() ([]structs.DomainOrder, error) {
-	return services.GetOpenOrderList(s.DomainCode, s.CoinPare)
+	return s.Domain.GetOpenOrderList(s.CoinPare)
 }
 
 func (s *BuyCheapSellHigh) getHistoryOrders() ([]structs.DomainOrder, error) {
-	return services.GetHistoryOrders(s.DomainCode, 50)
+	return s.Domain.GetHistoryOrders(50)
 }
 
 func (s *BuyCheapSellHigh) cancelAllOrder(order structs.DomainOrder) error {
-	return services.CancelOrder(s.DomainCode, order.OrderId)
+	return s.Domain.CancelOrder(order.OrderId)
 }
 
 func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction string) error {
@@ -34,7 +33,7 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 		Type:        "LIMIT",
 	}
 
-	orderId, err := services.OpenOrder(s.DomainCode, request)
+	orderId, err := s.Domain.OpenOrder(request)
 	if err != nil {
 		return err
 	}

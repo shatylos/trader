@@ -3,11 +3,23 @@ package bybit
 import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/domain/structs"
 )
 
 type DomainBybitMargin struct {
-	IsDemo bool
+	secrets bybitStructs.Secrets
+}
+
+func (d *DomainBybitMargin) GetCode() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DomainBybitMargin) SetConfig(m map[interface{}]interface{}) error {
+	//TODO implement me
+	d.secrets = bybitStructs.Secrets{}
+	panic("implement me")
 }
 
 func (d *DomainBybitMargin) GetType() int64 {
@@ -15,7 +27,7 @@ func (d *DomainBybitMargin) GetType() int64 {
 }
 
 func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {
-	walletBalances, er := request.GetWalletBalance(d.IsDemoMode())
+	walletBalances, er := request.GetWalletBalance(d.secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -45,13 +57,9 @@ func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainBybitMargin) IsDemoMode() bool {
-	return d.IsDemo
-}
-
 func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
 
-	candles, err := request.GetKlineList(symbol, resolution, from, limit, d.IsDemo)
+	candles, err := request.GetKlineList(symbol, resolution, from, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +81,7 @@ func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, 
 }
 
 func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
-	orders, err := request.GetOrderList(coinPare, "New", d.IsDemo)
+	orders, err := request.GetOrderList(coinPare, "New", d.secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +110,7 @@ func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainO
 
 func (d *DomainBybitMargin) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
 
-	positions, err := request.GetPositionList(coinPare, d.IsDemo)
+	positions, err := request.GetPositionList(coinPare, d.secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +152,7 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 		TpTriggerBy:    "LastPrice",
 	}
 
-	order, err := request.CreateOrder(orderRequest, d.IsDemo)
+	order, err := request.CreateOrder(orderRequest, d.secrets)
 	if err != nil {
 		return "", err
 	}
@@ -165,7 +173,7 @@ func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (
 		TimeInForce:    orderRequest.TimeInForce,
 	}
 
-	order, err := request.CreateOrder(domainOrderRequest, d.IsDemo)
+	order, err := request.CreateOrder(domainOrderRequest, d.secrets)
 	if err != nil {
 		return "", err
 	}

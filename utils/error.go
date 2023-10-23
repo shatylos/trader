@@ -1,7 +1,8 @@
 package utils
 
 type AppError struct {
-	Message string
+	Message     string
+	ParentError error
 }
 
 func (t AppError) Error() string {

@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 	"strconv"
@@ -32,14 +33,14 @@ type SpotCandle struct {
 	Volume    string `json:"v"`  //	Trading volume
 }
 
-func GetSpotKlineList(symbol string, resolution string, from int64, limit int64, isDemo bool) ([]SpotCandle, error) {
+func GetSpotKlineList(symbol string, resolution string, from int64, limit int64, secrets bybitStructs.Secrets) ([]SpotCandle, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = symbol
 	params["interval"] = SpotMinToResol[resolution]
 	params["startTime"] = strconv.FormatInt(from*1000, 10)
 	params["limit"] = strconv.FormatInt(limit, 10)
 
-	queryResp, er := apiQueryGet("/spot/v3/public/quote/kline", params, isDemo)
+	queryResp, er := apiQueryGet("/spot/v3/public/quote/kline", params, secrets)
 	if er != nil {
 		return nil, er
 	}

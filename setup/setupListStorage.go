@@ -1,35 +1,70 @@
 package setup
 
 import (
-	"bitbucket.org/shatylos/trader/setup/reader"
+	setupReader "bitbucket.org/shatylos/trader/setup/reader"
 	setupStructs "bitbucket.org/shatylos/trader/setup/structs"
+	"bitbucket.org/shatylos/trader/strategy"
+	"bitbucket.org/shatylos/trader/utils"
 	"time"
 )
 
 var setupList []*setupStructs.Setup
+var reader ReaderInterface
 
 func init() {
-	err := setupListInit()
-	if err != nil {
-		panic(err)
-	}
+	reader = &setupReader.YamlReader{}
 }
 
-func getReader() ReaderInterface {
-	return &reader.YamlReader{}
-}
-
-func setupListInit() error {
+func SetupListInit() error {
 	setupList = make([]*setupStructs.Setup, 0)
-	err := error(nil)
 
-	setupList, err = getReader().GetSetupList()
-
+	config, err := reader.GetConfig()
 	if err != nil {
 		return err
 	}
 
+	setups, err := prepareSetupStrategies(config.StrategyItems, config.DomainItems)
+	if err != nil {
+		return err
+	}
+
+	setupList = setups
+
 	return nil
+}
+
+func prepareSetupStrategies(strategyItems []interface{}, domainItems map[interface{}]interface{}) ([]*setupStructs.Setup, error) {
+
+	setupList := make([]*setupStructs.Setup, 0)
+
+	for _, strategyItemConfig := range strategyItems {
+		itemMap, ok := strategyItemConfig.(map[interface{}]interface{})
+		if !ok {
+			return nil, utils.AppError{
+				Message: "Can not parse a strategy config.",
+			}
+		}
+		if itemMap["code"] == nil {
+			return nil, utils.AppError{
+				Message: "The strategy config must contain a code field",
+			}
+		}
+
+		strategyItem, err := strategy.GetStrategyByCode(itemMap["code"].(string))
+		if err != nil {
+			return nil, err
+		}
+		err = strategyItem.SetConfig(strategyItemConfig, domainItems)
+		if err != nil {
+			return nil, err
+		}
+
+		setupList = append(setupList, &setupStructs.Setup{
+			Strategy: strategyItem,
+		})
+	}
+
+	return setupList, nil
 }
 
 func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {

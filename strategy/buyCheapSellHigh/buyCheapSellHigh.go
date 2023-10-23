@@ -11,18 +11,18 @@ import (
 
 type BuyCheapSellHigh struct {
 	isInit                  bool
-	CoinPare                string        `yaml:"coin_pare"`
-	DomainCode              string        `yaml:"domain_code"`
-	MainCurrency            string        `yaml:"main_currency"`
-	TradeCurrency           string        `yaml:"trade_currency"`
-	Resolution              string        `yaml:"resolution"`
-	TimeoutSeconds          time.Duration `yaml:"timeout_seconds"`
-	CostRanges              []int64       `yaml:"cost_ranges"`
-	PercentRanges           []int64       `yaml:"percent_ranges"`
-	LongTermMaxPrice        float64       `yaml:"long_term_max_price"`
-	LongTermMinPrice        float64       `yaml:"long_term_min_price"`
-	LongTermPercentBuffer   float64       `yaml:"long_term_percent_buffer"`
-	PurchaseVolumePrecision int64         `yaml:"purchase_volume_precision"`
+	CoinPare                string
+	Domain                  domain.DomainInterface
+	MainCurrency            string
+	TradeCurrency           string
+	Resolution              string
+	TimeoutSeconds          time.Duration
+	CostRanges              []int64
+	PercentRanges           []int64
+	LongTermMaxPrice        float64
+	LongTermMinPrice        float64
+	LongTermPercentBuffer   float64
+	PurchaseVolumePrecision int64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
@@ -30,11 +30,7 @@ func (s *BuyCheapSellHigh) IsInit() bool {
 }
 
 func (s *BuyCheapSellHigh) Initialise() error {
-	domainItem, err := domain.GetDomainInterface(s.DomainCode)
-	if err != nil {
-		return err
-	}
-	if domainItem.GetType() != constant.DomainTypeSpot {
+	if s.Domain.GetType() != constant.DomainTypeSpot {
 		return utils.AppError{
 			Message: "Strategy buyCheapSellHigh works only with spot domain type",
 		}

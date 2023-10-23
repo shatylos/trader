@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 	"strconv"
@@ -21,14 +22,14 @@ type Candle struct {
 	Volume   float64 `json:"volume"`
 }
 
-func GetKlineList(symbol string, resolution string, from int64, limit int64, isDemo bool) ([]Candle, error) {
+func GetKlineList(symbol string, resolution string, from int64, limit int64, secrets bybitStructs.Secrets) ([]Candle, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = symbol
 	params["interval"] = resolution
 	params["from"] = strconv.FormatInt(from, 10)
 	params["limit"] = strconv.FormatInt(limit, 10)
 
-	queryResp, er := apiQueryGet("/public/linear/kline", params, isDemo)
+	queryResp, er := apiQueryGet("/public/linear/kline", params, secrets)
 	if er != nil {
 		return nil, er
 	}

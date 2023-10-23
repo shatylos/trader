@@ -3,21 +3,75 @@ package bybit
 import (
 	"bitbucket.org/shatylos/trader/domain/constant"
 	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/domain/structs"
+	"bitbucket.org/shatylos/trader/utils"
 	"strconv"
 	"strings"
 )
 
 type DomainBybitSpot struct {
-	IsDemo bool
+	code    string
+	secrets bybitStructs.Secrets
 }
 
 func (d *DomainBybitSpot) GetType() int64 {
 	return constant.DomainTypeSpot
 }
 
+func (d *DomainBybitSpot) GetCode() string {
+	return d.code
+}
+
+func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) error {
+
+	secretMap, ok := config["secrets"].(map[interface{}]interface{})
+	if !ok {
+		return utils.AppError{
+			Message: "The field secrets is empty or contains not correct value type. In DomainBybitSpot config. Expects a map with \"key\", \"pass\" and \"endpoint\" keys",
+		}
+	}
+
+	domainCode, err := utils.ToString(config["code"])
+	if err != nil {
+		return utils.AppError{
+			Message: "The field code is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
+		}
+	}
+	d.code = domainCode
+
+	secrets := bybitStructs.Secrets{}
+
+	apiEndpoint, err := utils.ToString(secretMap["endpoint"])
+	if err != nil {
+		return utils.AppError{
+			Message: "The field secrets.endpoint is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
+		}
+	}
+	secrets.ApiEndpoint = apiEndpoint
+
+	key, err := utils.ToString(secretMap["key"])
+	if err != nil {
+		return utils.AppError{
+			Message: "The field secrets.key is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
+		}
+	}
+	secrets.Key = key
+
+	pass, err := utils.ToString(secretMap["pass"])
+	if err != nil {
+		return utils.AppError{
+			Message: "The field secrets.pass is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
+		}
+	}
+	secrets.Pass = pass
+	d.secrets = secrets
+
+	return nil
+}
+
 func (d *DomainBybitSpot) GetWallet() (*structs.DomainWallet, error) {
-	walletBalances, er := request.GetSpotWalletBalance(d.IsDemoMode())
+	walletBalances, er := request.GetSpotWalletBalance(d.secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -52,12 +106,8 @@ func (d *DomainBybitSpot) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainBybitSpot) IsDemoMode() bool {
-	return d.IsDemo
-}
-
 func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
-	candles, err := request.GetSpotKlineList(symbol, resolution, from, limit, d.IsDemo)
+	candles, err := request.GetSpotKlineList(symbol, resolution, from, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +150,7 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, fr
 }
 
 func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
-	orders, err := request.GetSpotOpenOrderList(coinPare, d.IsDemo)
+	orders, err := request.GetSpotOpenOrderList(coinPare, d.secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +206,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (st
 		OrderLinkId: orderRequest.OrderId,
 	}
 
-	order, err := request.CreateSpotOrder(domainOrderRequest, d.IsDemo)
+	order, err := request.CreateSpotOrder(domainOrderRequest, d.secrets)
 	if err != nil {
 		return "", err
 	}
@@ -166,7 +216,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (st
 }
 
 func (d *DomainBybitSpot) CancelOrder(orderId string) error {
-	err := request.CancelSpotOrder(orderId, d.IsDemo)
+	err := request.CancelSpotOrder(orderId, d.secrets)
 	if err != nil {
 		return err
 	}
@@ -174,7 +224,7 @@ func (d *DomainBybitSpot) CancelOrder(orderId string) error {
 }
 
 func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, error) {
-	orders, err := request.GetSpotOrderHistory(limit, d.IsDemo)
+	orders, err := request.GetSpotOrderHistory(limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}

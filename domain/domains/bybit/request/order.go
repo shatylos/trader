@@ -1,6 +1,7 @@
 package request
 
 import (
+	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
 	"fmt"
@@ -48,7 +49,7 @@ type OrderResponse struct {
 	UpdatedTime    string  `json:"updated_time"`     // -> 2022-08-17T20:45:45Z
 }
 
-func CreateOrder(orderRequest OrderRequest, isDemo bool) (*OrderResponse, error) {
+func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*OrderResponse, error) {
 	params := make(ApiParams, 0)
 	params["time_in_force"] = orderRequest.TimeInForce
 	params["reduce_only"] = orderRequest.ReduceOnly
@@ -78,7 +79,7 @@ func CreateOrder(orderRequest OrderRequest, isDemo bool) (*OrderResponse, error)
 		params["sl_trigger_by"] = orderRequest.SlTriggerBy
 	}
 
-	queryResp, err := apiQueryPost("/private/linear/order/create", params, isDemo)
+	queryResp, err := apiQueryPost("/private/linear/order/create", params, secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -86,13 +87,13 @@ func CreateOrder(orderRequest OrderRequest, isDemo bool) (*OrderResponse, error)
 	return mapOrderResponse(queryResp)
 }
 
-func GetOrderList(coinPare string, status string, isDemo bool) ([]*OrderResponse, error) {
+func GetOrderList(coinPare string, status string, secrets bybitStructs.Secrets) ([]*OrderResponse, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
 	params["order_status"] = status
 	orders := make([]*OrderResponse, 0)
 
-	queryResp, er := apiQueryGet("/private/linear/order/list", params, isDemo)
+	queryResp, er := apiQueryGet("/private/linear/order/list", params, secrets)
 	if er != nil {
 		return nil, er
 	}
