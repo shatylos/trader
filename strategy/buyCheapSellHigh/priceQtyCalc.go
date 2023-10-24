@@ -28,9 +28,8 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 
 	utils.LogInfo("Calculated order values:")
 	utils.LogInfo(fmt.Sprintf("Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", buyPrice, buyQty, sellPrice, sellQty))
-	utils.LogInfo(fmt.Sprintf("Rounded: Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", s.round(buyPrice), s.round(buyQty), s.round(sellPrice), s.round(sellQty)))
 
-	return s.round(buyPrice), s.round(buyQty), s.round(sellPrice), s.round(sellQty), nil
+	return buyPrice, buyQty, sellPrice, sellQty, nil
 }
 
 func (s *BuyCheapSellHigh) getCurrentPrice() (float64, error) {
@@ -93,6 +92,7 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 	buyPriceRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.CostRanges)
 
 	buyPrice = priceToCalcute - float64(s.CostRanges[buyPriceRangeKey])
+	buyPrice = s.round(buyPrice, float64(s.PurchasePricePrecision))
 
 	return buyPrice
 }
@@ -116,6 +116,7 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 	sellPriceRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.CostRanges)
 
 	sellPrice = priceToCalcute + float64(s.CostRanges[sellPriceRangeKey])
+	sellPrice = s.round(sellPrice, float64(s.PurchasePricePrecision))
 
 	return sellPrice
 }
@@ -139,6 +140,7 @@ func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAm
 
 	correction := buyQty / 100 * qtyLongTermPercentCorrection
 	buyQty += correction
+	buyQty = s.round(buyQty, float64(s.PurchaseVolumePrecision))
 
 	return buyQty
 }
@@ -162,6 +164,7 @@ func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyA
 
 	correction := sellQty / 100 * qtyLongTermPercentCorrection
 	sellQty -= correction
+	sellQty = s.round(sellQty, float64(s.PurchaseVolumePrecision))
 
 	return sellQty
 }
@@ -209,7 +212,7 @@ func (s *BuyCheapSellHigh) getRangeKey(orderDirection string, lastDirection stri
 	return rangeKey
 }
 
-func (s *BuyCheapSellHigh) round(value float64) float64 {
-	roundNum := math.Pow(10, float64(s.PurchaseVolumePrecision))
+func (s *BuyCheapSellHigh) round(value float64, precision float64) float64 {
+	roundNum := math.Pow(10, float64(precision))
 	return math.Round(value*roundNum) / roundNum
 }

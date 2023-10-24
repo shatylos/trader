@@ -23,6 +23,7 @@ type BuyCheapSellHigh struct {
 	LongTermMinPrice        float64
 	LongTermPercentBuffer   float64
 	PurchaseVolumePrecision int64
+	PurchasePricePrecision  int64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
