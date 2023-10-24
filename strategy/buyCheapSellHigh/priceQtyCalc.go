@@ -3,6 +3,8 @@ package buyCheapSellHigh
 import (
 	"bitbucket.org/shatylos/trader/domain/structs"
 	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
+	"bitbucket.org/shatylos/trader/utils"
+	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -23,6 +25,10 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 	buyQty := s.getBuyQty(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastDirection, countLastDirection, qtyLongTermPercentCorrection)
 	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection)
 	sellQty := s.getSellQty(baseCurrencyAmount, tradeCurrencyAmount, lastDirection, countLastDirection, qtyLongTermPercentCorrection)
+
+	utils.LogInfo("Calculated order values:")
+	utils.LogInfo(fmt.Sprintf("Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", buyPrice, buyQty, sellPrice, sellQty))
+	utils.LogInfo(fmt.Sprintf("Rounded: Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", s.round(buyPrice), s.round(buyQty), s.round(sellPrice), s.round(sellQty)))
 
 	return s.round(buyPrice), s.round(buyQty), s.round(sellPrice), s.round(sellQty), nil
 }
