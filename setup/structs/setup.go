@@ -52,7 +52,7 @@ func (s *Setup) NextStep() {
 	}
 
 	if s.errorCount > 0 {
-		utils.LogSuccess(fmt.Sprintf("Success iteration after %d errors", s.errorCount))
+		utils.LogInfo(fmt.Sprintf("Success iteration after %d errors", s.errorCount))
 		s.errorCount = 0
 	}
 
