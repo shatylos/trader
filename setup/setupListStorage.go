@@ -70,7 +70,7 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[interfa
 func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {
 	var setupItemResult *setupStructs.Setup
 
-	for {
+	for range time.Tick(time.Second / 4) {
 		for _, setupListItem := range setupList {
 			if setupListItem.GetStatus() == setupStructs.StatusReadyForNext {
 				setupListItem.SetStatus(setupStructs.StatusInProgress)
@@ -83,6 +83,5 @@ func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {
 			setupChanelContext <- setupItemResult
 			return
 		}
-		time.Sleep(time.Second / 4)
 	}
 }
