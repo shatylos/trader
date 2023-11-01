@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
 	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/domain/structs"
+	"bitbucket.org/shatylos/trader/utils"
 )
 
 type DomainBybitMargin struct {
@@ -89,8 +90,14 @@ func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainO
 	domainOrders := make([]structs.DomainOrder, len(orders))
 
 	for key, order := range orders {
+
+		createdTime, err := utils.ToInt64(order.CreatedTime)
+		if err != nil {
+			return nil, err
+		}
+		panic("Check createdTime. It was refactored but not tested")
 		domainOrder := structs.DomainOrder{
-			CreatedTime: order.CreatedTime,
+			CreatedTime: createdTime,
 			OrderId:     order.OrderId,
 			OrderStatus: order.OrderStatus,
 			OrderType:   order.OrderType,

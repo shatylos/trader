@@ -96,6 +96,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.MinutesToReducePriceRange, err = utils.ToInt64(configMap["minutes_to_reduce_price_range"])
+	if err != nil {
+		return utils.AppError{
+			Message:     "The field minutes_to_reduce_price_range is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
 	s.CostRanges, err = utils.ToInt64Slice(configMap["cost_ranges"])
 	if err != nil {
 		return utils.AppError{

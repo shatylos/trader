@@ -168,7 +168,7 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 		}
 
 		domainOrder := structs.DomainOrder{
-			CreatedTime: strconv.FormatInt(order.CreateTime, 10),
+			CreatedTime: order.CreateTime / 1000,
 			OrderId:     order.OrderId,
 			OrderStatus: order.Status,
 			OrderType:   order.OrderType,
@@ -252,7 +252,7 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, 
 		}
 
 		domainOrder := structs.DomainOrder{
-			CreatedTime: strconv.FormatInt(order.CreateTime, 10),
+			CreatedTime: order.CreateTime / 1000,
 			OrderId:     order.OrderId,
 			OrderStatus: order.Status,
 			OrderType:   order.OrderType,

@@ -17,14 +17,14 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 		return 0, 0, 0, 0, err
 	}
 
-	lastDirection, countLastDirection, lastOrderPrice := s.getLastOrdersInfo(historyOrders)
+	lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime := s.getLastOrdersInfo(historyOrders)
 
 	qtyLongTermPercentCorrection := s.qtyLongTermPercentCorrection(currentPrice, baseCurrencyAmount, tradeCurrencyAmount)
 
-	buyPrice := s.getBuyPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection)
-	buyQty := s.getBuyQty(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastDirection, countLastDirection, qtyLongTermPercentCorrection)
-	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection)
-	sellQty := s.getSellQty(baseCurrencyAmount, tradeCurrencyAmount, lastDirection, countLastDirection, qtyLongTermPercentCorrection)
+	buyPrice := s.getBuyPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime)
+	buyQty := s.getBuyQty(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastDirection, countLastDirection, qtyLongTermPercentCorrection, lastOrderCreationTime)
+	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime)
+	sellQty := s.getSellQty(baseCurrencyAmount, tradeCurrencyAmount, lastDirection, countLastDirection, qtyLongTermPercentCorrection, lastOrderCreationTime)
 
 	utils.LogInfo("Calculated order values:")
 	utils.LogInfo(fmt.Sprintf("Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", buyPrice, buyQty, sellPrice, sellQty))
@@ -47,9 +47,10 @@ func (s *BuyCheapSellHigh) getCurrentPrice() (float64, error) {
 	return candles[0].Close, nil
 }
 
-func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder) (string, int, float64) {
+func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder) (string, int, float64, int64) {
 	lastDirection := ""
 	countLastDirection := 0
+	lastOrderCreationTime := int64(0)
 	lastOrderPrice := float64(0)
 
 	for _, historyOrder := range historyOrders {
@@ -63,6 +64,9 @@ func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder
 		if lastOrderPrice == 0 {
 			lastOrderPrice = historyOrder.Price
 		}
+		if lastOrderCreationTime == 0 {
+			lastOrderCreationTime = historyOrder.CreatedTime
+		}
 
 		if lastDirection == historyOrder.Side {
 			countLastDirection++
@@ -70,10 +74,10 @@ func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder
 			break
 		}
 	}
-	return lastDirection, countLastDirection, lastOrderPrice
+	return lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime
 }
 
-func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int) float64 {
+func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64) float64 {
 	buyPrice := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -89,7 +93,7 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 		priceToCalcute = lastOrderPrice
 	}
 
-	buyPriceRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.CostRanges)
+	buyPriceRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	buyPrice = priceToCalcute - float64(s.CostRanges[buyPriceRangeKey])
 	buyPrice = s.round(buyPrice, float64(s.PurchasePricePrecision))
@@ -97,7 +101,7 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 	return buyPrice
 }
 
-func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int) float64 {
+func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64) float64 {
 	sellPrice := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -113,7 +117,7 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 		priceToCalcute = lastOrderPrice
 	}
 
-	sellPriceRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.CostRanges)
+	sellPriceRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	sellPrice = priceToCalcute + float64(s.CostRanges[sellPriceRangeKey])
 	sellPrice = s.round(sellPrice, float64(s.PurchasePricePrecision))
@@ -121,7 +125,7 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 	return sellPrice
 }
 
-func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastDirection string, countLastDirection int, qtyLongTermPercentCorrection float64) float64 {
+func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastDirection string, countLastDirection int, qtyLongTermPercentCorrection float64, lastOrderCreationTime int64) float64 {
 	buyQty := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -133,7 +137,7 @@ func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAm
 		buyQty = (baseCurrencyAmount / currentPrice) / 100 * float64(s.PercentRanges[0])
 	}
 
-	buyPercentRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.PercentRanges)
+	buyPercentRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
 
 	// @TODO: Check currency to sell
 	buyQty = (baseCurrencyAmount / currentPrice) / 100 * float64(s.PercentRanges[buyPercentRangeKey])
@@ -145,7 +149,7 @@ func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAm
 	return buyQty
 }
 
-func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyAmount float64, lastDirection string, countLastDirection int, qtyLongTermPercentCorrection float64) float64 {
+func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyAmount float64, lastDirection string, countLastDirection int, qtyLongTermPercentCorrection float64, lastOrderCreationTime int64) float64 {
 	sellQty := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -157,7 +161,7 @@ func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyA
 		sellQty = tradeCurrencyAmount / 100 * float64(s.PercentRanges[0])
 	}
 
-	sellPercentRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.PercentRanges)
+	sellPercentRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
 
 	// @TODO: Check currency to sell
 	sellQty = tradeCurrencyAmount / 100 * float64(s.PercentRanges[sellPercentRangeKey])
@@ -200,8 +204,15 @@ func (s *BuyCheapSellHigh) mathMap(value float64, fromMin float64, fromMax float
 	return (value-fromMin)/(fromMax-fromMin)*(toMax-toMin) + toMin
 }
 
-func (s *BuyCheapSellHigh) getRangeKey(orderDirection string, lastDirection string, countLastDirection int, ranges []int64) int {
+func (s *BuyCheapSellHigh) getRangeKey(orderDirection string, lastDirection string, countLastDirection int, ranges []int64, lastOrderCreationTime int64) int {
 	rangeKey := 0
+
+	currentTime := time.Now().Unix()
+	orderOldMinutes := (currentTime - lastOrderCreationTime) / 60
+	if orderOldMinutes > s.MinutesToReducePriceRange {
+		return rangeKey
+	}
+
 	if lastDirection == orderDirection {
 		if len(ranges) > countLastDirection {
 			rangeKey = countLastDirection

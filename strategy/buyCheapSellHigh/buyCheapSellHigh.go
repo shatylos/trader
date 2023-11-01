@@ -10,20 +10,21 @@ import (
 )
 
 type BuyCheapSellHigh struct {
-	isInit                  bool
-	CoinPare                string
-	Domain                  domain.DomainInterface
-	MainCurrency            string
-	TradeCurrency           string
-	Resolution              string
-	TimeoutSeconds          time.Duration
-	CostRanges              []int64
-	PercentRanges           []int64
-	LongTermMaxPrice        float64
-	LongTermMinPrice        float64
-	LongTermPercentBuffer   float64
-	PurchaseVolumePrecision int64
-	PurchasePricePrecision  int64
+	isInit                    bool
+	CoinPare                  string
+	Domain                    domain.DomainInterface
+	MainCurrency              string
+	TradeCurrency             string
+	Resolution                string
+	TimeoutSeconds            time.Duration
+	CostRanges                []int64
+	PercentRanges             []int64
+	LongTermMaxPrice          float64
+	LongTermMinPrice          float64
+	LongTermPercentBuffer     float64
+	PurchaseVolumePrecision   int64
+	PurchasePricePrecision    int64
+	MinutesToReducePriceRange int64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
@@ -48,6 +49,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 	}
 
 	if len(openOrders) >= 2 {
+		err := s.cancelOldOrdersWithBigRanges(openOrders)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 

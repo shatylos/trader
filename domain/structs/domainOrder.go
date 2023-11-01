@@ -1,7 +1,7 @@
 package structs
 
 type DomainOrder struct {
-	CreatedTime string
+	CreatedTime int64
 	OrderId     string
 	OrderStatus string
 	OrderType   string
