@@ -23,6 +23,8 @@ strategy:
     long_term_min_price: 10000
     long_term_percent_buffer: 10
     purchase_volume_precision: 6
+    purchase_price_precision: 1
+    minutes_to_reduce_price_range: 240
 
 domain:
   bybit_spot_demo_btc:
