@@ -47,6 +47,7 @@ func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainO
 			if err != nil {
 				return err
 			}
+			utils.LogInfo(fmt.Sprintf("Canceled order as it is old with big price range. OrderId: %s, Symbol: %s, Side: %s, Price: %f, Qty: %f", order.OrderId, s.CoinPare, order.Side, order.Price, order.Qty))
 		}
 	}
 
