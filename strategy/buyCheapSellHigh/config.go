@@ -104,6 +104,22 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.AvgPriceCandleLimit, err = utils.ToInt64(configMap["avg_price_candle_limit"])
+	if err != nil || s.AvgPriceCandleLimit < 1 {
+		return utils.AppError{
+			Message:     "The field avg_price_candle_limit is empty or contains not correct value type. Expects int64 value more than 1",
+			ParentError: err,
+		}
+	}
+
+	s.AvgPriceCandleOffset, err = utils.ToInt64(configMap["avg_price_candle_offset"])
+	if err != nil || s.AvgPriceCandleOffset < 1 {
+		return utils.AppError{
+			Message:     "The field avg_price_candle_offset is empty or contains not correct value type. Expects int64 value more than 1",
+			ParentError: err,
+		}
+	}
+
 	s.CostRanges, err = utils.ToInt64Slice(configMap["cost_ranges"])
 	if err != nil {
 		return utils.AppError{

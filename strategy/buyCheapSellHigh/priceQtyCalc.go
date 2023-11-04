@@ -12,7 +12,12 @@ import (
 
 func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.DomainOrder, baseCurrencyAmount float64, tradeCurrencyAmount float64) (float64, float64, float64, float64, error) {
 
-	currentPrice, err := s.getCurrentPrice()
+	candles, err := s.loadCandles()
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	currentPrice, err := s.getCurrentPrice(candles)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
@@ -20,10 +25,11 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 	lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime := s.getLastOrdersInfo(historyOrders)
 
 	qtyLongTermPercentCorrection := s.qtyLongTermPercentCorrection(currentPrice, baseCurrencyAmount, tradeCurrencyAmount)
+	historyAvgPrice := s.calculateHistoryAvgPrice(candles)
 
-	buyPrice := s.getBuyPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime)
+	buyPrice := s.getBuyPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime, historyAvgPrice)
 	buyQty := s.getBuyQty(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastDirection, countLastDirection, qtyLongTermPercentCorrection, lastOrderCreationTime)
-	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime)
+	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime, historyAvgPrice)
 	sellQty := s.getSellQty(baseCurrencyAmount, tradeCurrencyAmount, lastDirection, countLastDirection, qtyLongTermPercentCorrection, lastOrderCreationTime)
 
 	utils.LogInfo("Calculated order values:")
@@ -32,17 +38,26 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 	return buyPrice, buyQty, sellPrice, sellQty, nil
 }
 
-func (s *BuyCheapSellHigh) getCurrentPrice() (float64, error) {
+func (s *BuyCheapSellHigh) loadCandles() ([]structs.DomainCandle, error) {
 	now := time.Now()
 	to := now.Unix()
-	limit := int64(1)
-	from := to - (tradeConst.ResolToSec[s.Resolution] * limit)
-	candles, err := s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, limit)
+	candleAmount := s.AvgPriceCandleOffset + s.AvgPriceCandleLimit
+	from := to - (tradeConst.ResolToSec[s.Resolution] * candleAmount)
+	candles, err := s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, candleAmount)
+	if err != nil {
+		return nil, err
+	}
 	sort.Slice(candles, func(i, j int) bool {
 		return candles[i].Time > candles[j].Time
 	})
-	if err != nil {
-		return 0, err
+	return candles, nil
+}
+
+func (s *BuyCheapSellHigh) getCurrentPrice(candles []structs.DomainCandle) (float64, error) {
+	if len(candles) == 0 {
+		return 0, utils.AppError{
+			Message: "No candles to get current price",
+		}
 	}
 	return candles[0].Close, nil
 }
@@ -77,7 +92,7 @@ func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder
 	return lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime
 }
 
-func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64) float64 {
+func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64, historyAvgPrice float64) float64 {
 	buyPrice := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -96,12 +111,15 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 	buyPriceRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	buyPrice = priceToCalcute - float64(s.CostRanges[buyPriceRangeKey])
-	buyPrice = s.round(buyPrice, float64(s.PurchasePricePrecision))
+	if buyPrice > historyAvgPrice {
+		buyPrice = historyAvgPrice
+	}
 
+	buyPrice = s.round(buyPrice, float64(s.PurchasePricePrecision))
 	return buyPrice
 }
 
-func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64) float64 {
+func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrencyAmount float64, currentPrice float64, lastOrderPrice float64, lastDirection string, countLastDirection int, lastOrderCreationTime int64, historyAvgPrice float64) float64 {
 	sellPrice := float64(0)
 
 	if baseCurrencyAmount == 0 && tradeCurrencyAmount == 0 {
@@ -120,8 +138,11 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 	sellPriceRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	sellPrice = priceToCalcute + float64(s.CostRanges[sellPriceRangeKey])
-	sellPrice = s.round(sellPrice, float64(s.PurchasePricePrecision))
+	if sellPrice < historyAvgPrice {
+		sellPrice = historyAvgPrice
+	}
 
+	sellPrice = s.round(sellPrice, float64(s.PurchasePricePrecision))
 	return sellPrice
 }
 
@@ -198,6 +219,23 @@ func (s *BuyCheapSellHigh) qtyLongTermPercentCorrection(currentPrice float64, ba
 	}
 
 	return longTermCorrection
+}
+
+func (s *BuyCheapSellHigh) calculateHistoryAvgPrice(candles []structs.DomainCandle) float64 {
+	totalAvgPrices := float64(0)
+	skipOffsetCount := int64(0)
+	candlesToCalculate := int64(0)
+
+	for _, candle := range candles {
+		if s.AvgPriceCandleOffset > skipOffsetCount {
+			skipOffsetCount++
+			continue
+		}
+		candlesToCalculate++
+		candleAvgPrice := (candle.High + candle.Low) / 2
+		totalAvgPrices += candleAvgPrice
+	}
+	return totalAvgPrices / float64(candlesToCalculate)
 }
 
 func (s *BuyCheapSellHigh) mathMap(value float64, fromMin float64, fromMax float64, toMin float64, toMax float64) float64 {

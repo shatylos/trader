@@ -25,6 +25,8 @@ type BuyCheapSellHigh struct {
 	PurchaseVolumePrecision   int64
 	PurchasePricePrecision    int64
 	MinutesToReducePriceRange int64
+	AvgPriceCandleLimit       int64
+	AvgPriceCandleOffset      int64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
