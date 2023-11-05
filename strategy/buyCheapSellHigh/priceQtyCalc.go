@@ -23,6 +23,7 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 	}
 
 	lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime := s.getLastOrdersInfo(historyOrders)
+	utils.LogInfo(fmt.Sprintf("Last direction: %s, count last direction: %d, last order price: %f, last order creation time: %d", lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime))
 
 	qtyLongTermPercentCorrection := s.qtyLongTermPercentCorrection(currentPrice, baseCurrencyAmount, tradeCurrencyAmount)
 	historyAvgPrice := s.calculateHistoryAvgPrice(candles)
@@ -112,6 +113,7 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 
 	buyPrice = priceToCalcute - float64(s.CostRanges[buyPriceRangeKey])
 	if buyPrice > historyAvgPrice {
+		utils.LogInfo(fmt.Sprintf("Buy price (%f) is greater than history average price (%f). Set history average price as buy price", buyPrice, historyAvgPrice))
 		buyPrice = historyAvgPrice
 	}
 
@@ -139,6 +141,7 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 
 	sellPrice = priceToCalcute + float64(s.CostRanges[sellPriceRangeKey])
 	if sellPrice < historyAvgPrice {
+		utils.LogInfo(fmt.Sprintf("Sell price (%f) is lower than history average price (%f). Set history average price as sell price", sellPrice, historyAvgPrice))
 		sellPrice = historyAvgPrice
 	}
 
