@@ -6,7 +6,6 @@ import (
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
 	"math"
-	"sort"
 	"time"
 )
 
@@ -44,14 +43,7 @@ func (s *BuyCheapSellHigh) loadCandles() ([]structs.DomainCandle, error) {
 	to := now.Unix()
 	candleAmount := s.AvgPriceCandleOffset + s.AvgPriceCandleLimit
 	from := to - (tradeConst.ResolToSec[s.Resolution] * candleAmount)
-	candles, err := s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, candleAmount)
-	if err != nil {
-		return nil, err
-	}
-	sort.Slice(candles, func(i, j int) bool {
-		return candles[i].Time > candles[j].Time
-	})
-	return candles, nil
+	return s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, candleAmount)
 }
 
 func (s *BuyCheapSellHigh) getCurrentPrice(candles []structs.DomainCandle) (float64, error) {

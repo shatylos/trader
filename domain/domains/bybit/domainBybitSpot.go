@@ -6,6 +6,7 @@ import (
 	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/domain/structs"
 	"bitbucket.org/shatylos/trader/utils"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -146,6 +147,10 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, fr
 		}
 	}
 
+	sort.Slice(candlesResult, func(i, j int) bool {
+		return candlesResult[i].Time > candlesResult[j].Time
+	})
+
 	return candlesResult, nil
 }
 
@@ -178,10 +183,14 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 			Side:        order.Side,
 			Symbol:      order.Symbol,
 			TimeInForce: order.TimeInForce,
-			UpdatedTime: strconv.FormatInt(order.UpdateTime, 10),
+			UpdatedTime: order.UpdateTime / 1000,
 		}
 		domainOrders[key] = domainOrder
 	}
+
+	sort.Slice(domainOrders, func(i, j int) bool {
+		return domainOrders[i].CreatedTime > domainOrders[j].CreatedTime
+	})
 
 	return domainOrders, nil
 }
@@ -262,10 +271,14 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, 
 			Side:        order.Side,
 			Symbol:      order.Symbol,
 			TimeInForce: order.TimeInForce,
-			UpdatedTime: strconv.FormatInt(order.UpdateTime, 10),
+			UpdatedTime: order.UpdateTime / 1000,
 		}
 		domainOrders[key] = domainOrder
 	}
+
+	sort.Slice(domainOrders, func(i, j int) bool {
+		return domainOrders[i].CreatedTime > domainOrders[j].CreatedTime
+	})
 
 	return domainOrders, nil
 }

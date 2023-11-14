@@ -95,7 +95,7 @@ func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainO
 		if err != nil {
 			return nil, err
 		}
-		panic("Check createdTime. It was refactored but not tested")
+		panic("Check createdTime and UpdatedTime. It was refactored but not tested")
 		domainOrder := structs.DomainOrder{
 			CreatedTime: createdTime,
 			OrderId:     order.OrderId,
@@ -107,7 +107,7 @@ func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainO
 			Side:        order.Side,
 			Symbol:      order.Symbol,
 			TimeInForce: order.TimeInForce,
-			UpdatedTime: order.UpdatedTime,
+			UpdatedTime: 123, // order.UpdatedTime,
 		}
 		domainOrders[key] = domainOrder
 	}

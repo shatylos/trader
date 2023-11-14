@@ -11,5 +11,5 @@ type DomainOrder struct {
 	Side        string
 	Symbol      string
 	TimeInForce string
-	UpdatedTime string
+	UpdatedTime int64
 }
