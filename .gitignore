@@ -2,3 +2,4 @@
 .env
 mongo-volume
 config.yaml
+log
