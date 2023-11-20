@@ -1,6 +1,10 @@
 package utils
 
-import "time"
+import (
+	"fmt"
+	"os"
+	"time"
+)
 
 var (
 	colorReset  = "\033[0m"
@@ -23,4 +27,26 @@ func LogInfo(msg string) {
 
 func LogSuccess(msg string) {
 	println(colorGreen, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
+}
+
+func DumpToFile(prefix string, data ...interface{}) error {
+	dirPath := "log/dump_to_file"
+	isDir, err := IsDir(dirPath)
+	if err != nil {
+		return err
+	}
+	if !isDir {
+		err := MkDir(dirPath, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	dumpString := fmt.Sprintf("%#v", data)
+	fileName := dirPath + "/" + prefix + "_" + time.Now().Format("2006-01-02 15:04:05") + ".txt"
+	err = os.WriteFile(fileName, []byte(dumpString), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }

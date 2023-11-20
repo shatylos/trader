@@ -23,6 +23,10 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 
 	lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime := s.getLastOrdersInfo(historyOrders)
 	utils.LogInfo(fmt.Sprintf("Last direction: %s, count last direction: %d, last order price: %f, last order creation time: %d", lastDirection, countLastDirection, lastOrderPrice, lastOrderCreationTime))
+	err = utils.DumpToFile("historyOrders", historyOrders)
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
 
 	qtyLongTermPercentCorrection := s.qtyLongTermPercentCorrection(currentPrice, baseCurrencyAmount, tradeCurrencyAmount)
 	historyAvgPrice := s.calculateHistoryAvgPrice(candles)
