@@ -16,6 +16,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.Id, err = utils.ToString(configMap["id"])
+	if err != nil {
+		return utils.AppError{
+			Message:     "The field id is empty or contains not correct value type. Expects string value",
+			ParentError: err,
+		}
+	}
+
 	s.CoinPare, err = utils.ToString(configMap["coin_pare"])
 	if err != nil {
 		return utils.AppError{

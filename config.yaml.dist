@@ -3,6 +3,7 @@ app:
 
 strategy:
   - code: buy_cheap_sell_high
+    id:  BTC_USDT_1
     domain: bybit_spot_demo_btc
     coin_pare: BTCUSDT
     main_currency: USDT

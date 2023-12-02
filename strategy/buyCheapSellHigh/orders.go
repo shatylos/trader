@@ -2,6 +2,8 @@ package buyCheapSellHigh
 
 import (
 	"bitbucket.org/shatylos/trader/domain/structs"
+	_storage "bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage"
+	storageStructs "bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
 	"strconv"
@@ -54,7 +56,7 @@ func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainO
 	return nil
 }
 
-func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction string) error {
+func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction string) (string, error) {
 
 	request := structs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
@@ -69,9 +71,30 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 
 	orderId, err := s.Domain.OpenOrder(request)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	utils.LogSuccess(fmt.Sprintf("Created order: %s. Symbol: %s, Side: %s, Price: %f, Qty: %f", orderId, s.CoinPare, direction, price, qty))
+	return orderId, nil
+}
+
+func (s *BuyCheapSellHigh) setOrderToStorage(orderId string, mainCurrencyBalance float64, tradeCurrencyBalance float64) error {
+
+	storage, err := _storage.GetStorage(s.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = (*storage).AddDomainOrderOnce(storageStructs.HistoryOrder{
+		DomainOrderId:             orderId,
+		CreatedTime:               time.Now().Unix(),
+		MainCurrencyAmountBefore:  mainCurrencyBalance,
+		TradeCurrencyAmountBefore: tradeCurrencyBalance,
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

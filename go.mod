@@ -6,7 +6,10 @@ require (
 	github.com/99designs/gqlgen v0.17.12
 	github.com/gin-gonic/gin v1.8.1
 	github.com/joho/godotenv v1.4.0
+	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/shopspring/decimal v1.3.1
 	github.com/vektah/gqlparser/v2 v2.4.6
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -31,5 +34,4 @@ require (
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

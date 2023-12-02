@@ -11,6 +11,7 @@ import (
 
 type BuyCheapSellHigh struct {
 	isInit                    bool
+	Id                        string
 	CoinPare                  string
 	Domain                    domain.DomainInterface
 	MainCurrency              string
@@ -81,18 +82,20 @@ func (s *BuyCheapSellHigh) DoAction() error {
 	}
 
 	if buyPrice > 0 && buyQty > 0 {
-		err = s.setLimitOrder(buyPrice, buyQty, tradeConst.SideBuy)
+		orderId, err := s.setLimitOrder(buyPrice, buyQty, tradeConst.SideBuy)
 		if err != nil {
 			return err
 		}
+		s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
 	} else {
 		utils.LogInfo(fmt.Sprintf("[Buy Cheap Sell High] unexpected values for buy orders: buyPrice: %f, buyQty: %f", buyPrice, buyQty))
 	}
 	if sellPrice > 0 && sellQty > 0 {
-		err = s.setLimitOrder(sellPrice, sellQty, tradeConst.SideSell)
+		orderId, err := s.setLimitOrder(sellPrice, sellQty, tradeConst.SideSell)
 		if err != nil {
 			return err
 		}
+		s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
 	} else {
 		utils.LogInfo(fmt.Sprintf("[Buy Cheap Sell High] unexpected values for sell orders: sellPrice: %f, sellQty: %f", sellPrice, sellQty))
 	}

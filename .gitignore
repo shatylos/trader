@@ -3,3 +3,4 @@
 mongo-volume
 config.yaml
 log
+*.db
