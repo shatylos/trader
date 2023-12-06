@@ -6,6 +6,8 @@ import (
 	"github.com/FerretDB/FerretDB/ferretdb"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"os"
+	"strings"
 )
 
 var documentStorage *mongo.Client
@@ -34,6 +36,12 @@ func getFerretdbStorage() (*mongo.Client, error) {
 	ferretdbListenerTcp := utils.AppConfig("FERRETDB_LISTENER_TCP")
 	ferretdbListenerHandler := utils.AppConfig("FERRETDB_HANDLER")
 	ferretdbSqliteUrl := utils.AppConfig("FERRETDB_SQLITE_URL")
+
+	dirPath := strings.TrimPrefix(ferretdbSqliteUrl, "file:")
+	err := os.MkdirAll(dirPath, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 
 	fdb, err := ferretdb.New(&ferretdb.Config{
 		Listener: ferretdb.ListenerConfig{
