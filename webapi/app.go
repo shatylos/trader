@@ -2,6 +2,7 @@ package webapi
 
 import (
 	"bitbucket.org/shatylos/trader/utils"
+	"bitbucket.org/shatylos/trader/webapi/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,7 @@ func init() {
 
 func StartWebApp() {
 	//router.GET("/", controller.ReportController)
+	router.GET("/migrate", controller.MigrateDb)
 	port := utils.AppConfig("TRADER_WEB_PORT", defaultPort)
 
 	if err := router.Run(":" + port); err != nil {

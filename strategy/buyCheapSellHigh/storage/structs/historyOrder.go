@@ -1,7 +1,7 @@
 package structs
 
 type HistoryOrder struct {
-	Id                        *int64   `bson:"_id,omitempty"`
+	Id                        *string  `bson:"_id,omitempty"`
 	DomainOrderId             string   `bson:"domain_order_id"`
 	FilledPrice               *float64 `bson:"filled_price"`
 	FilledQty                 *float64 `bson:"filled_qty"`
