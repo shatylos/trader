@@ -10,13 +10,13 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic("Error load go dot env")
+		panic("Error load go dot env: " + err.Error())
 		return
 	}
 
 	err = storage.InitStorage()
 	if err != nil {
-		panic("Error Init storage")
+		panic("Error Init storage: " + err.Error())
 		return
 	}
 
