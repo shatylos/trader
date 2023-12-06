@@ -5,14 +5,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Storage struct {
+type SqliteStorage struct {
 	setupCode string
 	db        *sql.DB
 }
 
 var db *sql.DB
 
-func New(path string, setupCode string) (*Storage, error) {
+func New(path string, setupCode string) (*SqliteStorage, error) {
 	if db != nil {
 		return initStorage(setupCode)
 	}
@@ -30,9 +30,9 @@ func New(path string, setupCode string) (*Storage, error) {
 	return initStorage(setupCode)
 }
 
-func initStorage(setupCode string) (*Storage, error) {
+func initStorage(setupCode string) (*SqliteStorage, error) {
 
-	storage := Storage{
+	storage := SqliteStorage{
 		db:        db,
 		setupCode: setupCode,
 	}

@@ -5,7 +5,7 @@ import (
 )
 
 // AddDomainOrderOnce add order to storage.
-func (s *Storage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, error) {
+func (s *SqliteStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, error) {
 
 	isAdded := false
 

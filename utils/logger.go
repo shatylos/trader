@@ -30,7 +30,7 @@ func LogSuccess(msg string) {
 }
 
 func DumpToFile(prefix string, data ...interface{}) error {
-	dirPath := "log/dump_to_file"
+	dirPath := AppConfig("LOG_DUMP_TO_FILE")
 	isDir, err := IsDir(dirPath)
 	if err != nil {
 		return err

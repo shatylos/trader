@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/sqlite"
+	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/mongo"
 	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 )
 
@@ -16,7 +16,8 @@ func GetStorage(setupId string) (*Storage, error) {
 
 	storage, ok := storages[setupId]
 	if !ok {
-		storage, err = sqlite.New("buyCheapSellHigh.db", setupId)
+		//storage, err = sqlite.New("var/buyCheapSellHigh.db", setupId)
+		storage, err = mongo.New(setupId)
 		if err != nil {
 			return nil, err
 		}
