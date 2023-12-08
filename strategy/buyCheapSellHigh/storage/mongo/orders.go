@@ -39,7 +39,9 @@ func (s *MongoStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, e
 	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{{"average_price", nil}})
+	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+		{"average_price", bson.D{{"$in", bson.A{0, nil}}}},
+	})
 
 	if err != nil {
 		return nil, err
