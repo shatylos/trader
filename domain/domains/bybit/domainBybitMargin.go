@@ -81,6 +81,10 @@ func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, 
 	return candlesResult, nil
 }
 
+func (d *DomainBybitMargin) GetOrder(domainId string) (structs.DomainOrder, error) {
+	panic("Not implemented")
+}
+
 func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
 	orders, err := request.GetOrderList(coinPare, "New", d.secrets)
 	if err != nil {

@@ -76,6 +76,10 @@ func (d *DomainExmoMargin) LoadCandleHistory(symbol string, resolution string, f
 	return candlesResult, nil
 }
 
+func (d *DomainExmoMargin) GetOrder(domainId string) (structs.DomainOrder, error) {
+	panic("not implemented")
+}
+
 func (d *DomainExmoMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
 	panic("not implemented")
 }

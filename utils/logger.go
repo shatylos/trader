@@ -21,6 +21,10 @@ func LogError(msg string) {
 	println(colorRed, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
 }
 
+func LogWarning(msg string) {
+	println(colorYellow, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
+}
+
 func LogInfo(msg string) {
 	println(colorGrey, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
 }

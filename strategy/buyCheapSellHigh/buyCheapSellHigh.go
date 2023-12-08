@@ -64,6 +64,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		if err != nil {
 			return err
 		}
+		err = s.fillPrices()
+		if err != nil {
+			return err
+		}
 	}
 
 	historyOrders, err := s.getHistoryOrders()

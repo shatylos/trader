@@ -98,3 +98,61 @@ func (s *BuyCheapSellHigh) setOrderToStorage(orderId string, mainCurrencyBalance
 
 	return nil
 }
+
+func (s *BuyCheapSellHigh) fillPrices() error {
+
+	utils.LogInfo("Filling prices")
+
+	storagePointer, err := _storage.GetStorage(s.Id)
+	if err != nil {
+		return err
+	}
+	storage := *storagePointer
+
+	historyOrders, err := storage.GetNotCalculatedDomainOrders()
+	if err != nil {
+		return err
+	}
+
+	countFilled := 0
+	countRemoved := 0
+	for _, historyOrder := range historyOrders {
+		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" {
+			order, err := s.Domain.GetOrder(historyOrder.DomainOrderId)
+			if err != nil {
+				return err
+			}
+
+			if order.OrderStatus == "FILLED" || order.OrderStatus == "PARTIALLY_FILLED" {
+				historyOrder.FilledPrice = order.Price
+				historyOrder.FilledQty = order.Qty
+				historyOrder.Side = order.Side
+				historyOrder.UpdatedTime = order.UpdatedTime
+				err := storage.UpdateOrder(historyOrder)
+				if err != nil {
+					utils.LogError(fmt.Sprintf("Error filling price for the order %s", order.OrderId))
+					return err
+				}
+				utils.LogInfo(fmt.Sprintf("Filled price for the order %s", order.OrderId))
+				countFilled++
+			} else if order.OrderStatus == "CANCELED" {
+				err := storage.RemoveOrder(historyOrder.DomainOrderId)
+				if err != nil {
+					utils.LogError(fmt.Sprintf("Error removing canceled order %s", order.OrderId))
+					return err
+				}
+				utils.LogInfo(fmt.Sprintf("Removed canceled order %s", order.OrderId))
+				countRemoved++
+			} else if order.OrderStatus != "NEW" {
+				utils.LogWarning(fmt.Sprintf("Unexpected order status: %s, for order %s", order.OrderStatus, order.OrderId))
+			}
+		}
+	}
+	if countFilled > 0 {
+		utils.LogInfo(fmt.Sprintf("Filled prices for %d orders", countFilled))
+	}
+	if countRemoved > 0 {
+		utils.LogInfo(fmt.Sprintf("Removed %d cancelled orders from local storage", countRemoved))
+	}
+	return nil
+}

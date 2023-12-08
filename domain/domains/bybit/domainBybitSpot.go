@@ -154,6 +154,46 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, fr
 	return candlesResult, nil
 }
 
+func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error) {
+	order, err := request.GetSpotOrder(domainId, d.secrets)
+	if err != nil {
+		return structs.DomainOrder{}, err
+	}
+
+	orderPrice, err := strconv.ParseFloat(order.OrderPrice, 64)
+	if err != nil {
+		return structs.DomainOrder{}, err
+	}
+	orderQty, err := strconv.ParseFloat(order.OrderQty, 64)
+	if err != nil {
+		return structs.DomainOrder{}, err
+	}
+	createTime, err := strconv.ParseInt(order.CreateTime, 10, 64)
+	if err != nil {
+		return structs.DomainOrder{}, err
+	}
+	updateTime, err := strconv.ParseInt(order.UpdateTime, 10, 64)
+	if err != nil {
+		return structs.DomainOrder{}, err
+	}
+
+	domainOrder := structs.DomainOrder{
+		CreatedTime: createTime / 1000,
+		OrderId:     order.OrderId,
+		OrderStatus: order.Status,
+		OrderType:   order.OrderType,
+		Price:       orderPrice,
+		Qty:         orderQty,
+		ReduceOnly:  false,
+		Side:        order.Side,
+		Symbol:      order.Symbol,
+		TimeInForce: order.TimeInForce,
+		UpdatedTime: updateTime / 1000,
+	}
+
+	return domainOrder, nil
+}
+
 func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
 	orders, err := request.GetSpotOpenOrderList(coinPare, d.secrets)
 	if err != nil {

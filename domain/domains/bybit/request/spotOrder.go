@@ -24,7 +24,7 @@ type SpotOrderRequest struct {
 	SmpType       string //	Smp execution type. What is SMP?
 }
 
-type SpotOrderResponse struct {
+type SpotOrderResponseTimeInt struct {
 	AccountId           string `json:"accountId"`           //	Account ID
 	Symbol              string `json:"symbol"`              //	Name of the trading pair
 	OrderLinkId         string `json:"orderLinkId"`         //	User-generated order ID
@@ -52,7 +52,7 @@ type SpotOrderResponse struct {
 	SmpOrderId          string `json:"smpOrderId"`          //	The counterparty's orderID which triggers this SMP execution
 }
 
-type CreateSpotOrderResponse struct {
+type SpotOrderResponseTimeStr struct {
 	AccountId           string `json:"accountId"`           //	Account ID
 	Symbol              string `json:"symbol"`              //	Name of the trading pair
 	OrderLinkId         string `json:"orderLinkId"`         //	User-generated order ID
@@ -69,7 +69,7 @@ type CreateSpotOrderResponse struct {
 	StopPrice           string `json:"stopPrice"`           //	Stop price
 	IcebergQty          string `json:"icebergQty"`          //	Please ignore
 	CreateTime          string `json:"createTime"`          //	Order created time in the match engine
-	UpdateTime          int64  `json:"updateTime"`          //	Last time order was updated
+	UpdateTime          string `json:"updateTime"`          //	Last time order was updated
 	IsWorking           string `json:"isWorking"`           //	Is working. 0：valid, 1：invalid
 	OrderCategory       int64  `json:"orderCategory"`       //	Order category. 0：normal order; 1：TP/SL order. TP/SL order has this field
 	TriggerPrice        string `json:"triggerPrice"`        //	Trigger price. TP/SL order has this field
@@ -80,7 +80,7 @@ type CreateSpotOrderResponse struct {
 	SmpOrderId          string `json:"smpOrderId"`          //	The counterparty's orderID which triggers this SMP execution
 }
 
-func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (*CreateSpotOrderResponse, error) {
+func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (*SpotOrderResponseTimeStr, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = orderRequest.Symbol
 	params["orderQty"] = orderRequest.OrderQty
@@ -95,13 +95,27 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets
 		return nil, err
 	}
 
-	return mapCreateSpotOrderResponse(queryResp)
+	return mapSpotOrderResponseTimeStr(queryResp)
 }
 
-func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponse, error) {
+func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (*SpotOrderResponseTimeStr, error) {
+	params := make(ApiParams, 0)
+	params["orderId"] = domainId
+	queryResp, er := apiQueryGet("/spot/v3/private/order", params, secrets)
+	if er != nil {
+		return nil, er
+	}
+	order, err := mapSpotOrderResponseTimeStr(queryResp)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
+}
+
+func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeInt, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
-	orders := make([]*SpotOrderResponse, 0)
+	orders := make([]*SpotOrderResponseTimeInt, 0)
 
 	queryResp, er := apiQueryGet("/spot/v3/private/open-orders", params, secrets)
 	if er != nil {
@@ -123,7 +137,7 @@ func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*Spo
 	}
 
 	for _, queryRespOrderItem := range queryRespData {
-		order, err := mapSpotOrderResponse(queryRespOrderItem)
+		order, err := mapSpotOrderResponseTimeInt(queryRespOrderItem)
 		if err != nil {
 			return nil, err
 		}
@@ -144,10 +158,10 @@ func CancelSpotOrder(orderId string, secrets bybitStructs.Secrets) error {
 	return nil
 }
 
-func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrderResponse, error) {
+func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeInt, error) {
 	params := make(ApiParams, 0)
 	params["limit"] = strconv.FormatInt(limit, 10)
-	orders := make([]*SpotOrderResponse, 0)
+	orders := make([]*SpotOrderResponseTimeInt, 0)
 
 	queryResp, er := apiQueryGet("/spot/v3/private/history-orders", params, secrets)
 	if er != nil {
@@ -169,7 +183,7 @@ func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrde
 	}
 
 	for _, queryRespOrderItem := range queryRespData {
-		order, err := mapSpotOrderResponse(queryRespOrderItem)
+		order, err := mapSpotOrderResponseTimeInt(queryRespOrderItem)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +193,7 @@ func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrde
 	return orders, nil
 }
 
-func mapSpotOrderResponse(queryResp interface{}) (*SpotOrderResponse, error) {
+func mapSpotOrderResponseTimeInt(queryResp interface{}) (*SpotOrderResponseTimeInt, error) {
 
 	orderResponseBytes, err := json.Marshal(queryResp)
 	if err != nil {
@@ -188,7 +202,7 @@ func mapSpotOrderResponse(queryResp interface{}) (*SpotOrderResponse, error) {
 		}
 	}
 
-	orderResponse := SpotOrderResponse{}
+	orderResponse := SpotOrderResponseTimeInt{}
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		return nil, utils.AppError{
@@ -199,7 +213,7 @@ func mapSpotOrderResponse(queryResp interface{}) (*SpotOrderResponse, error) {
 	return &orderResponse, nil
 }
 
-func mapCreateSpotOrderResponse(queryResp interface{}) (*CreateSpotOrderResponse, error) {
+func mapSpotOrderResponseTimeStr(queryResp interface{}) (*SpotOrderResponseTimeStr, error) {
 
 	orderResponseBytes, err := json.Marshal(queryResp)
 	if err != nil {
@@ -208,7 +222,7 @@ func mapCreateSpotOrderResponse(queryResp interface{}) (*CreateSpotOrderResponse
 		}
 	}
 
-	orderResponse := CreateSpotOrderResponse{}
+	orderResponse := SpotOrderResponseTimeStr{}
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		return nil, utils.AppError{

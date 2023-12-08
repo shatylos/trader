@@ -92,3 +92,11 @@ func (s *SqliteStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, 
 
 	return orders, nil
 }
+
+func (s *SqliteStorage) RemoveOrder(domainOrderId string) error {
+	panic("not implemented")
+}
+
+func (s *SqliteStorage) UpdateOrder(order structs.HistoryOrder) error {
+	panic("not implemented")
+}

@@ -3,6 +3,7 @@ package domain
 import "bitbucket.org/shatylos/trader/domain/structs"
 
 type DomainInterface interface {
+	GetOrder(domainId string) (structs.DomainOrder, error)
 	GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error)
 	GetPositionList(coinPare string) ([]structs.DomainPosition, error)
 	GetType() int64

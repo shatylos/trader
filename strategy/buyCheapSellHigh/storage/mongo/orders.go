@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,4 +33,62 @@ func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, err
 	return false, utils.AppError{
 		Message: fmt.Sprintf("Order with id %s already exists", order.DomainOrderId),
 	}
+}
+
+func (s *MongoStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, error) {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{{"average_price", nil}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []structs.HistoryOrder
+
+	if err = cursor.All(ctx, &orders); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func (s *MongoStorage) RemoveOrder(domainOrderId string) error {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	_, err := s.db.Collection(collectionName).DeleteOne(ctx, bson.D{{"domain_order_id", domainOrderId}})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	if order.Id == nil {
+		return utils.AppError{
+			Message: "order id is empty",
+		}
+	}
+	id, err := primitive.ObjectIDFromHex(*order.Id)
+	if err != nil {
+		return err
+	}
+	filter := bson.D{{"_id", id}}
+
+	update := bson.D{{"$set", order}}
+
+	_, err = s.db.Collection(collectionName).UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

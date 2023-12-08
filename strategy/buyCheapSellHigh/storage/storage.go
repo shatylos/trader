@@ -7,6 +7,9 @@ import (
 
 type Storage interface {
 	AddDomainOrderOnce(order structs.HistoryOrder) (bool, error)
+	GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, error)
+	RemoveOrder(domainOrderId string) error
+	UpdateOrder(order structs.HistoryOrder) error
 }
 
 var storages = map[string]Storage{}
