@@ -46,7 +46,7 @@ func (s *SqliteStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, er
 	return isAdded, nil
 }
 
-func (s *SqliteStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, error) {
+func (s *SqliteStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error) {
 	orderTableName := getOrderTableName(s.setupCode)
 
 	q := fmt.Sprintf(`SELECT 
@@ -60,8 +60,7 @@ func (s *SqliteStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, 
 				TradeCurrencyAmountBefore, 
 				AveragePrice 
 			FROM %s 
-			WHERE AveragePrice IS NULL
-				OR AveragePrice = 0`,
+			WHERE FilledPrice = 0 OR FilledQty = 0 OR Side = '' OR UpdatedTime = 0`,
 		orderTableName)
 
 	rows, err := s.db.Query(q)
@@ -91,6 +90,14 @@ func (s *SqliteStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, 
 	}
 
 	return orders, nil
+}
+
+func (s *SqliteStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error) {
+	panic("not implemented")
+}
+
+func (s *SqliteStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
+	panic("not implemented")
 }
 
 func (s *SqliteStorage) RemoveOrder(domainOrderId string) error {

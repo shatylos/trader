@@ -28,6 +28,7 @@ type BuyCheapSellHigh struct {
 	MinutesToReducePriceRange int64
 	AvgPriceCandleLimit       int64
 	AvgPriceCandleOffset      int64
+	ManualBuyPriceBeforeStart float64
 }
 
 func (s *BuyCheapSellHigh) IsInit() bool {
@@ -68,6 +69,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		if err != nil {
 			return err
 		}
+		err = s.calculateAveragePrice()
+		if err != nil {
+			return err
+		}
 	}
 
 	historyOrders, err := s.getHistoryOrders()
@@ -90,7 +95,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		if err != nil {
 			return err
 		}
-		s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
+		err = s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
+		if err != nil {
+			return err
+		}
 	} else {
 		utils.LogInfo(fmt.Sprintf("[Buy Cheap Sell High] unexpected values for buy orders: buyPrice: %f, buyQty: %f", buyPrice, buyQty))
 	}
@@ -99,7 +107,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		if err != nil {
 			return err
 		}
-		s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
+		err = s.setOrderToStorage(orderId, baseCurrencyBalance, tradeCurrencyBalance)
+		if err != nil {
+			return err
+		}
 	} else {
 		utils.LogInfo(fmt.Sprintf("[Buy Cheap Sell High] unexpected values for sell orders: sellPrice: %f, sellQty: %f", sellPrice, sellQty))
 	}

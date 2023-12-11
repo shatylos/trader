@@ -3,6 +3,7 @@ package buyCheapSellHigh
 import (
 	"bitbucket.org/shatylos/trader/domain"
 	"bitbucket.org/shatylos/trader/utils"
+	"errors"
 )
 
 func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig map[interface{}]interface{}) error {
@@ -124,6 +125,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 	if err != nil || s.AvgPriceCandleOffset < 1 {
 		return utils.AppError{
 			Message:     "The field avg_price_candle_offset is empty or contains not correct value type. Expects int64 value more than 1",
+			ParentError: err,
+		}
+	}
+
+	s.ManualBuyPriceBeforeStart, err = utils.ToFloat64(configMap["manual_buy_price_before_start"])
+	if err != nil && !errors.Is(err, utils.EmptyValueError) {
+		return utils.AppError{
+			Message:     "The field manual_buy_price_before_start contains not correct value type. Expects float64 value. Can be empty",
 			ParentError: err,
 		}
 	}

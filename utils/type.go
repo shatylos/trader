@@ -22,6 +22,9 @@ func ToInt64(value interface{}) (int64, error) {
 }
 
 func ToFloat64(value interface{}) (float64, error) {
+	if value == nil {
+		return 0, EmptyValueError
+	}
 	switch value.(type) {
 	case int:
 		return float64(value.(int)), nil

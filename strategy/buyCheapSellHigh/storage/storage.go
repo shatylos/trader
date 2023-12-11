@@ -7,7 +7,9 @@ import (
 
 type Storage interface {
 	AddDomainOrderOnce(order structs.HistoryOrder) (bool, error)
-	GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, error)
+	GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error)
+	GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error)
+	GetLastCalculatedOrder() (*structs.HistoryOrder, error)
 	RemoveOrder(domainOrderId string) error
 	UpdateOrder(order structs.HistoryOrder) error
 }

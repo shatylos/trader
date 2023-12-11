@@ -28,6 +28,7 @@ strategy:
     minutes_to_reduce_price_range: 240
     avg_price_candle_limit: 10
     avg_price_candle_offset: 2
+    manual_buy_price_before_start: 20000
 
 domain:
   bybit_spot_demo_btc:

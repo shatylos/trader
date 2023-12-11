@@ -160,11 +160,11 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error)
 		return structs.DomainOrder{}, err
 	}
 
-	orderPrice, err := strconv.ParseFloat(order.OrderPrice, 64)
+	filledPrice, err := strconv.ParseFloat(order.AvgPrice, 64)
 	if err != nil {
 		return structs.DomainOrder{}, err
 	}
-	orderQty, err := strconv.ParseFloat(order.OrderQty, 64)
+	filledQty, err := strconv.ParseFloat(order.ExecQty, 64)
 	if err != nil {
 		return structs.DomainOrder{}, err
 	}
@@ -182,8 +182,8 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error)
 		OrderId:     order.OrderId,
 		OrderStatus: order.Status,
 		OrderType:   order.OrderType,
-		Price:       orderPrice,
-		Qty:         orderQty,
+		Price:       filledPrice,
+		Qty:         filledQty,
 		ReduceOnly:  false,
 		Side:        order.Side,
 		Symbol:      order.Symbol,

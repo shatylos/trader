@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // AddDomainOrderOnce add order to storage.
@@ -35,12 +36,17 @@ func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, err
 	}
 }
 
-func (s *MongoStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, error) {
+func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error) {
 	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
 	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
-		{"average_price", bson.D{{"$in", bson.A{0, nil}}}},
+		{"$or", bson.A{
+			bson.D{{"filled_price", 0}},
+			bson.D{{"filled_qty", 0}},
+			bson.D{{"side", ""}},
+			bson.D{{"updated_time", 0}},
+		}},
 	})
 
 	if err != nil {
@@ -54,6 +60,59 @@ func (s *MongoStorage) GetNotCalculatedDomainOrders() ([]structs.HistoryOrder, e
 	}
 
 	return orders, nil
+}
+
+func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error) {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+		{"$and", bson.A{
+			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
+			bson.D{{"filled_qty", bson.D{{"$gt", 0}}}},
+			bson.D{{"side", bson.D{{"$ne", ""}}}},
+			bson.D{{"updated_time", bson.D{{"$gt", 0}}}},
+			bson.D{{"average_price", bson.D{{"$in", bson.A{0, nil}}}}},
+		}},
+	}, options.Find().SetSort(
+		bson.D{{"updated_time", 1}},
+	))
+
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []structs.HistoryOrder
+
+	if err = cursor.All(ctx, &orders); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	var lastCalculatedOrder structs.HistoryOrder
+	err := s.db.Collection(collectionName).FindOne(
+		ctx,
+		bson.D{{
+			"average_price", bson.D{{"$gt", 0}},
+		}},
+		options.FindOne().SetSort(
+			bson.D{{"updated_time", -1}},
+		),
+	).Decode(&lastCalculatedOrder)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &lastCalculatedOrder, nil
 }
 
 func (s *MongoStorage) RemoveOrder(domainOrderId string) error {
