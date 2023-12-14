@@ -69,10 +69,10 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		if err != nil {
 			return err
 		}
-		err = s.calculateAveragePrice()
-		if err != nil {
-			return err
-		}
+		//err = s.calculateHistoryOrderValues()
+		//if err != nil {
+		//	return err
+		//}
 	}
 
 	historyOrders, err := s.getHistoryOrders()

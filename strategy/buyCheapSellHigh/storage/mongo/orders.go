@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 // AddDomainOrderOnce add order to storage.
@@ -91,6 +92,35 @@ func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, 
 	return orders, nil
 }
 
+func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error) {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+		{"$and", bson.A{
+			bson.D{{"average_price", bson.D{{"$gt", 0}}}},
+			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
+			bson.D{{"filled_qty", bson.D{{"$gt", 0}}}},
+			bson.D{{"side", bson.D{{"$ne", ""}}}},
+			bson.D{{"updated_time", bson.D{{"$gt", from.Unix()}}}},
+			bson.D{{"updated_time", bson.D{{"$lt", to.Unix()}}}},
+		}},
+	}, options.Find().SetSort(
+		bson.D{{"updated_time", -1}},
+	))
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []structs.HistoryOrder
+
+	if err = cursor.All(ctx, &orders); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
 func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
 	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
@@ -142,10 +172,38 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 		return err
 	}
 	filter := bson.D{{"_id", id}}
-
-	update := bson.D{{"$set", order}}
+	update := bson.D{{"$set", bson.D{
+		{"filled_price", order.FilledPrice},
+		{"filled_qty", order.FilledQty},
+		{"side", order.Side},
+		{"updated_time", order.UpdatedTime},
+		{"average_price", order.AveragePrice},
+		{"revenue", order.Revenue},
+	}}}
 
 	_, err = s.db.Collection(collectionName).UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *MongoStorage) ResetHistoryOrderData() error {
+	collectionName := getOrderCollectionName(s.setupCode)
+	ctx := context.TODO()
+
+	_, err := s.db.Collection(collectionName).UpdateMany(ctx, bson.D{}, bson.D{
+		{"$set", bson.D{
+			{"filled_price", 0},
+			{"filled_qty", 0},
+			{"side", ""},
+			{"updated_time", 0},
+			{"average_price", 0},
+			{"revenue", 0},
+		}},
+	})
 
 	if err != nil {
 		return err

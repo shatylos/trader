@@ -85,3 +85,7 @@ func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {
 		}
 	}
 }
+
+func GetSetupList() []*setupStructs.Setup {
+	return setupList
+}

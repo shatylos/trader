@@ -3,6 +3,7 @@ package sqlite
 import (
 	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 	"fmt"
+	"time"
 )
 
 // AddDomainOrderOnce add order to storage.
@@ -100,10 +101,17 @@ func (s *SqliteStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) 
 	panic("not implemented")
 }
 
+func (s *SqliteStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error) {
+	panic("not implemented")
+}
+
 func (s *SqliteStorage) RemoveOrder(domainOrderId string) error {
 	panic("not implemented")
 }
 
 func (s *SqliteStorage) UpdateOrder(order structs.HistoryOrder) error {
+	panic("not implemented")
+}
+func (s *SqliteStorage) ResetHistoryOrderData() error {
 	panic("not implemented")
 }

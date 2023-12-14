@@ -1,0 +1,127 @@
+package buyCheapSellHigh
+
+import (
+	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage"
+	"bitbucket.org/shatylos/trader/strategy/struct"
+	"bitbucket.org/shatylos/trader/utils"
+	"bitbucket.org/shatylos/trader/webapi/helper"
+	"bytes"
+	"html/template"
+	"time"
+)
+
+type StrategyReportPage struct {
+	MainCurrency     string
+	TradeCurrency    string
+	ReportOrderItems []ReportOrderItem
+}
+
+type ReportOrderItem struct {
+	DateTime                       time.Time
+	OrderId                        string
+	Direction                      string
+	Price                          float64
+	MainCurrencyAmount             float64
+	TradeCurrencyAmount            float64
+	AvaragePrice                   float64
+	Revenue                        float64
+	TotalMainCurrencyAmountBefore  float64
+	TotalTradeCurrencyAmountBefore float64
+}
+
+func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Report, error) {
+	report := _struct.Report{}
+
+	reportItems, err := s.getReportOrderItems(from, to)
+	if err != nil {
+		return &report, err
+	}
+
+	tmpl, err := helper.GetTemplate("strategy/buyCheapSellHigh/templates/report.html")
+	if err != nil {
+		return &report, err
+	}
+
+	data := StrategyReportPage{
+		MainCurrency:     s.MainCurrency,
+		TradeCurrency:    s.TradeCurrency,
+		ReportOrderItems: reportItems,
+	}
+
+	var resultBuffer bytes.Buffer
+	err = tmpl.Execute(&resultBuffer, data)
+	if err != nil {
+		return &report, err
+	}
+
+	revenueCurrency, revenuePercent, err := s.getRevenue(reportItems)
+	if err != nil {
+		return &report, err
+	}
+
+	report = _struct.Report{
+		DateFrom:        from,
+		DateTo:          to,
+		RevenuePercents: revenuePercent,
+		Revenue:         revenueCurrency,
+		Currency:        s.MainCurrency,
+		InnerHtml:       template.HTML(resultBuffer.String()),
+	}
+
+	return &report, nil
+}
+
+func (s *BuyCheapSellHigh) getReportOrderItems(from time.Time, to time.Time) ([]ReportOrderItem, error) {
+
+	var reportOrderItems []ReportOrderItem
+
+	storagePointer, err := storage.GetStorage(s.Id)
+	if err != nil {
+		return reportOrderItems, err
+	}
+	storageInst := *storagePointer
+
+	historyOrders, err := storageInst.GetCalculatedHistoryOrders(from, to)
+	if err != nil {
+		return reportOrderItems, err
+	}
+
+	for _, historyOrder := range historyOrders {
+		reportOrderItems = append(reportOrderItems, ReportOrderItem{
+			DateTime:                       time.Unix(historyOrder.UpdatedTime, 0),
+			OrderId:                        historyOrder.DomainOrderId,
+			Direction:                      historyOrder.Side,
+			Price:                          historyOrder.FilledPrice,
+			MainCurrencyAmount:             utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty),
+			TradeCurrencyAmount:            historyOrder.FilledQty,
+			AvaragePrice:                   historyOrder.AveragePrice,
+			Revenue:                        historyOrder.Revenue,
+			TotalMainCurrencyAmountBefore:  historyOrder.MainCurrencyAmountBefore,
+			TotalTradeCurrencyAmountBefore: historyOrder.TradeCurrencyAmountBefore,
+		})
+	}
+
+	return reportOrderItems, nil
+
+}
+
+func (s *BuyCheapSellHigh) getRevenue(reportOrderItems []ReportOrderItem) (float64, float64, error) {
+
+	if len(reportOrderItems) == 0 {
+		return 0, 0, nil
+	}
+
+	var revenue float64
+	var revenuePercent float64
+
+	for _, reportOrderItem := range reportOrderItems {
+		revenue += reportOrderItem.Revenue
+	}
+
+	firstOrder := reportOrderItems[len(reportOrderItems)-1]
+	startSum := firstOrder.TotalMainCurrencyAmountBefore + utils.Mul(firstOrder.TotalTradeCurrencyAmountBefore, firstOrder.Price)
+	onePercentStart := utils.Div(startSum, 100)
+	revenuePercent = utils.Div(revenue, onePercentStart)
+
+	return revenue, revenuePercent, nil
+}

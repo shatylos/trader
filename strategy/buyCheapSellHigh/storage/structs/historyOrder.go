@@ -11,4 +11,5 @@ type HistoryOrder struct {
 	MainCurrencyAmountBefore  float64 `bson:"main_currency_amount_before"`
 	TradeCurrencyAmountBefore float64 `bson:"trade_currency_amount_before"`
 	AveragePrice              float64 `bson:"average_price"`
+	Revenue                   float64 `bson:"revenue"`
 }

@@ -1,0 +1,33 @@
+<table class="table table-hover">
+
+    <thead>
+    <tr>
+        <th>Date/Time</th>
+        <th>Direction</th>
+        <th>Price</th>
+        <th>{{ .MainCurrency }}</th>
+        <th>{{ .TradeCurrency }}</th>
+        <th>Avarage Price</th>
+        <th>Revenue</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+    {{ range .ReportOrderItems }}
+    {{ block "order-list-element" .}}
+    <tr>
+        <td>{{ .DateTime | dateFormat "2006-01-02 15:04:05" }}</td>
+        <td>{{ .Direction }}</td>
+        <td>{{ .Price }}</td>
+        <td>{{ .MainCurrencyAmount }}</td>
+        <td>{{ .TradeCurrencyAmount }}</td>
+        <td>{{ .AvaragePrice }}</td>
+        <td>{{ .Revenue }}</td>
+    </tr>
+    {{ end }}
+    {{ end }}
+
+    </tbody>
+
+</table>

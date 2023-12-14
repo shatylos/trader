@@ -3,14 +3,17 @@ package storage
 import (
 	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/mongo"
 	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
+	"time"
 )
 
 type Storage interface {
 	AddDomainOrderOnce(order structs.HistoryOrder) (bool, error)
-	GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error)
-	GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error)
+	GetCalculatedHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error)
 	GetLastCalculatedOrder() (*structs.HistoryOrder, error)
+	GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error)
+	GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error)
 	RemoveOrder(domainOrderId string) error
+	ResetHistoryOrderData() error
 	UpdateOrder(order structs.HistoryOrder) error
 }
 

@@ -19,6 +19,7 @@ type StrategyInterface interface {
 	IsInit() bool
 	Initialise() error
 	DoAction() error
-	//GetReport(from time.Time, to time.Time) (Report, error)
+	GetReport(from time.Time, to time.Time) (*Report, error)
 	Wait()
+	ResetOrderData() error
 }

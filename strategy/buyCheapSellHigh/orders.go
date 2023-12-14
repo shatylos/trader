@@ -157,7 +157,7 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 	return nil
 }
 
-func (s *BuyCheapSellHigh) calculateAveragePrice() error {
+func (s *BuyCheapSellHigh) calculateHistoryOrderValues() error {
 
 	utils.LogInfo("Calculating average prices")
 
@@ -197,33 +197,78 @@ func (s *BuyCheapSellHigh) calculateAveragePrice() error {
 	}
 
 	for _, historyOrder := range historyOrders {
-		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" {
-			return utils.AppError{
-				Message: fmt.Sprintf("can not calculate average price for order %s", historyOrder.DomainOrderId),
-			}
-		}
-		averagePrice := float64(0)
-		if historyOrder.Side == "BUY" {
-			averagePrice = utils.Div(
-				utils.Mul(historyOrder.TradeCurrencyAmountBefore, prevAveragePrice)+utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty),
-				historyOrder.TradeCurrencyAmountBefore+historyOrder.FilledQty,
-			)
-		} else if historyOrder.Side == "SELL" {
-			averagePrice = prevAveragePrice
-		} else {
-			return utils.AppError{
-				Message: fmt.Sprintf("unexpected order side %s for order %s", historyOrder.Side, historyOrder.DomainOrderId),
-			}
-		}
-		historyOrder.AveragePrice = averagePrice
-		err := storage.UpdateOrder(historyOrder)
+		err := s.calculateAveragePrice(&historyOrder, prevAveragePrice)
 		if err != nil {
 			return err
 		}
-		prevAveragePrice = averagePrice
+		err = s.calculateRevenue(&historyOrder)
+		if err != nil {
+			return err
+		}
+
+		err = storage.UpdateOrder(historyOrder)
+		if err != nil {
+			return err
+		}
+		prevAveragePrice = historyOrder.AveragePrice
 	}
 
 	utils.LogInfo(fmt.Sprintf("Average prices were calculated for %d orders", len(historyOrders)))
+
+	return nil
+}
+
+func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.HistoryOrder, prevAveragePrice float64) error {
+	if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" {
+		return utils.AppError{
+			Message: fmt.Sprintf("can not calculate average price for order %s", historyOrder.DomainOrderId),
+		}
+	}
+	averagePrice := float64(0)
+	if historyOrder.Side == "BUY" {
+		averagePrice = utils.Div(
+			utils.Mul(historyOrder.TradeCurrencyAmountBefore, prevAveragePrice)+utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty),
+			historyOrder.TradeCurrencyAmountBefore+historyOrder.FilledQty,
+		)
+	} else if historyOrder.Side == "SELL" {
+		averagePrice = prevAveragePrice
+	} else {
+		return utils.AppError{
+			Message: fmt.Sprintf("unexpected order side %s for order %s", historyOrder.Side, historyOrder.DomainOrderId),
+		}
+	}
+	historyOrder.AveragePrice = averagePrice
+	return nil
+}
+
+func (s *BuyCheapSellHigh) calculateRevenue(historyOrder *storageStructs.HistoryOrder) error {
+	if historyOrder.Side != "SELL" {
+		return nil
+	}
+
+	if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" || historyOrder.AveragePrice == 0 {
+		return utils.AppError{
+			Message: fmt.Sprintf("can not calculate revenue for order %s", historyOrder.DomainOrderId),
+		}
+	}
+
+	orderCost := utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty)
+	averagePriceCost := utils.Mul(historyOrder.AveragePrice, historyOrder.FilledQty)
+	historyOrder.Revenue = orderCost - averagePriceCost
+	return nil
+}
+
+func (s *BuyCheapSellHigh) ResetOrderData() error {
+	storagePointer, err := _storage.GetStorage(s.Id)
+	if err != nil {
+		return err
+	}
+	storage := *storagePointer
+
+	err = storage.ResetHistoryOrderData()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
