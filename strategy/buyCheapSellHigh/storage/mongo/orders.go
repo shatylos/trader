@@ -171,8 +171,15 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 	if err != nil {
 		return err
 	}
-	filter := bson.D{{"_id", id}}
+	//filter := bson.D{{"_id", id}}
+	filter := bson.D{
+		{"$or", bson.A{
+			bson.D{{"_id", id}},
+			bson.D{{"_id", order.Id}},
+		}},
+	}
 	update := bson.D{{"$set", bson.D{
+		{"_id", id},
 		{"filled_price", order.FilledPrice},
 		{"filled_qty", order.FilledQty},
 		{"side", order.Side},
