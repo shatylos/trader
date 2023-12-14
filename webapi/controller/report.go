@@ -46,7 +46,7 @@ func ReportController(c *gin.Context) {
 		StrategyReport: *strategyReport,
 	}
 
-	tmpl, err := helper.GetTemplate("webapi/templates/report.html")
+	tmpl, err := helper.GetTemplate("templates/report.html")
 	if err != nil {
 		utils.LogError(err.Error())
 		return
