@@ -35,7 +35,7 @@
                     {{ .StrategyReport.DateTo | dateFormat "2006-01-02" }}
                 </div>
                 <div>
-                    Revenue: {{ .StrategyReport.Revenue }} {{ .StrategyReport.Currency }} ({{ .StrategyReport.RevenuePercents }}%)
+                    Revenue: {{ .StrategyReport.Revenue | longFloatShort 2 }} {{ .StrategyReport.Currency }} ({{ .StrategyReport.RevenuePercents | longFloatShort 2 }}%)
                 </div>
             </div>
             <div>

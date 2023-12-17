@@ -19,11 +19,11 @@
     <tr>
         <td>{{ .DateTime | dateFormat "2006-01-02 15:04:05" }}</td>
         <td>{{ .Direction }}</td>
-        <td>{{ .Price }}</td>
-        <td>{{ .MainCurrencyAmount }}</td>
-        <td>{{ .TradeCurrencyAmount }}</td>
-        <td>{{ .AvaragePrice }}</td>
-        <td>{{ .Revenue }}</td>
+        <td>{{ .Price | longFloatShort 2 }}</td>
+        <td>{{ .MainCurrencyAmount | longFloatShort 5 }}</td>
+        <td>{{ .TradeCurrencyAmount | longFloatShort 5 }}</td>
+        <td>{{ .AvaragePrice | longFloatShort 2 }}</td>
+        <td>{{ .Revenue | longFloatShort 5 }}</td>
     </tr>
     {{ end }}
     {{ end }}
