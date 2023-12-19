@@ -11,9 +11,28 @@ import (
 )
 
 type StrategyReportPage struct {
-	MainCurrency     string
-	TradeCurrency    string
-	ReportOrderItems []ReportOrderItem
+	DateFrom               time.Time
+	DateTo                 time.Time
+	RevenuePercents        float64
+	Revenue                float64
+	MainCurrency           string
+	TradeCurrency          string
+	MainCurrencyPrecision  int
+	TradeCurrencyPrecision int
+	ReportOrderItems       []ReportOrderItem
+	Amounts                ReportAmounts
+}
+
+type ReportAmounts struct {
+	BeginMainCurrency  float64
+	BeginTradeCurrency float64
+	BeginTotal         float64
+	EndMainCurrency    float64
+	EndTradeCurrency   float64
+	EndTotal           float64
+	DiffMainCurrency   float64
+	DiffTradeCurrency  float64
+	DiffTotal          float64
 }
 
 type ReportOrderItem struct {
@@ -42,10 +61,39 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		return &report, err
 	}
 
+	revenueCurrency, revenuePercent, err := s.getRevenue(reportItems)
+	if err != nil {
+		return &report, err
+	}
+
+	BeginMainCurrency := reportItems[len(reportItems)-1].TotalMainCurrencyAmountBefore
+	BeginTradeCurrency := reportItems[len(reportItems)-1].TotalTradeCurrencyAmountBefore
+	BeginTotal := BeginMainCurrency + utils.Mul(BeginTradeCurrency, reportItems[len(reportItems)-1].Price)
+	EndMainCurrency := reportItems[0].TotalMainCurrencyAmountBefore
+	EndTradeCurrency := reportItems[0].TotalTradeCurrencyAmountBefore
+	EndTotal := BeginMainCurrency + utils.Mul(EndTradeCurrency, reportItems[0].Price)
+
 	data := StrategyReportPage{
-		MainCurrency:     s.MainCurrency,
-		TradeCurrency:    s.TradeCurrency,
-		ReportOrderItems: reportItems,
+		DateFrom:               from,
+		DateTo:                 to,
+		RevenuePercents:        revenuePercent,
+		Revenue:                revenueCurrency,
+		MainCurrency:           s.MainCurrency,
+		TradeCurrency:          s.TradeCurrency,
+		MainCurrencyPrecision:  int(s.MainCurrencyPrecision),
+		TradeCurrencyPrecision: int(s.PurchaseVolumePrecision),
+		ReportOrderItems:       reportItems,
+		Amounts: ReportAmounts{
+			BeginMainCurrency:  BeginMainCurrency,
+			BeginTradeCurrency: BeginTradeCurrency,
+			BeginTotal:         BeginTotal,
+			EndMainCurrency:    EndMainCurrency,
+			EndTradeCurrency:   EndTradeCurrency,
+			EndTotal:           EndTotal,
+			DiffMainCurrency:   EndMainCurrency - BeginMainCurrency,
+			DiffTradeCurrency:  EndTradeCurrency - BeginTradeCurrency,
+			DiffTotal:          EndTotal - BeginTotal,
+		},
 	}
 
 	var resultBuffer bytes.Buffer
@@ -54,18 +102,8 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		return &report, err
 	}
 
-	revenueCurrency, revenuePercent, err := s.getRevenue(reportItems)
-	if err != nil {
-		return &report, err
-	}
-
 	report = _struct.Report{
-		DateFrom:        from,
-		DateTo:          to,
-		RevenuePercents: revenuePercent,
-		Revenue:         revenueCurrency,
-		Currency:        s.MainCurrency,
-		InnerHtml:       template.HTML(resultBuffer.String()),
+		InnerHtml: template.HTML(resultBuffer.String()),
 	}
 
 	return &report, nil

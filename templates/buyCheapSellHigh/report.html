@@ -1,4 +1,68 @@
-<table class="table table-hover">
+<div class="col md-12">
+    <div>
+        Date Range:
+        {{ .DateFrom | dateFormat "2006-01-02" }}
+        -
+        {{ .DateTo | dateFormat "2006-01-02" }}
+    </div>
+</div>
+
+<div class="clearfix"></div>
+<hr/>
+
+<div class="row align-items-start">
+    <h4>Amounts:</h4>
+    <div class="col md-4">
+        <h5>Beginning of the period:</h5>
+        <div>
+            {{ .Amounts.BeginMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.BeginTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.BeginTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+    </div>
+    <div class="col md-4">
+        <h5>Ending of the period:</h5>
+        <div>
+            {{ .Amounts.EndMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.EndTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.EndTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+    </div>
+    <div class="col md-4">
+        <h5>Difference:</h5>
+        <div>
+            {{ .Amounts.DiffMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.DiffTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
+        </div>
+        <div>
+            {{ .Amounts.DiffTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+<hr/>
+
+<div class="row align-items-start">
+    <h4>
+        Revenue: {{ .Revenue | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }} ({{ .RevenuePercents | longFloatShort 2 }}%)
+    </h4>
+</div>
+
+<div class="clearfix"></div>
+<hr/>
+
+<table class="table table-hover table-dark">
 
     <thead>
     <tr>
@@ -15,17 +79,15 @@
     <tbody>
 
     {{ range .ReportOrderItems }}
-    {{ block "order-list-element" .}}
     <tr>
         <td>{{ .DateTime | dateFormat "2006-01-02 15:04:05" }}</td>
         <td>{{ .Direction }}</td>
-        <td>{{ .Price | longFloatShort 2 }}</td>
-        <td>{{ .MainCurrencyAmount | longFloatShort 5 }}</td>
-        <td>{{ .TradeCurrencyAmount | longFloatShort 5 }}</td>
-        <td>{{ .AvaragePrice | longFloatShort 2 }}</td>
-        <td>{{ .Revenue | longFloatShort 5 }}</td>
+        <td>{{ .Price | longFloatShort $.MainCurrencyPrecision }}</td>
+        <td>{{ .MainCurrencyAmount | longFloatShort $.MainCurrencyPrecision }}</td>
+        <td>{{ .TradeCurrencyAmount | longFloatShort $.TradeCurrencyPrecision }}</td>
+        <td>{{ .AvaragePrice | longFloatShort $.MainCurrencyPrecision }}</td>
+        <td>{{ .Revenue | longFloatShort $.MainCurrencyPrecision }}</td>
     </tr>
-    {{ end }}
     {{ end }}
 
     </tbody>

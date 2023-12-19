@@ -18,29 +18,18 @@
     <title>Report</title>
 </head>
 
-<body>
+<body class="bg-dark text-white">
 
 
 <div class="container">
+
     <header class="text-center">
         <h1>Report</h1>
     </header>
+
     <main class="row md-12">
         <div class="col">
-            <div>
-                <div>
-                    Date Range:
-                    {{ .StrategyReport.DateFrom | dateFormat "2006-01-02" }}
-                    -
-                    {{ .StrategyReport.DateTo | dateFormat "2006-01-02" }}
-                </div>
-                <div>
-                    Revenue: {{ .StrategyReport.Revenue | longFloatShort 2 }} {{ .StrategyReport.Currency }} ({{ .StrategyReport.RevenuePercents | longFloatShort 2 }}%)
-                </div>
-            </div>
-            <div>
-                {{ .StrategyReport.InnerHtml }}
-            </div>
+            {{ .StrategyReport.InnerHtml }}
         </div>
     </main>
 

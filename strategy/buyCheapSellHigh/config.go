@@ -89,6 +89,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.MainCurrencyPrecision, err = utils.ToInt64(configMap["main_currency_precision"])
+	if err != nil {
+		return utils.AppError{
+			Message:     "The field main_currency_precision is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
 	s.PurchaseVolumePrecision, err = utils.ToInt64(configMap["purchase_volume_precision"])
 	if err != nil {
 		return utils.AppError{

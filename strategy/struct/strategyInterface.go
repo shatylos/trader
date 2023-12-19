@@ -6,12 +6,7 @@ import (
 )
 
 type Report struct {
-	DateFrom        time.Time
-	DateTo          time.Time
-	RevenuePercents float64
-	Revenue         float64
-	Currency        string
-	InnerHtml       template.HTML
+	InnerHtml template.HTML
 }
 
 type StrategyInterface interface {
