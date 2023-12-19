@@ -21,7 +21,7 @@
             {{ .Amounts.BeginTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
         </div>
         <div>
-            {{ .Amounts.BeginTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+            Total: {{ .Amounts.BeginTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
         </div>
     </div>
     <div class="col md-4">
@@ -33,7 +33,7 @@
             {{ .Amounts.EndTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
         </div>
         <div>
-            {{ .Amounts.EndTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+            Total: {{ .Amounts.EndTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
         </div>
     </div>
     <div class="col md-4">
@@ -45,7 +45,7 @@
             {{ .Amounts.DiffTradeCurrency | longFloatShort .TradeCurrencyPrecision }} {{ .TradeCurrency }}<br/>
         </div>
         <div>
-            {{ .Amounts.DiffTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+            Total: {{ .Amounts.DiffTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
         </div>
     </div>
 </div>
