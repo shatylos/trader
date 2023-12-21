@@ -205,6 +205,10 @@ func (s *BuyCheapSellHigh) calculateHistoryOrderValues() error {
 		if err != nil {
 			return err
 		}
+		err = s.calculateCommission(&historyOrder)
+		if err != nil {
+			return err
+		}
 
 		err = storage.UpdateOrder(historyOrder)
 		if err != nil {
@@ -242,19 +246,37 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 }
 
 func (s *BuyCheapSellHigh) calculateRevenue(historyOrder *storageStructs.HistoryOrder) error {
-	if historyOrder.Side != "SELL" {
+	if historyOrder.Side == "BUY" {
 		return nil
 	}
 
-	if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" || historyOrder.AveragePrice == 0 {
-		return utils.AppError{
-			Message: fmt.Sprintf("can not calculate revenue for order %s", historyOrder.DomainOrderId),
+	if historyOrder.Side == "SELL" {
+		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" || historyOrder.AveragePrice == 0 {
+			return utils.AppError{
+				Message: fmt.Sprintf("can not calculate revenue for order %s", historyOrder.DomainOrderId),
+			}
 		}
+
+		orderCost := utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty)
+		averagePriceCost := utils.Mul(historyOrder.AveragePrice, historyOrder.FilledQty)
+		historyOrder.Revenue = orderCost - averagePriceCost
+		return nil
 	}
 
-	orderCost := utils.Mul(historyOrder.FilledPrice, historyOrder.FilledQty)
-	averagePriceCost := utils.Mul(historyOrder.AveragePrice, historyOrder.FilledQty)
-	historyOrder.Revenue = orderCost - averagePriceCost
+	return utils.AppError{
+		Message: fmt.Sprintf("unexpected order side %s for order %s", historyOrder.Side, historyOrder.DomainOrderId),
+	}
+}
+
+func (s *BuyCheapSellHigh) calculateCommission(historyOrder *storageStructs.HistoryOrder) error {
+	if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 {
+		return utils.AppError{
+			Message: fmt.Sprintf("can not calculate commission for order %s. Not enough data.", historyOrder.DomainOrderId),
+		}
+	}
+	onePercent := utils.Div(historyOrder.FilledQty, 100)
+	tradeCurrCommission := utils.Mul(onePercent, s.CommissionPercent)
+	historyOrder.Comission = utils.Mul(tradeCurrCommission, historyOrder.FilledPrice)
 	return nil
 }
 

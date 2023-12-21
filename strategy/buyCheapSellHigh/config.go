@@ -113,6 +113,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.CommissionPercent, err = utils.ToFloat64(configMap["commission_percent"])
+	if err != nil {
+		return utils.AppError{
+			Message:     "The field commission_percent is empty or contains not correct value type. Expects float64 value",
+			ParentError: err,
+		}
+	}
+
 	s.MinutesToReducePriceRange, err = utils.ToInt64(configMap["minutes_to_reduce_price_range"])
 	if err != nil {
 		return utils.AppError{

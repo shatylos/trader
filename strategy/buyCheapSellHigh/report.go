@@ -44,6 +44,8 @@ type ReportOrderItem struct {
 	TradeCurrencyAmount            float64
 	AvaragePrice                   float64
 	Revenue                        float64
+	Commission                     float64
+	TotalRevenue                   float64
 	TotalMainCurrencyAmountBefore  float64
 	TotalTradeCurrencyAmountBefore float64
 }
@@ -134,6 +136,8 @@ func (s *BuyCheapSellHigh) getReportOrderItems(from time.Time, to time.Time) ([]
 			TradeCurrencyAmount:            historyOrder.FilledQty,
 			AvaragePrice:                   historyOrder.AveragePrice,
 			Revenue:                        historyOrder.Revenue,
+			Commission:                     historyOrder.Comission,
+			TotalRevenue:                   historyOrder.Revenue - historyOrder.Comission,
 			TotalMainCurrencyAmountBefore:  historyOrder.MainCurrencyAmountBefore,
 			TotalTradeCurrencyAmountBefore: historyOrder.TradeCurrencyAmountBefore,
 		})
@@ -153,7 +157,7 @@ func (s *BuyCheapSellHigh) getRevenue(reportOrderItems []ReportOrderItem) (float
 	var revenuePercent float64
 
 	for _, reportOrderItem := range reportOrderItems {
-		revenue += reportOrderItem.Revenue
+		revenue += reportOrderItem.TotalRevenue
 	}
 
 	firstOrder := reportOrderItems[len(reportOrderItems)-1]

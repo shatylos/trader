@@ -26,6 +26,7 @@ type BuyCheapSellHigh struct {
 	MainCurrencyPrecision     int64
 	PurchaseVolumePrecision   int64
 	PurchasePricePrecision    int64
+	CommissionPercent         float64
 	MinutesToReducePriceRange int64
 	AvgPriceCandleLimit       int64
 	AvgPriceCandleOffset      int64

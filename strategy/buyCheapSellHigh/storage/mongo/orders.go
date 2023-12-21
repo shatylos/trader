@@ -186,6 +186,7 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 		{"updated_time", order.UpdatedTime},
 		{"average_price", order.AveragePrice},
 		{"revenue", order.Revenue},
+		{"comission", order.Comission},
 	}}}
 
 	_, err = s.db.Collection(collectionName).UpdateOne(ctx, filter, update)
@@ -209,6 +210,7 @@ func (s *MongoStorage) ResetHistoryOrderData() error {
 			{"updated_time", 0},
 			{"average_price", 0},
 			{"revenue", 0},
+			{"comission", 0},
 		}},
 	})
 

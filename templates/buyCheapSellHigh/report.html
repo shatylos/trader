@@ -73,6 +73,8 @@
         <th>{{ .TradeCurrency }}</th>
         <th>Avarage Price</th>
         <th>Revenue</th>
+        <th>Commission</th>
+        <th>Total Revenue</th>
     </tr>
     </thead>
 
@@ -87,6 +89,8 @@
         <td>{{ .TradeCurrencyAmount | longFloatShort $.TradeCurrencyPrecision }}</td>
         <td>{{ .AvaragePrice | longFloatShort $.MainCurrencyPrecision }}</td>
         <td>{{ .Revenue | longFloatShort $.MainCurrencyPrecision }}</td>
+        <td>{{ .Commission | longFloatShort $.MainCurrencyPrecision }}</td>
+        <td>{{ .TotalRevenue | longFloatShort $.MainCurrencyPrecision }}</td>
     </tr>
     {{ end }}
 
