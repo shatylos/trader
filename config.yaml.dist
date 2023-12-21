@@ -25,6 +25,7 @@ strategy:
     long_term_percent_buffer: 10
     purchase_volume_precision: 6
     purchase_price_precision: 1
+    commission_percent: 0.1
     minutes_to_reduce_price_range: 240
     avg_price_candle_limit: 10
     avg_price_candle_offset: 2
