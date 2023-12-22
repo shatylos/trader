@@ -13,8 +13,12 @@ import (
 type StrategyReportPage struct {
 	DateFrom               time.Time
 	DateTo                 time.Time
-	RevenuePercents        float64
 	Revenue                float64
+	RevenuePercents        float64
+	LocalRevenue           float64
+	LocalRevenuePercents   float64
+	LocalAvgPriceBuy       float64
+	LocalAvgPriceSell      float64
 	MainCurrency           string
 	TradeCurrency          string
 	MainCurrencyPrecision  int
@@ -63,10 +67,12 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		return &report, err
 	}
 
-	revenueCurrency, revenuePercent, err := s.getRevenue(reportItems)
+	revenueAmount, revenuePercent, err := s.getRevenue(reportItems)
 	if err != nil {
 		return &report, err
 	}
+
+	revenueLocal, revenueLocalPercents, AvgPriceBuy, AvgPriceSell, err := s.getRevenueLocal(reportItems)
 
 	BeginMainCurrency := reportItems[len(reportItems)-1].TotalMainCurrencyAmountBefore
 	BeginTradeCurrency := reportItems[len(reportItems)-1].TotalTradeCurrencyAmountBefore
@@ -78,8 +84,12 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 	data := StrategyReportPage{
 		DateFrom:               from,
 		DateTo:                 to,
+		Revenue:                revenueAmount,
 		RevenuePercents:        revenuePercent,
-		Revenue:                revenueCurrency,
+		LocalRevenue:           revenueLocal,
+		LocalRevenuePercents:   revenueLocalPercents,
+		LocalAvgPriceBuy:       AvgPriceBuy,
+		LocalAvgPriceSell:      AvgPriceSell,
 		MainCurrency:           s.MainCurrency,
 		TradeCurrency:          s.TradeCurrency,
 		MainCurrencyPrecision:  int(s.MainCurrencyPrecision),
@@ -166,4 +176,46 @@ func (s *BuyCheapSellHigh) getRevenue(reportOrderItems []ReportOrderItem) (float
 	revenuePercent = utils.Div(revenue, onePercentStart)
 
 	return revenue, revenuePercent, nil
+}
+
+func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (float64, float64, float64, float64, error) {
+
+	if len(reportOrderItems) == 0 {
+		return 0, 0, 0, 0, nil
+	}
+
+	var buyTradeCurrencyAmount float64
+	var buyMainCurrencyAmount float64
+	var sellTradeCurrencyAmount float64
+	var sellMainCurrencyAmount float64
+	var comission float64
+
+	for _, reportOrderItem := range reportOrderItems {
+		if reportOrderItem.Direction == "BUY" {
+			buyTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
+			buyMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
+		}
+		if reportOrderItem.Direction == "SELL" {
+			sellTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
+			sellMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
+		}
+		comission += reportOrderItem.Commission
+	}
+	AvgPriceBuy := utils.Div(buyMainCurrencyAmount, buyTradeCurrencyAmount)
+	AvgPriceSell := utils.Div(sellMainCurrencyAmount, sellTradeCurrencyAmount)
+
+	var minValue float64
+	if buyTradeCurrencyAmount > sellTradeCurrencyAmount {
+		minValue = sellTradeCurrencyAmount
+	} else {
+		minValue = buyTradeCurrencyAmount
+	}
+
+	revenue := utils.Mul(minValue, AvgPriceSell) - utils.Mul(minValue, AvgPriceBuy) - comission
+
+	firstOrder := reportOrderItems[len(reportOrderItems)-1]
+	totalAmount := firstOrder.TotalMainCurrencyAmountBefore + firstOrder.TotalTradeCurrencyAmountBefore
+	revenuePercent := utils.Div(revenue, utils.Div(totalAmount, 100))
+
+	return revenue, revenuePercent, AvgPriceBuy, AvgPriceSell, nil
 }
