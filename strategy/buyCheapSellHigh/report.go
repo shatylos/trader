@@ -19,6 +19,7 @@ type StrategyReportPage struct {
 	LocalRevenuePercents   float64
 	LocalAvgPriceBuy       float64
 	LocalAvgPriceSell      float64
+	Commission             float64
 	MainCurrency           string
 	TradeCurrency          string
 	MainCurrencyPrecision  int
@@ -72,7 +73,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		return &report, err
 	}
 
-	revenueLocal, revenueLocalPercents, AvgPriceBuy, AvgPriceSell, err := s.getRevenueLocal(reportItems)
+	revenueLocal, revenueLocalPercents, AvgPriceBuy, AvgPriceSell, commission, err := s.getRevenueLocal(reportItems)
 
 	BeginMainCurrency := reportItems[len(reportItems)-1].TotalMainCurrencyAmountBefore
 	BeginTradeCurrency := reportItems[len(reportItems)-1].TotalTradeCurrencyAmountBefore
@@ -90,6 +91,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		LocalRevenuePercents:   revenueLocalPercents,
 		LocalAvgPriceBuy:       AvgPriceBuy,
 		LocalAvgPriceSell:      AvgPriceSell,
+		Commission:             commission,
 		MainCurrency:           s.MainCurrency,
 		TradeCurrency:          s.TradeCurrency,
 		MainCurrencyPrecision:  int(s.MainCurrencyPrecision),
@@ -178,10 +180,10 @@ func (s *BuyCheapSellHigh) getRevenue(reportOrderItems []ReportOrderItem) (float
 	return revenue, revenuePercent, nil
 }
 
-func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (float64, float64, float64, float64, error) {
+func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (float64, float64, float64, float64, float64, error) {
 
 	if len(reportOrderItems) == 0 {
-		return 0, 0, 0, 0, nil
+		return 0, 0, 0, 0, 0, nil
 	}
 
 	var buyTradeCurrencyAmount float64
@@ -217,5 +219,5 @@ func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (
 	totalAmount := firstOrder.TotalMainCurrencyAmountBefore + firstOrder.TotalTradeCurrencyAmountBefore
 	revenuePercent := utils.Div(revenue, utils.Div(totalAmount, 100))
 
-	return revenue, revenuePercent, AvgPriceBuy, AvgPriceSell, nil
+	return revenue, revenuePercent, AvgPriceBuy, AvgPriceSell, comission, nil
 }

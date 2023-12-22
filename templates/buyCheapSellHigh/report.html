@@ -61,10 +61,13 @@
         Revenue Local: {{ .LocalRevenue | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }} ({{ .LocalRevenuePercents | longFloatShort 2 }}%)
     </h4>
     <div>
-        Local Average Price Buy: {{ .LocalAvgPriceBuy | longFloatShort .MainCurrencyPrecision }}
+        Local Average Price Buy: {{ .LocalAvgPriceBuy | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}
     </div>
     <div>
-        Local Average Price Sell: {{ .LocalAvgPriceSell | longFloatShort .MainCurrencyPrecision }}
+        Local Average Price Sell: {{ .LocalAvgPriceSell | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}
+    </div>
+    <div>
+        Commission: {{ .Commission | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}
     </div>
 </div>
 

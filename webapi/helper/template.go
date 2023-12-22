@@ -28,9 +28,6 @@ func dateFormat(layout string, t time.Time) string {
 }
 
 func longFloatShort(numsAfterDot int, value float64) string {
-	if value == 0 {
-		return ""
-	}
 	valueStr := strconv.FormatFloat(value, 'f', numsAfterDot, 64)
 	return valueStr
 }
