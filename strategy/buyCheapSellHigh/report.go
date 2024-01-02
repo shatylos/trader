@@ -203,6 +203,11 @@ func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (
 		}
 		comission += reportOrderItem.Commission
 	}
+
+	if buyTradeCurrencyAmount == 0 || sellTradeCurrencyAmount == 0 {
+		return 0, 0, 0, 0, 0, nil
+	}
+
 	AvgPriceBuy := utils.Div(buyMainCurrencyAmount, buyTradeCurrencyAmount)
 	AvgPriceSell := utils.Div(sellMainCurrencyAmount, sellTradeCurrencyAmount)
 
