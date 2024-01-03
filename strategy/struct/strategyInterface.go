@@ -10,6 +10,7 @@ type Report struct {
 }
 
 type StrategyInterface interface {
+	GetTitle() string
 	SetConfig(interface{}, map[interface{}]interface{}) error
 	IsInit() bool
 	Initialise() error

@@ -3,6 +3,7 @@ package buyCheapSellHigh
 import (
 	"bitbucket.org/shatylos/trader/domain"
 	"bitbucket.org/shatylos/trader/domain/constant"
+	_struct "bitbucket.org/shatylos/trader/strategy/struct"
 	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
 	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
@@ -33,8 +34,14 @@ type BuyCheapSellHigh struct {
 	ManualBuyPriceBeforeStart float64
 }
 
+var _ _struct.StrategyInterface = (*BuyCheapSellHigh)(nil)
+
 func (s *BuyCheapSellHigh) IsInit() bool {
 	return s.isInit
+}
+
+func (s *BuyCheapSellHigh) GetTitle() string {
+	return "Buy Cheap Sell High: " + s.Id + " (" + s.CoinPare + ")"
 }
 
 func (s *BuyCheapSellHigh) Initialise() error {

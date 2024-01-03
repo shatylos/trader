@@ -9,29 +9,65 @@ import (
 	"time"
 )
 
+type ReportRequest struct {
+	Index uint `uri:"index" binding:"required"`
+}
+
 type ReportPage struct {
 	StrategyReport _struct.Report
 }
 
-func ResetController(c *gin.Context) {
-	setupList := setup.GetSetupList()
-	setupItem := setupList[0]
-	strategy := setupItem.Strategy
-	strategy.ResetOrderData()
+type SetupListPage struct {
+	SetupItems []SetupItemPage
+}
+
+type SetupItemPage struct {
+	SeqNum int
+	Title  string
+}
+
+func SetupListController(c *gin.Context) {
+
+	var setupList []SetupItemPage
+
+	for i, setupItem := range setup.GetSetupList() {
+		setupList = append(setupList, SetupItemPage{
+			SeqNum: i + 1,
+			Title:  setupItem.Strategy.GetTitle(),
+		})
+	}
+
+	data := SetupListPage{
+		SetupItems: setupList,
+	}
+
+	template, err := helper.GetTemplate("templates/setupList.html")
+	if err != nil {
+		utils.LogError(err.Error())
+		return
+	}
+	err = template.Execute(c.Writer, data)
+	if err != nil {
+		utils.LogError(err.Error())
+		return
+	}
 }
 
 func ReportController(c *gin.Context) {
 
+	var reportRequest ReportRequest
+	if err := c.ShouldBindUri(&reportRequest); err != nil {
+		c.String(404, "Not found")
+		return
+	}
+
 	setupList := setup.GetSetupList()
-	//if !slices.Contains(setupList, 70) {
-	//	c.Error(utils.AppError{
-	//		Message: "Can not find a setup item.",
-	//	})
-	//	return
-	//}
-	setupItem := setupList[0]
+	if uint(len(setupList)) < reportRequest.Index {
+		c.String(404, "Not found")
+		return
+	}
+	setupItem := setupList[reportRequest.Index-1]
 	strategy := setupItem.Strategy
-	println(strategy)
 
 	now := time.Now()
 	from := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())

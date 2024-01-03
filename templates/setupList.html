@@ -24,19 +24,27 @@
 <div class="container">
 
     <header class="text-center">
-        <h1>Report</h1>
+        <h1>Setup List:</h1>
     </header>
 
     <main class="row md-12">
-        <div class="col">
+        <div class="row">
             <a href="/">Home</a>
         </div>
 
         <div class="clearfix"></div>
         <hr/>
 
-        <div class="col">
-            {{ .StrategyReport.InnerHtml }}
+        <div class="row">
+            {{ range .SetupItems }}
+            <div class="row">
+                <p><a href="/report/{{ .SeqNum }}/current">{{ .Title }}</a></p>
+            </div>
+            {{ else }}
+            <div class="row">
+                <p>No setups found.</p>
+            </div>
+            {{ end }}
         </div>
     </main>
 
