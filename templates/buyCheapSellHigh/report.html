@@ -55,10 +55,16 @@
 
 <div class="row align-items-start">
     <h4>
-        Revenue: {{ .Revenue | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }} ({{ .RevenuePercents | longFloatShort 2 }}%)
+        Revenue Global:
+            {{ .Revenue | longFloatShort .MainCurrencyPrecision }}
+            {{ .MainCurrency }}
+            ({{ .RevenuePercents | longFloatShort 2 }}%)
     </h4>
     <h4>
-        Revenue Local: {{ .LocalRevenue | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }} ({{ .LocalRevenuePercents | longFloatShort 2 }}%)
+        Revenue Local:
+            {{ .LocalRevenue | longFloatShort .MainCurrencyPrecision }}
+            {{ .MainCurrency }}
+            ({{ .LocalRevenuePercents | longFloatShort 2 }}%)
     </h4>
     <div>
         Local Average Price Buy: {{ .LocalAvgPriceBuy | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}
@@ -103,6 +109,10 @@
         <td>{{ .Revenue | longFloatShort $.MainCurrencyPrecision }}</td>
         <td>{{ .Commission | longFloatShort $.MainCurrencyPrecision }}</td>
         <td>{{ .TotalRevenue | longFloatShort $.MainCurrencyPrecision }}</td>
+    </tr>
+    {{ else }}
+    <tr>
+        <td colspan="9">No orders found.</td>
     </tr>
     {{ end }}
 

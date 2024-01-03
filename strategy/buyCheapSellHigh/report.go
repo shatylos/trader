@@ -75,12 +75,21 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 
 	revenueLocal, revenueLocalPercents, AvgPriceBuy, AvgPriceSell, commission, err := s.getRevenueLocal(reportItems)
 
-	BeginMainCurrency := reportItems[len(reportItems)-1].TotalMainCurrencyAmountBefore
-	BeginTradeCurrency := reportItems[len(reportItems)-1].TotalTradeCurrencyAmountBefore
-	BeginTotal := BeginMainCurrency + utils.Mul(BeginTradeCurrency, reportItems[len(reportItems)-1].Price)
-	EndMainCurrency := reportItems[0].TotalMainCurrencyAmountBefore
-	EndTradeCurrency := reportItems[0].TotalTradeCurrencyAmountBefore
-	EndTotal := BeginMainCurrency + utils.Mul(EndTradeCurrency, reportItems[0].Price)
+	BeginMainCurrency := float64(0)
+	BeginTradeCurrency := float64(0)
+	BeginTotal := float64(0)
+	EndMainCurrency := float64(0)
+	EndTradeCurrency := float64(0)
+	EndTotal := float64(0)
+
+	if len(reportItems) > 0 {
+		BeginMainCurrency = reportItems[len(reportItems)-1].TotalMainCurrencyAmountBefore
+		BeginTradeCurrency = reportItems[len(reportItems)-1].TotalTradeCurrencyAmountBefore
+		BeginTotal = BeginMainCurrency + utils.Mul(BeginTradeCurrency, reportItems[len(reportItems)-1].Price)
+		EndMainCurrency = reportItems[0].TotalMainCurrencyAmountBefore
+		EndTradeCurrency = reportItems[0].TotalTradeCurrencyAmountBefore
+		EndTotal = BeginMainCurrency + utils.Mul(EndTradeCurrency, reportItems[0].Price)
+	}
 
 	data := StrategyReportPage{
 		DateFrom:               from,
