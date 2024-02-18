@@ -88,7 +88,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		BeginTotal = BeginMainCurrency + utils.Mul(BeginTradeCurrency, reportItems[len(reportItems)-1].Price)
 		EndMainCurrency = reportItems[0].TotalMainCurrencyAmountBefore
 		EndTradeCurrency = reportItems[0].TotalTradeCurrencyAmountBefore
-		EndTotal = BeginMainCurrency + utils.Mul(EndTradeCurrency, reportItems[0].Price)
+		EndTotal = EndMainCurrency + utils.Mul(EndTradeCurrency, reportItems[0].Price)
 	}
 
 	data := StrategyReportPage{
