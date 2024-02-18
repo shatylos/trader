@@ -89,6 +89,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.MaxQtyDiff, err = utils.ToFloat64(configMap["max_qty_diff"])
+	if err != nil {
+		return utils.AppError{
+			Message:     "The field max_qty_diff is empty or contains not correct value type. Expects float64 value",
+			ParentError: err,
+		}
+	}
+
 	s.MainCurrencyPrecision, err = utils.ToInt64(configMap["main_currency_precision"])
 	if err != nil {
 		return utils.AppError{

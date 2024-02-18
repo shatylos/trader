@@ -36,6 +36,8 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 	sellPrice := s.getSellPrice(baseCurrencyAmount, tradeCurrencyAmount, currentPrice, lastOrderPrice, lastDirection, countLastDirection, lastOrderCreationTime, historyAvgPrice)
 	sellQty := s.getSellQty(baseCurrencyAmount, tradeCurrencyAmount, lastDirection, countLastDirection, qtyLongTermPercentCorrection, lastOrderCreationTime)
 
+	buyQty, sellQty = s.modifyQtyByDiffConfig(buyQty, sellQty)
+
 	utils.LogInfo("Calculated order values:")
 	utils.LogInfo(fmt.Sprintf("Buy price: %f, Buy qty: %f, Sell price: %f, Sell qty: %f", buyPrice, buyQty, sellPrice, sellQty))
 
@@ -191,6 +193,22 @@ func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyA
 	sellQty = s.round(sellQty, float64(s.PurchaseVolumePrecision))
 
 	return sellQty
+}
+
+func (s *BuyCheapSellHigh) modifyQtyByDiffConfig(buyQty float64, sellQty float64) (float64, float64) {
+	if s.MaxQtyDiff > 0 {
+		modifiedBuyQty := utils.Mul(sellQty, s.MaxQtyDiff)
+		modifiedSellQty := utils.Mul(buyQty, s.MaxQtyDiff)
+		if buyQty > sellQty && modifiedBuyQty > buyQty {
+			utils.LogInfo(fmt.Sprintf("Modify buyQty: old buyQty: %f, new buyQty: %f", buyQty, modifiedBuyQty))
+			buyQty = modifiedBuyQty
+		}
+		if sellQty > buyQty && modifiedSellQty > sellQty {
+			utils.LogInfo(fmt.Sprintf("Modify sellQty: old sellQty: %f, new sellQty: %f", buyQty, modifiedSellQty))
+			sellQty = modifiedSellQty
+		}
+	}
+	return buyQty, sellQty
 }
 
 // Percent for long term correction qty. Positive number to increase qty of trade currency amount, negative to decrease
