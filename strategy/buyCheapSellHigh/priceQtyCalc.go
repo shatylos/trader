@@ -197,15 +197,15 @@ func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyA
 
 func (s *BuyCheapSellHigh) modifyQtyByDiffConfig(buyQty float64, sellQty float64) (float64, float64) {
 	if s.MaxQtyDiff > 0 {
-		modifiedBuyQty := utils.Mul(sellQty, s.MaxQtyDiff)
-		modifiedSellQty := utils.Mul(buyQty, s.MaxQtyDiff)
-		if buyQty > sellQty && modifiedBuyQty > buyQty {
-			utils.LogInfo(fmt.Sprintf("Modify buyQty: old buyQty: %f, new buyQty: %f", buyQty, modifiedBuyQty))
-			buyQty = modifiedBuyQty
+		maxBuyQty := utils.Mul(sellQty, s.MaxQtyDiff)
+		maxSellQty := utils.Mul(buyQty, s.MaxQtyDiff)
+		if buyQty > sellQty && buyQty > maxBuyQty {
+			utils.LogInfo(fmt.Sprintf("Modify buyQty: old buyQty: %f, new buyQty: %f", buyQty, maxBuyQty))
+			buyQty = maxBuyQty
 		}
-		if sellQty > buyQty && modifiedSellQty > sellQty {
-			utils.LogInfo(fmt.Sprintf("Modify sellQty: old sellQty: %f, new sellQty: %f", buyQty, modifiedSellQty))
-			sellQty = modifiedSellQty
+		if sellQty > buyQty && sellQty > maxSellQty {
+			utils.LogInfo(fmt.Sprintf("Modify sellQty: old sellQty: %f, new sellQty: %f", buyQty, maxSellQty))
+			sellQty = maxSellQty
 		}
 	}
 	return buyQty, sellQty
