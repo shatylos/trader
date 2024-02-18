@@ -201,11 +201,11 @@ func (s *BuyCheapSellHigh) modifyQtyByDiffConfig(buyQty float64, sellQty float64
 		maxSellQty := utils.Mul(buyQty, s.MaxQtyDiff)
 		if buyQty > sellQty && buyQty > maxBuyQty {
 			utils.LogInfo(fmt.Sprintf("Modify buyQty: old buyQty: %f, new buyQty: %f", buyQty, maxBuyQty))
-			buyQty = maxBuyQty
+			buyQty = s.round(maxBuyQty, float64(s.PurchaseVolumePrecision))
 		}
 		if sellQty > buyQty && sellQty > maxSellQty {
 			utils.LogInfo(fmt.Sprintf("Modify sellQty: old sellQty: %f, new sellQty: %f", buyQty, maxSellQty))
-			sellQty = maxSellQty
+			sellQty = s.round(maxSellQty, float64(s.PurchaseVolumePrecision))
 		}
 	}
 	return buyQty, sellQty
