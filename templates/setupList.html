@@ -38,7 +38,7 @@
         <div class="row">
             {{ range .SetupItems }}
             <div class="row">
-                <p><a href="/report/{{ .SeqNum }}/current">{{ .Title }}</a></p>
+                <p><a href="/report/{{ .SeqNum }}/{{ .CurrentPeriod }}">{{ .Title }}</a></p>
             </div>
             {{ else }}
             <div class="row">

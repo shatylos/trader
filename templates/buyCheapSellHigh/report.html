@@ -1,9 +1,11 @@
 <div class="col md-12">
     <div>
         Date Range:
+        <a href="{{ .PrevPeriodLink }}"><</a>
         {{ .DateFrom | dateFormat "2006-01-02" }}
         -
         {{ .DateTo | dateFormat "2006-01-02" }}
+        <a href="{{ .NextPeriodLink }}">></a>
     </div>
 </div>
 

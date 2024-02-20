@@ -11,6 +11,8 @@ import (
 )
 
 type StrategyReportPage struct {
+	PrevPeriodLink         string
+	NextPeriodLink         string
 	DateFrom               time.Time
 	DateTo                 time.Time
 	Revenue                float64
@@ -92,6 +94,8 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 	}
 
 	data := StrategyReportPage{
+		PrevPeriodLink:         from.AddDate(0, 0, -1).Format("2006-01"),
+		NextPeriodLink:         from.AddDate(0, 1, 0).Format("2006-01"),
 		DateFrom:               from,
 		DateTo:                 to,
 		Revenue:                revenueAmount,

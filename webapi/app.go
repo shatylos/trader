@@ -16,7 +16,7 @@ func init() {
 
 func StartWebApp() {
 	router.GET("/", controller.SetupListController)
-	router.GET("/report/:index/current", controller.ReportController)
+	router.GET("/report/:index/:period", controller.ReportController)
 	port := utils.AppConfig("TRADER_WEB_PORT", defaultPort)
 
 	if err := router.Run(":" + port); err != nil {
