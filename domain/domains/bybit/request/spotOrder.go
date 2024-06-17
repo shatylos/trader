@@ -112,10 +112,10 @@ func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (*SpotOrderResp
 	return order, nil
 }
 
-func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeInt, error) {
+func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeStr, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
-	orders := make([]*SpotOrderResponseTimeInt, 0)
+	orders := make([]*SpotOrderResponseTimeStr, 0)
 
 	queryResp, er := apiQueryGet("/spot/v3/private/open-orders", params, secrets)
 	if er != nil {
@@ -137,7 +137,7 @@ func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*Spo
 	}
 
 	for _, queryRespOrderItem := range queryRespData {
-		order, err := mapSpotOrderResponseTimeInt(queryRespOrderItem)
+		order, err := mapSpotOrderResponseTimeStr(queryRespOrderItem)
 		if err != nil {
 			return nil, err
 		}
