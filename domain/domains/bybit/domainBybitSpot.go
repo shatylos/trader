@@ -307,9 +307,17 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, 
 		if err != nil {
 			return nil, err
 		}
+		createTime, err := strconv.ParseInt(order.CreateTime, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		updateTime, err := strconv.ParseInt(order.UpdateTime, 10, 64)
+		if err != nil {
+			return nil, err
+		}
 
 		domainOrder := structs.DomainOrder{
-			CreatedTime: order.CreateTime / 1000,
+			CreatedTime: createTime / 1000,
 			OrderId:     order.OrderId,
 			OrderStatus: order.Status,
 			OrderType:   order.OrderType,
@@ -319,7 +327,7 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, 
 			Side:        order.Side,
 			Symbol:      order.Symbol,
 			TimeInForce: order.TimeInForce,
-			UpdatedTime: order.UpdateTime / 1000,
+			UpdatedTime: updateTime / 1000,
 		}
 		domainOrders[key] = domainOrder
 	}

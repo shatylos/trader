@@ -159,10 +159,10 @@ func CancelSpotOrder(orderId string, secrets bybitStructs.Secrets) error {
 	return nil
 }
 
-func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeInt, error) {
+func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeStr, error) {
 	params := make(ApiParams, 0)
 	params["limit"] = strconv.FormatInt(limit, 10)
-	orders := make([]*SpotOrderResponseTimeInt, 0)
+	orders := make([]*SpotOrderResponseTimeStr, 0)
 
 	queryResp, er := apiQueryGet("/spot/v3/private/history-orders", params, secrets)
 	if er != nil {
@@ -184,7 +184,7 @@ func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets) ([]*SpotOrde
 	}
 
 	for _, queryRespOrderItem := range queryRespData {
-		order, err := mapSpotOrderResponseTimeInt(queryRespOrderItem)
+		order, err := mapSpotOrderResponseTimeStr(queryRespOrderItem)
 		if err != nil {
 			return nil, err
 		}
