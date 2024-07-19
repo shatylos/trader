@@ -211,17 +211,9 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 		if err != nil {
 			return nil, err
 		}
-		createTime, err := utils.ToInt64(order.CreateTime)
-		if err != nil {
-			return nil, err
-		}
-		updateTime, err := utils.ToInt64(order.UpdateTime)
-		if err != nil {
-			return nil, err
-		}
 
 		domainOrder := structs.DomainOrder{
-			CreatedTime: createTime / 1000,
+			CreatedTime: order.CreateTime / 1000,
 			OrderId:     order.OrderId,
 			OrderStatus: order.Status,
 			OrderType:   order.OrderType,
@@ -231,7 +223,7 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 			Side:        order.Side,
 			Symbol:      order.Symbol,
 			TimeInForce: order.TimeInForce,
-			UpdatedTime: updateTime / 1000,
+			UpdatedTime: order.UpdateTime / 1000,
 		}
 		domainOrders[key] = domainOrder
 	}
