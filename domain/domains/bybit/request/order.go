@@ -136,7 +136,7 @@ func mapOrderResponse(queryResp interface{}) (*OrderResponse, error) {
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		return nil, utils.AppError{
-			Message: "Can not Unmarshal order response for ByBit",
+			Message: fmt.Sprintf("[mapOrderResponse] Can not Unmarshal order response for ByBit: %s", err.Error()),
 		}
 	}
 

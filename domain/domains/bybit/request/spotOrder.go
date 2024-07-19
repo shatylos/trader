@@ -4,6 +4,7 @@ import (
 	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
@@ -206,7 +207,7 @@ func mapSpotOrderResponseTimeInt(queryResp interface{}) (*SpotOrderResponseTimeI
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		return nil, utils.AppError{
-			Message: "Can not Unmarshal order response for ByBit",
+			Message: fmt.Sprintf("[mapSpotOrderResponseTimeInt] Can not Unmarshal order response for ByBit: %s", err.Error()),
 		}
 	}
 
@@ -226,7 +227,7 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (*SpotOrderResponseTimeS
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		return nil, utils.AppError{
-			Message: "Can not Unmarshal order response for ByBit",
+			Message: fmt.Sprintf("[mapSpotOrderResponseTimeStr] Can not Unmarshal order response for ByBit: %s", err.Error()),
 		}
 	}
 
