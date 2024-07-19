@@ -104,6 +104,7 @@ func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (*SpotOrderResp
 	params["orderId"] = domainId
 	queryResp, er := apiQueryGet("/spot/v3/private/order", params, secrets)
 	if er != nil {
+		utils.LogError(fmt.Sprintf("Error get order query. Requested order ID: %s. Error: %s", domainId, er.Error()))
 		return nil, er
 	}
 	order, err := mapSpotOrderResponseTimeStr(queryResp)
