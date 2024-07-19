@@ -115,6 +115,11 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 		buyPrice = historyAvgPrice
 	}
 
+	if buyPrice > currentPrice {
+		utils.LogInfo(fmt.Sprintf("Buy price (%f) is greater than current price (%f). Set current price as buy price", buyPrice, currentPrice))
+		buyPrice = currentPrice
+	}
+
 	buyPrice = s.round(buyPrice, float64(s.PurchasePricePrecision))
 	return buyPrice
 }
@@ -141,6 +146,11 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 	if sellPrice < historyAvgPrice {
 		utils.LogInfo(fmt.Sprintf("Sell price (%f) is lower than history average price (%f). Set history average price as sell price", sellPrice, historyAvgPrice))
 		sellPrice = historyAvgPrice
+	}
+
+	if sellPrice < currentPrice {
+		utils.LogInfo(fmt.Sprintf("Sell price (%f) is lower than current price (%f). Set current price as sell price", sellPrice, currentPrice))
+		sellPrice = currentPrice
 	}
 
 	sellPrice = s.round(sellPrice, float64(s.PurchasePricePrecision))
