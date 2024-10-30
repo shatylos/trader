@@ -4,19 +4,27 @@ import (
 	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
+	"fmt"
 )
 
 type SpotWalletBalance struct {
-	Coin   string `json:"coin"`   //	Coin
-	CoinId string `json:"coinId"` //	Coin ID
-	Total  string `json:"total"`  //	Total equity
-	Free   string `json:"free"`   //	Available balance
-	Locked string `json:"locked"` //	Reserved for orders
+	Coin   string `json:"coin"`                //	Coin
+	Total  string `json:"walletBalance"`       //	Total equity
+	Free   string `json:"availableToWithdraw"` //	Available balance
+	Locked string `json:"locked"`              //	Reserved for orders
+}
+
+type RawWalletBalanceResponse struct {
+	List []struct {
+		Coin        []SpotWalletBalance `json:"coin"`
+		AccountType string              `json:"accountType"`
+	} `json:"list"`
 }
 
 func GetSpotWalletBalance(secrets bybitStructs.Secrets) (*map[string]SpotWalletBalance, error) {
 	params := make(ApiParams, 0)
-	queryResp, er := apiQueryGet("/spot/v3/private/account", params, secrets)
+	params["accountType"] = "UNIFIED"
+	queryResp, er := apiQueryGet("/v5/account/wallet-balance", params, secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -25,38 +33,28 @@ func GetSpotWalletBalance(secrets bybitStructs.Secrets) (*map[string]SpotWalletB
 
 func mapSpotWalletBalance(source interface{}) (*map[string]SpotWalletBalance, error) {
 	result := map[string]SpotWalletBalance{}
+	sourceBytes, err := json.Marshal(source)
 
-	sourceMap, ok := source.(map[string]interface{})
-	if ok == false {
+	if err != nil {
 		return nil, utils.AppError{
-			Message: "Error parse SpotWalletBalance response for ByBit",
+			Message: fmt.Sprintf("Error marshalling source: %s", err.Error()),
 		}
 	}
 
-	if sourceMap["balances"] == nil {
+	var rawResponse RawWalletBalanceResponse
+	err = json.Unmarshal(sourceBytes, &rawResponse)
+	if err != nil {
 		return nil, utils.AppError{
-			Message: "balances is not available in response",
+			Message: fmt.Sprintf("Error unmarshalling source: %s", err.Error()),
 		}
 	}
 
-	sourceBalances, ok := sourceMap["balances"].([]interface{})
-	if !ok {
-		return nil, utils.AppError{
-			Message: "can not parse balances in response",
+	for _, wallet := range rawResponse.List {
+		if wallet.AccountType == "UNIFIED" {
+			for _, coin := range wallet.Coin {
+				result[coin.Coin] = coin
+			}
 		}
-	}
-
-	for _, coinValues := range sourceBalances {
-		coinValuesBytes, er := json.Marshal(coinValues)
-		if er != nil {
-			return nil, er
-		}
-		coinBalance := SpotWalletBalance{}
-		er = json.Unmarshal(coinValuesBytes, &coinBalance)
-		if er != nil {
-			return nil, er
-		}
-		result[coinBalance.CoinId] = coinBalance
 	}
 
 	return &result, nil

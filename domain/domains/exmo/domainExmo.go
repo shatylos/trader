@@ -98,10 +98,10 @@ func (d *DomainExmo) OpenOrder(orderRequest structs.DomainOrderRequest) (string,
 	panic("Not implemented")
 }
 
-func (d *DomainExmo) CancelOrder(orderId string) error {
+func (d *DomainExmo) CancelOrder(orderId string, coinPare string) error {
 	panic("Not implemented")
 }
 
-func (d *DomainExmo) GetHistoryOrders(limit int64) ([]structs.DomainOrder, error) {
+func (d *DomainExmo) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
 	panic("Not implemented")
 }

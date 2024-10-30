@@ -3,7 +3,6 @@ package request
 import (
 	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
 	"bitbucket.org/shatylos/trader/utils"
-	"encoding/json"
 	"strconv"
 )
 
@@ -11,7 +10,7 @@ var SpotMinToResol = map[string]string{
 	//"1":   60,
 	//"5":   300,
 	//"15":  900,
-	"30": "30m",
+	"30": "30",
 	//"45":  2700,
 	//"60":  3600,
 	//"120": 7200,
@@ -23,24 +22,23 @@ var SpotMinToResol = map[string]string{
 }
 
 type SpotCandle struct {
-	Timestamp int64  `json:"t"`  //	Timestamp(ms)
-	Symbol    string `json:"s"`  //	Name of the trading pair
-	Alias     string `json:"sn"` //	Alias
-	Close     string `json:"c"`  //	Close price
-	High      string `json:"h"`  //	High price
-	Low       string `json:"l"`  //	Low price
-	Open      string `json:"o"`  //	Open price
-	Volume    string `json:"v"`  //	Trading volume
+	Timestamp int64  `json:"t"` //	Timestamp(ms)
+	Close     string `json:"c"` //	Close price
+	High      string `json:"h"` //	High price
+	Low       string `json:"l"` //	Low price
+	Open      string `json:"o"` //	Open price
+	Volume    string `json:"v"` //	Trading volume
 }
 
 func GetSpotKlineList(symbol string, resolution string, from int64, limit int64, secrets bybitStructs.Secrets) ([]SpotCandle, error) {
 	params := make(ApiParams, 0)
+	params["category"] = "spot"
 	params["symbol"] = symbol
 	params["interval"] = SpotMinToResol[resolution]
-	params["startTime"] = strconv.FormatInt(from*1000, 10)
+	params["start"] = strconv.FormatInt(from*1000, 10)
 	params["limit"] = strconv.FormatInt(limit, 10)
 
-	queryResp, er := apiQueryGet("/spot/v3/public/quote/kline", params, secrets)
+	queryResp, er := apiQueryGet("/v5/market/kline", params, secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -73,19 +71,30 @@ func mapSpotCandleHistory(source interface{}) ([]SpotCandle, error) {
 	res := make([]SpotCandle, len(sourceSlice))
 
 	for i, sourceCandle := range sourceSlice {
-		sourceCandleBytes, err := json.Marshal(sourceCandle)
-		if err != nil {
+		sourceCandleArr, ok := sourceCandle.([]interface{})
+		if ok == false {
 			return nil, utils.AppError{
-				Message: "Can not Marshal public kline list response for ByBit",
+				Message: "Error parse candle in public kline list response for ByBit",
+			}
+		}
+		if len(sourceCandleArr) < 6 {
+			return nil, utils.AppError{
+				Message: "Unexpected candle format in public kline list response for ByBit",
 			}
 		}
 		resCandle := SpotCandle{}
-		err = json.Unmarshal(sourceCandleBytes, &resCandle)
+		ts, err := utils.ToInt64(sourceCandleArr[0])
 		if err != nil {
 			return nil, utils.AppError{
-				Message: "Can not Unmarshal public kline list response for ByBit",
+				Message: "Can not convert timestamp to int64 in public kline list response for ByBit",
 			}
 		}
+		resCandle.Timestamp = ts / 1000
+		resCandle.Open = sourceCandleArr[1].(string)
+		resCandle.High = sourceCandleArr[2].(string)
+		resCandle.Low = sourceCandleArr[3].(string)
+		resCandle.Close = sourceCandleArr[4].(string)
+		resCandle.Volume = sourceCandleArr[5].(string)
 		res[i] = resCandle
 	}
 

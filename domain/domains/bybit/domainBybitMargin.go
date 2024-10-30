@@ -192,10 +192,10 @@ func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (
 	return order.OrderId, nil
 }
 
-func (d *DomainBybitMargin) CancelOrder(orderId string) error {
+func (d *DomainBybitMargin) CancelOrder(orderId string, coinPare string) error {
 	panic("Not implemented")
 }
 
-func (d *DomainBybitMargin) GetHistoryOrders(limit int64) ([]structs.DomainOrder, error) {
+func (d *DomainBybitMargin) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
 	panic("Not implemented")
 }

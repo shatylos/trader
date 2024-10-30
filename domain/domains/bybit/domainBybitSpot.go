@@ -272,16 +272,16 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (st
 
 }
 
-func (d *DomainBybitSpot) CancelOrder(orderId string) error {
-	err := request.CancelSpotOrder(orderId, d.secrets)
+func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
+	err := request.CancelSpotOrder(orderId, d.secrets, coinPare)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *DomainBybitSpot) GetHistoryOrders(limit int64) ([]structs.DomainOrder, error) {
-	orders, err := request.GetSpotOrderHistory(limit, d.secrets)
+func (d *DomainBybitSpot) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
+	orders, err := request.GetSpotOrderHistory(limit, d.secrets, coinPare)
 	if err != nil {
 		return nil, err
 	}

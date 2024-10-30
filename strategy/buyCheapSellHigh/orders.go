@@ -15,11 +15,11 @@ func (s *BuyCheapSellHigh) getOpenOrders() ([]structs.DomainOrder, error) {
 }
 
 func (s *BuyCheapSellHigh) getHistoryOrders() ([]structs.DomainOrder, error) {
-	return s.Domain.GetHistoryOrders(50)
+	return s.Domain.GetHistoryOrders(50, s.CoinPare)
 }
 
 func (s *BuyCheapSellHigh) cancelAllOrder(order structs.DomainOrder) error {
-	return s.Domain.CancelOrder(order.OrderId)
+	return s.Domain.CancelOrder(order.OrderId, s.CoinPare)
 }
 
 func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainOrder) error {
@@ -45,7 +45,7 @@ func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainO
 	for _, order := range orders {
 		orderOldMinutes := (currentTime - order.CreatedTime) / 60
 		if orderOldMinutes > s.MinutesToReducePriceRange {
-			err := s.Domain.CancelOrder(order.OrderId)
+			err := s.Domain.CancelOrder(order.OrderId, s.CoinPare)
 			if err != nil {
 				return err
 			}
@@ -228,6 +228,7 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 			Message: fmt.Sprintf("can not calculate average price for order %s", historyOrder.DomainOrderId),
 		}
 	}
+
 	averagePrice := float64(0)
 	if historyOrder.Side == "BUY" {
 		averagePrice = utils.Div(
