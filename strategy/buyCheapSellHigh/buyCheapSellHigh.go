@@ -25,6 +25,7 @@ type BuyCheapSellHigh struct {
 	LongTermMinPrice          float64
 	LongTermPercentBuffer     float64
 	MaxQtyDiff                float64
+	MinQty                    float64
 	MainCurrencyPrecision     int64
 	PurchaseVolumePrecision   int64
 	PurchasePricePrecision    int64

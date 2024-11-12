@@ -218,6 +218,14 @@ func (s *BuyCheapSellHigh) modifyQtyByDiffConfig(buyQty float64, sellQty float64
 			sellQty = maxSellQty
 		}
 	}
+	if buyQty < s.MinQty {
+		utils.LogInfo(fmt.Sprintf("buyQty less then possible min_qty. Set min_qty to buyQty. Old buyQty: %f, new buyQty: %f", buyQty, s.MinQty))
+		buyQty = s.MinQty
+	}
+	if sellQty < s.MinQty {
+		utils.LogInfo(fmt.Sprintf("sellQty less then possible min_qty. Set min_qty to sellQty. Old sellQty: %f, new sellQty: %f", sellQty, s.MinQty))
+		sellQty = s.MinQty
+	}
 	return buyQty, sellQty
 }
 

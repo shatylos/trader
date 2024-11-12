@@ -24,6 +24,7 @@ strategy:
     long_term_min_price: 10000
     long_term_percent_buffer: 10
     max_qty_diff: 1.5
+    min_qty: 0.0001
     purchase_volume_precision: 6
     purchase_price_precision: 1
     commission_percent: 0.1
