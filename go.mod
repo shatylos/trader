@@ -1,4 +1,4 @@
-module bitbucket.org/shatylos/trader
+module github.com/shatylos/trader
 
 go 1.21
 

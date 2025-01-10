@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"bitbucket.org/shatylos/trader/setup/structs"
+	"github.com/shatylos/trader/setup/structs"
 	"gopkg.in/yaml.v2"
 	"os"
 )

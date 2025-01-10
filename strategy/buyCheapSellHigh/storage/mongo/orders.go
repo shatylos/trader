@@ -1,11 +1,11 @@
 package mongo
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
-	"bitbucket.org/shatylos/trader/utils"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
+	"github.com/shatylos/trader/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

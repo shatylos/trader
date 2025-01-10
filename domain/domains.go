@@ -1,11 +1,11 @@
 package domain
 
 import (
-	"bitbucket.org/shatylos/trader/domain/constant"
-	"bitbucket.org/shatylos/trader/domain/domains/bybit"
-	"bitbucket.org/shatylos/trader/domain/domains/exmo"
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/domain/constant"
+	"github.com/shatylos/trader/domain/domains/bybit"
+	"github.com/shatylos/trader/domain/domains/exmo"
+	"github.com/shatylos/trader/utils"
 )
 
 var (

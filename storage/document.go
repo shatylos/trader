@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"bitbucket.org/shatylos/trader/utils"
 	"context"
 	"github.com/FerretDB/FerretDB/ferretdb"
+	"github.com/shatylos/trader/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"

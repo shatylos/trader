@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	appStorage "bitbucket.org/shatylos/trader/storage"
+	appStorage "github.com/shatylos/trader/storage"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

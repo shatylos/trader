@@ -1,11 +1,11 @@
 package bybit
 
 import (
-	"bitbucket.org/shatylos/trader/domain/constant"
-	"bitbucket.org/shatylos/trader/domain/domains/bybit/request"
-	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
-	"bitbucket.org/shatylos/trader/domain/structs"
-	"bitbucket.org/shatylos/trader/utils"
+	"github.com/shatylos/trader/domain/constant"
+	"github.com/shatylos/trader/domain/domains/bybit/request"
+	bybitStructs "github.com/shatylos/trader/domain/domains/bybit/structs"
+	"github.com/shatylos/trader/domain/structs"
+	"github.com/shatylos/trader/utils"
 	"sort"
 	"strconv"
 	"strings"

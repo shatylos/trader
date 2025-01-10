@@ -1,10 +1,10 @@
 package exmo
 
 import (
-	"bitbucket.org/shatylos/trader/domain/constant"
-	"bitbucket.org/shatylos/trader/domain/domains/exmo/request"
-	"bitbucket.org/shatylos/trader/domain/structs"
-	tradingConstant "bitbucket.org/shatylos/trader/trading/constant"
+	"github.com/shatylos/trader/domain/constant"
+	"github.com/shatylos/trader/domain/domains/exmo/request"
+	"github.com/shatylos/trader/domain/structs"
+	tradingConstant "github.com/shatylos/trader/trading/constant"
 )
 
 type DomainExmo struct {

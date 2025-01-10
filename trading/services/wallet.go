@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bitbucket.org/shatylos/trader/domain"
-	"bitbucket.org/shatylos/trader/domain/structs"
+	"github.com/shatylos/trader/domain"
+	"github.com/shatylos/trader/domain/structs"
 )
 
 func LoadWalletInfoToChan(domainCode string, domainWalletResultChan chan structs.DomainWalletApiResult, bufferParReq chan bool) {

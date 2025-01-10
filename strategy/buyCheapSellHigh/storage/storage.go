@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/mongo"
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage/mongo"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 	"time"
 )
 

@@ -1,10 +1,10 @@
 package buyCheapSellHigh
 
 import (
-	"bitbucket.org/shatylos/trader/domain/structs"
-	tradeConst "bitbucket.org/shatylos/trader/trading/constant"
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/domain/structs"
+	tradeConst "github.com/shatylos/trader/trading/constant"
+	"github.com/shatylos/trader/utils"
 	"math"
 	"time"
 )

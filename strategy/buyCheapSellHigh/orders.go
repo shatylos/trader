@@ -1,11 +1,11 @@
 package buyCheapSellHigh
 
 import (
-	"bitbucket.org/shatylos/trader/domain/structs"
-	_storage "bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage"
-	storageStructs "bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/domain/structs"
+	_storage "github.com/shatylos/trader/strategy/buyCheapSellHigh/storage"
+	storageStructs "github.com/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
+	"github.com/shatylos/trader/utils"
 	"strconv"
 	"time"
 )

@@ -1,11 +1,11 @@
 package buyCheapSellHigh
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage"
-	"bitbucket.org/shatylos/trader/strategy/struct"
-	"bitbucket.org/shatylos/trader/utils"
-	"bitbucket.org/shatylos/trader/webapi/helper"
 	"bytes"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage"
+	"github.com/shatylos/trader/strategy/struct"
+	"github.com/shatylos/trader/utils"
+	"github.com/shatylos/trader/webapi/helper"
 	"html/template"
 	"time"
 )

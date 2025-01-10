@@ -1,6 +1,6 @@
 package domain
 
-import "bitbucket.org/shatylos/trader/domain/structs"
+import "github.com/shatylos/trader/domain/structs"
 
 type DomainInterface interface {
 	GetOrder(domainId string) (structs.DomainOrder, error)

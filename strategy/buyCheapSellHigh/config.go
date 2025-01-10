@@ -1,9 +1,9 @@
 package buyCheapSellHigh
 
 import (
-	"bitbucket.org/shatylos/trader/domain"
-	"bitbucket.org/shatylos/trader/utils"
 	"errors"
+	"github.com/shatylos/trader/domain"
+	"github.com/shatylos/trader/utils"
 )
 
 func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig map[interface{}]interface{}) error {

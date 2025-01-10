@@ -1,10 +1,10 @@
 package setup
 
 import (
-	setupReader "bitbucket.org/shatylos/trader/setup/reader"
-	setupStructs "bitbucket.org/shatylos/trader/setup/structs"
-	"bitbucket.org/shatylos/trader/strategy"
-	"bitbucket.org/shatylos/trader/utils"
+	setupReader "github.com/shatylos/trader/setup/reader"
+	setupStructs "github.com/shatylos/trader/setup/structs"
+	"github.com/shatylos/trader/strategy"
+	"github.com/shatylos/trader/utils"
 	"time"
 )
 

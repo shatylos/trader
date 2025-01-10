@@ -1,9 +1,9 @@
 package trading
 
 import (
-	"bitbucket.org/shatylos/trader/setup"
-	setupStructs "bitbucket.org/shatylos/trader/setup/structs"
-	"bitbucket.org/shatylos/trader/utils"
+	"github.com/shatylos/trader/setup"
+	setupStructs "github.com/shatylos/trader/setup/structs"
+	"github.com/shatylos/trader/utils"
 	"os"
 )
 

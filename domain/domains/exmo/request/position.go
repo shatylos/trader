@@ -1,8 +1,8 @@
 package request
 
 import (
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/utils"
 	"strconv"
 )
 

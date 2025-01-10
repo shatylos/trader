@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"bitbucket.org/shatylos/trader/setup"
-	"bitbucket.org/shatylos/trader/strategy/struct"
-	"bitbucket.org/shatylos/trader/utils"
-	"bitbucket.org/shatylos/trader/webapi/helper"
 	"github.com/gin-gonic/gin"
+	"github.com/shatylos/trader/setup"
+	"github.com/shatylos/trader/strategy/struct"
+	"github.com/shatylos/trader/utils"
+	"github.com/shatylos/trader/webapi/helper"
 	"regexp"
 	"strconv"
 	"time"

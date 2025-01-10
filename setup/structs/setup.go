@@ -1,9 +1,9 @@
 package structs
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/struct"
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/strategy/struct"
+	"github.com/shatylos/trader/utils"
 	"time"
 )
 

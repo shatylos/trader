@@ -1,7 +1,6 @@
 package request
 
 import (
-	"bitbucket.org/shatylos/trader/utils"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha512"
@@ -9,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/shatylos/trader/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"

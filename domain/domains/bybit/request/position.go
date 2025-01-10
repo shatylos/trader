@@ -1,9 +1,9 @@
 package request
 
 import (
-	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
-	"bitbucket.org/shatylos/trader/utils"
 	"encoding/json"
+	bybitStructs "github.com/shatylos/trader/domain/domains/bybit/structs"
+	"github.com/shatylos/trader/utils"
 )
 
 type Position struct {

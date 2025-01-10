@@ -1,8 +1,8 @@
 package sqlite
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 	"fmt"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage/structs"
 	"time"
 )
 

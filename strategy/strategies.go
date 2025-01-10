@@ -1,10 +1,10 @@
 package strategy
 
 import (
-	"bitbucket.org/shatylos/trader/strategy/buyCheapSellHigh"
-	"bitbucket.org/shatylos/trader/strategy/struct"
-	"bitbucket.org/shatylos/trader/utils"
 	"fmt"
+	"github.com/shatylos/trader/strategy/buyCheapSellHigh"
+	"github.com/shatylos/trader/strategy/struct"
+	"github.com/shatylos/trader/utils"
 )
 
 func GetStrategyByCode(code string) (_struct.StrategyInterface, error) {

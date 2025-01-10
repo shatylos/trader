@@ -1,7 +1,7 @@
 package request
 
 import (
-	"bitbucket.org/shatylos/trader/utils"
+	"github.com/shatylos/trader/utils"
 	"strconv"
 )
 

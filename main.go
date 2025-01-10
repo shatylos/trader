@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bitbucket.org/shatylos/trader/storage"
-	"bitbucket.org/shatylos/trader/trading"
-	"bitbucket.org/shatylos/trader/webapi"
 	"github.com/joho/godotenv"
+	"github.com/shatylos/trader/storage"
+	"github.com/shatylos/trader/trading"
+	"github.com/shatylos/trader/webapi"
 )
 
 func main() {

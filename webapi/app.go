@@ -1,9 +1,9 @@
 package webapi
 
 import (
-	"bitbucket.org/shatylos/trader/utils"
-	"bitbucket.org/shatylos/trader/webapi/controller"
 	"github.com/gin-gonic/gin"
+	"github.com/shatylos/trader/utils"
+	"github.com/shatylos/trader/webapi/controller"
 )
 
 const defaultPort = "8080"

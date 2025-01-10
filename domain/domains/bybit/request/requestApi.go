@@ -1,14 +1,14 @@
 package request
 
 import (
-	bybitStructs "bitbucket.org/shatylos/trader/domain/domains/bybit/structs"
-	"bitbucket.org/shatylos/trader/utils"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	bybitStructs "github.com/shatylos/trader/domain/domains/bybit/structs"
+	"github.com/shatylos/trader/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
