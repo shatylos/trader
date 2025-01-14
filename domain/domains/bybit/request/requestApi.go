@@ -10,7 +10,6 @@ import (
 	bybitStructs "github.com/shatylos/trader/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/utils"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
@@ -90,7 +89,9 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 		}
 	}
 
-	body, err1 := ioutil.ReadAll(resp.Body)
+//	body, err1 := ioutil.ReadAll(resp.Body)
+	body := &bytes.Buffer{}
+	_, err1 := io.Copy(body, resp.Body)
 	if err1 != nil {
 		return nil, &utils.AppError{
 			Message:     fmt.Sprintf("ByBit API error read body: %s", err1.Error()),
@@ -99,7 +100,8 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	}
 
 	var dat map[string]interface{}
-	err2 := json.Unmarshal([]byte(body), &dat)
+//	err2 := json.Unmarshal([]byte(body), &dat)
+	err2 := json.Unmarshal(body.Bytes(), &dat)
 	if err2 != nil {
 		return nil, &utils.AppError{
 			Message:     fmt.Sprintf("ByBit API error unmarshal data: %s", err2.Error()),
