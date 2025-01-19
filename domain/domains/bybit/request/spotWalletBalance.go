@@ -5,6 +5,7 @@ import (
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/utils"
+	"strconv"
 )
 
 type SpotWalletBalance struct {
@@ -52,6 +53,19 @@ func mapSpotWalletBalance(source interface{}) (*map[string]SpotWalletBalance, er
 	for _, wallet := range rawResponse.List {
 		if wallet.AccountType == "UNIFIED" {
 			for _, coin := range wallet.Coin {
+				total, err := utils.ToFloat64(coin.Total)
+				if err != nil {
+					return nil, utils.AppError{
+						Message: fmt.Sprintf("Error converting total to float64: %s", err.Error()),
+					}
+				}
+				locked, err := utils.ToFloat64(coin.Locked)
+				if err != nil {
+					return nil, utils.AppError{
+						Message: fmt.Sprintf("Error converting locked to float64: %s", err.Error()),
+					}
+				}
+				coin.Free = strconv.FormatFloat(total-locked, 'f', 8, 64)
 				result[coin.Coin] = coin
 			}
 		}
