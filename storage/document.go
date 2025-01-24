@@ -14,7 +14,8 @@ var documentStorage *mongo.Client
 
 func GetDocumentDB() (*mongo.Database, error) {
 	if documentStorage == nil {
-		err := InitStorage()
+		var err error
+		documentStorage, err = InitStorage()
 		if err != nil {
 			return nil, err
 		}
@@ -22,16 +23,7 @@ func GetDocumentDB() (*mongo.Database, error) {
 	return documentStorage.Database("trader"), nil
 }
 
-func InitStorage() error {
-	var err error
-	documentStorage, err = getFerretdbStorage()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getFerretdbStorage() (*mongo.Client, error) {
+func InitStorage() (*mongo.Client, error) {
 
 	ferretdbListenerTcp := utils.AppConfig("FERRETDB_LISTENER_TCP")
 	ferretdbListenerHandler := utils.AppConfig("FERRETDB_HANDLER")

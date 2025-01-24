@@ -21,7 +21,7 @@ func StartTradingApp() {
 
 	for {
 		bufferChanel <- true
-		go loadSetupNextStep(bufferChanel, setupChanel)
+		loadSetupNextStep(bufferChanel, setupChanel)
 	}
 }
 
@@ -32,6 +32,6 @@ func loadSetupNextStep(bufferChanel chan bool, setupChanelContext chan *setupStr
 
 func handleSetupNextStep(setupChanel chan *setupStructs.Setup) {
 	for setupItem := range setupChanel {
-		go setupItem.NextStep()
+		setupItem.NextStep()
 	}
 }

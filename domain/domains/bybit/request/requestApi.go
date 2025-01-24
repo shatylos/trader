@@ -18,6 +18,26 @@ import (
 
 type ApiParams map[string]interface{}
 
+var httpClient *http.Client
+
+func getClient() *http.Client {
+	if httpClient == nil {
+		config := tls.Config{}
+		if utils.AppConfig("INSECURE_REQUEST") == "yes" {
+			config = tls.Config{
+				InsecureSkipVerify: true,
+			}
+		}
+		httpClient = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &config,
+			},
+			Timeout: 10 * time.Second,
+		}
+	}
+	return httpClient
+}
+
 func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, *utils.AppError) {
 	return apiQuery(uri, params, secrets, "GET",
 		func(params ApiParams) (string, *bytes.Buffer, error) {
@@ -64,16 +84,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	req, _ := http.NewRequest(method, secrets.ApiEndpoint+uri+queryString, requestBody)
 	req.Header.Add("Content-Type", "application/json")
 
-	config := tls.Config{}
-	if utils.AppConfig("INSECURE_REQUEST") == "yes" {
-		config = tls.Config{
-			InsecureSkipVerify: true,
-		}
-	}
-	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &config,
-	}}
-
+	client := getClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, &utils.AppError{
@@ -89,7 +100,6 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 		}
 	}
 
-//	body, err1 := ioutil.ReadAll(resp.Body)
 	body := &bytes.Buffer{}
 	_, err1 := io.Copy(body, resp.Body)
 	if err1 != nil {
@@ -100,7 +110,6 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	}
 
 	var dat map[string]interface{}
-//	err2 := json.Unmarshal([]byte(body), &dat)
 	err2 := json.Unmarshal(body.Bytes(), &dat)
 	if err2 != nil {
 		return nil, &utils.AppError{
