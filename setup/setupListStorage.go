@@ -70,7 +70,10 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[interfa
 func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {
 	var setupItemResult *setupStructs.Setup
 
-	for range time.Tick(time.Second / 4) {
+	ticker := time.NewTicker(time.Second / 4)
+	defer ticker.Stop()
+
+	for range ticker.C {
 		for _, setupListItem := range setupList {
 			if setupListItem.GetStatus() == setupStructs.StatusReadyForNext {
 				setupListItem.SetStatus(setupStructs.StatusInProgress)
