@@ -1,12 +1,12 @@
 package buyCheapSellHigh
 
 import (
-	"bytes"
 	"github.com/shatylos/trader/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/strategy/struct"
 	"github.com/shatylos/trader/utils"
 	"github.com/shatylos/trader/webapi/helper"
 	"html/template"
+	"strings"
 	"time"
 )
 
@@ -123,14 +123,16 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		},
 	}
 
-	var resultBuffer bytes.Buffer
-	err = tmpl.Execute(&resultBuffer, data)
+	var resultBuilder strings.Builder
+	err = tmpl.Execute(&resultBuilder, data)
 	if err != nil {
 		return &report, err
 	}
 
+	htmlStr := resultBuilder.String()
+
 	report = _struct.Report{
-		InnerHtml: template.HTML(resultBuffer.String()),
+		InnerHtml: template.HTML(htmlStr),
 	}
 
 	return &report, nil
