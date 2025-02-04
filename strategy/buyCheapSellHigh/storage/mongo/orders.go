@@ -53,6 +53,7 @@ func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, erro
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
 	var orders []structs.HistoryOrder
 
@@ -82,6 +83,7 @@ func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, 
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
 	var orders []structs.HistoryOrder
 
@@ -111,6 +113,7 @@ func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) 
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
 	var orders []structs.HistoryOrder
 
