@@ -117,4 +117,5 @@ func ReportController(c *gin.Context) {
 		utils.LogError(err.Error())
 		return
 	}
+	strategyReport = nil
 }
