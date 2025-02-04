@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func getClient() *http.Client {
 
 func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, *utils.AppError) {
 	return apiQuery(uri, params, secrets, "GET",
-		func(params ApiParams) (string, *bytes.Buffer, error) {
+		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
 			queryParams := url.Values{}
 			for key, value := range params {
 				v, ok := value.(string)
@@ -49,31 +50,46 @@ func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (in
 				}
 				queryParams.Add(key, v)
 			}
-			queryString := "?" + queryParams.Encode()
+
+			var builder strings.Builder
+			builder.WriteString(apiEndpoint)
+			builder.WriteString(uri)
+			builder.WriteByte('?')
+			builder.WriteString(queryParams.Encode())
+			requestUrl := builder.String()
+
+			queryParams = nil
 			buffer := bytes.NewBuffer(nil)
-			return queryString, buffer, nil
+			return requestUrl, buffer, nil
 		})
 }
 
 func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, *utils.AppError) {
 	return apiQuery(uri, params, secrets, "POST",
-		func(params ApiParams) (string, *bytes.Buffer, error) {
+		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
 			postContent, err := json.Marshal(params)
 			if err != nil {
 				return "", nil, err
 			}
 			buffer := bytes.NewBuffer(postContent)
-			return "", buffer, nil
+
+			var builder strings.Builder
+			builder.WriteString(apiEndpoint)
+			builder.WriteString(uri)
+			builder.WriteByte('?')
+			requestUrl := builder.String()
+
+			return requestUrl, buffer, nil
 		})
 }
 
-func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams) (string, *bytes.Buffer, error)) (interface{}, *utils.AppError) {
+func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (interface{}, *utils.AppError) {
 
 	params["api_key"] = secrets.Key
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())
 	params["sign"] = getSignature(params, secrets.Pass)
 
-	queryString, requestBody, err := getRequestData(params)
+	requestUrl, requestBody, err := getRequestData(params, secrets.ApiEndpoint, uri)
 	if err != nil {
 		return nil, &utils.AppError{
 			Message:     fmt.Sprintf("ByBit API error prepare request query: %s", err.Error()),
@@ -81,7 +97,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 		}
 	}
 
-	req, _ := http.NewRequest(method, secrets.ApiEndpoint+uri+queryString, requestBody)
+	req, _ := http.NewRequest(method, requestUrl, requestBody)
 	req.Header.Add("Content-Type", "application/json")
 
 	client := getClient()
@@ -111,6 +127,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 
 	var dat map[string]interface{}
 	err2 := json.Unmarshal(body.Bytes(), &dat)
+	body.Reset()
 	if err2 != nil {
 		return nil, &utils.AppError{
 			Message:     fmt.Sprintf("ByBit API error unmarshal data: %s", err2.Error()),
