@@ -1,5 +1,8 @@
 app:
-  web_port: 8085
+  web_port: "8085"
+  ferretdb_listener_tcp: "127.0.0.1:17027"
+  ferretdb_handler: "sqlite"
+  ferretdb_sqlite_url: "file:var/ferretdb/"
 
 strategy:
   - code: buy_cheap_sell_high
