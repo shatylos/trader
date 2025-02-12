@@ -7,26 +7,12 @@ import (
 	"time"
 )
 
-const StatusReadyForNext = 0
-const StatusInProgress = 1
-const StatusError = 2
-const MaxErrorsCount = 5
-
 type Setup struct {
-	status     int64
 	errorCount int64
 	Strategy   _struct.StrategyInterface
 }
 
-func (s *Setup) GetStatus() int64 {
-	return s.status
-}
-
-func (s *Setup) SetStatus(status int64) {
-	s.status = status
-}
-
-func (s *Setup) NextStep() {
+func (s *Setup) NextStep(setupChanel chan *Setup) {
 	strategy := s.Strategy
 
 	if !strategy.IsInit() {
@@ -36,18 +22,18 @@ func (s *Setup) NextStep() {
 			s.errorCount++
 			logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 			time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
-			s.SetStatus(StatusReadyForNext)
+			setupChanel <- s
 			return
 		}
 	}
 
 	err := strategy.DoAction()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(fmt.Sprintf("Error DoAction, setup: %s. Error: %s", s.Strategy.GetTitle(), err.Error()))
 		s.errorCount++
 		logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
-		s.SetStatus(StatusReadyForNext)
+		setupChanel <- s
 		return
 	}
 
@@ -57,5 +43,5 @@ func (s *Setup) NextStep() {
 	}
 
 	strategy.Wait()
-	s.SetStatus(StatusReadyForNext)
+	setupChanel <- s
 }

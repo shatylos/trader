@@ -18,8 +18,16 @@ var (
 	colorGrey   = "\033[37m"
 )
 
-func Error(msg string) {
+var isInit bool
+
+func logInit() {
 	log.SetOutput(os.Stdout)
+}
+
+func Error(msg string) {
+	if !isInit {
+		logInit()
+	}
 	pc, file, line, ok := runtime.Caller(1)
 	funcName := ""
 	if ok {
@@ -29,7 +37,9 @@ func Error(msg string) {
 }
 
 func Warning(msg string) {
-	log.SetOutput(os.Stdout)
+	if !isInit {
+		logInit()
+	}
 	pc, file, line, ok := runtime.Caller(1)
 	funcName := ""
 	if ok {
@@ -39,9 +49,15 @@ func Warning(msg string) {
 }
 
 func Info(msg string) {
+	if !isInit {
+		logInit()
+	}
 	log.Println(colorGrey, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
 }
 
 func Success(msg string) {
+	if !isInit {
+		logInit()
+	}
 	log.Println(colorGreen, time.Now().Format("2006-01-02 15:04:05"), msg, colorReset)
 }

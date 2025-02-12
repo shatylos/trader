@@ -5,7 +5,6 @@ import (
 	setupStructs "github.com/shatylos/trader/internal/setup/structs"
 	"github.com/shatylos/trader/internal/strategy"
 	"github.com/shatylos/trader/tools"
-	"time"
 )
 
 var setupList []*setupStructs.Setup
@@ -60,28 +59,6 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]
 	}
 
 	return setupList, nil
-}
-
-func LoadNextSetupStep(setupChanelContext chan *setupStructs.Setup) {
-	var setupItemResult *setupStructs.Setup
-
-	ticker := time.NewTicker(time.Second / 4)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		for _, setupListItem := range setupList {
-			if setupListItem.GetStatus() == setupStructs.StatusReadyForNext {
-				setupListItem.SetStatus(setupStructs.StatusInProgress)
-				setupItemResult = setupListItem
-				break
-			}
-		}
-
-		if setupItemResult != nil {
-			setupChanelContext <- setupItemResult
-			return
-		}
-	}
 }
 
 func GetSetupList() []*setupStructs.Setup {

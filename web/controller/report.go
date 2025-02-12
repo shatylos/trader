@@ -46,7 +46,7 @@ func SetupListController(c *gin.Context) {
 		SetupItems: setupList,
 	}
 
-	template, err := helper.GetTemplate("template/setupList.html")
+	template, err := helper.GetTemplate("web/template/setupList.html")
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -106,7 +106,7 @@ func ReportController(c *gin.Context) {
 		StrategyReport: *strategyReport,
 	}
 
-	tmpl, err := helper.GetTemplate("template/report.html")
+	tmpl, err := helper.GetTemplate("web/template/report.html")
 	if err != nil {
 		logger.Error(err.Error())
 		return

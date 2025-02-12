@@ -14,24 +14,14 @@ func StartTradingApp() {
 		os.Exit(1)
 	}
 
-	bufferChanel := make(chan bool, 1)
-	setupChanel := make(chan *setupStructs.Setup)
+	setupList := setup.GetSetupList()
+	setupChanel := make(chan *setupStructs.Setup, len(setupList))
 
-	go handleSetupNextStep(setupChanel)
-
-	for {
-		bufferChanel <- true
-		loadSetupNextStep(bufferChanel, setupChanel)
+	for _, setupItem := range setupList {
+		setupChanel <- setupItem
 	}
-}
 
-func loadSetupNextStep(bufferChanel chan bool, setupChanelContext chan *setupStructs.Setup) {
-	setup.LoadNextSetupStep(setupChanelContext)
-	<-bufferChanel
-}
-
-func handleSetupNextStep(setupChanel chan *setupStructs.Setup) {
 	for setupItem := range setupChanel {
-		setupItem.NextStep()
+		go setupItem.NextStep(setupChanel)
 	}
 }

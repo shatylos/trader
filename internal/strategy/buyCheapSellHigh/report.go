@@ -65,7 +65,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		return &report, err
 	}
 
-	tmpl, err := helper.GetTemplate("template/buyCheapSellHigh/report.html")
+	tmpl, err := helper.GetTemplate("web/template/buyCheapSellHigh/report.html")
 	if err != nil {
 		return &report, err
 	}
