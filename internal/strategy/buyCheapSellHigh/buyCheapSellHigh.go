@@ -43,6 +43,10 @@ func (s *BuyCheapSellHigh) IsInit() bool {
 	return s.isInit
 }
 
+func (s *BuyCheapSellHigh) GetId() string {
+	return s.Id
+}
+
 func (s *BuyCheapSellHigh) GetTitle() string {
 	return "Buy Cheap Sell High: " + s.Id + " (" + s.CoinPare + ")"
 }

@@ -1,20 +1,15 @@
-package controller
+package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/shatylos/trader/internal/setup"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/web/helper"
+	"net/http"
 	"regexp"
 	"strconv"
 	"time"
 )
-
-type ReportRequest struct {
-	Index  uint   `uri:"index" binding:"required"`
-	Period string `uri:"period" binding:"required"`
-}
 
 type ReportPage struct {
 	StrategyReport _struct.Report
@@ -25,19 +20,19 @@ type SetupListPage struct {
 }
 
 type SetupItemPage struct {
-	SeqNum        int
 	Title         string
+	SetupId       string
 	CurrentPeriod string
 }
 
-func SetupListController(c *gin.Context) {
+func SetupListController(w http.ResponseWriter, r *http.Request) {
 
 	var setupList []SetupItemPage
 
-	for i, setupItem := range setup.GetSetupList() {
+	for _, setupItem := range setup.GetSetupList() {
 		setupList = append(setupList, SetupItemPage{
-			SeqNum:        i + 1,
 			Title:         setupItem.Strategy.GetTitle(),
+			SetupId:       setupItem.Strategy.GetId(),
 			CurrentPeriod: time.Now().Format("2006-01"),
 		})
 	}
@@ -51,44 +46,44 @@ func SetupListController(c *gin.Context) {
 		logger.Error(err.Error())
 		return
 	}
-	err = template.Execute(c.Writer, data)
+	err = template.Execute(w, data)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
 }
 
-func ReportController(c *gin.Context) {
+func ReportController(w http.ResponseWriter, r *http.Request) {
 
-	var reportRequest ReportRequest
-	if err := c.ShouldBindUri(&reportRequest); err != nil {
-		c.String(404, "Not found")
-		return
-	}
-
+	setupId := r.PathValue("setup_id")
 	setupList := setup.GetSetupList()
-	if uint(len(setupList)) < reportRequest.Index {
-		c.String(404, "Not found")
+
+	var strategy _struct.StrategyInterface
+	for _, setupItem := range setupList {
+		if setupItem.Strategy.GetId() == setupId {
+			strategy = setupItem.Strategy
+		}
+	}
+	if strategy == nil {
+		http.NotFound(w, r)
 		return
 	}
-	setupItem := setupList[reportRequest.Index-1]
-	strategy := setupItem.Strategy
 
-	period := reportRequest.Period
+	period := r.PathValue("period")
 	matches := regexp.MustCompile("^(\\d{4})-(\\d{2})$").FindStringSubmatch(period)
 	if len(matches) != 3 {
-		c.String(404, "Not found")
+		http.NotFound(w, r)
 		return
 	}
 
 	year, err := strconv.Atoi(matches[1])
 	if err != nil {
-		c.String(404, "Not found")
+		http.NotFound(w, r)
 		return
 	}
 	month, err := strconv.Atoi(matches[2])
 	if err != nil {
-		c.String(404, "Not found")
+		http.NotFound(w, r)
 		return
 	}
 	now := time.Now()
@@ -112,7 +107,7 @@ func ReportController(c *gin.Context) {
 		return
 	}
 
-	err = tmpl.Execute(c.Writer, data)
+	err = tmpl.Execute(w, data)
 	if err != nil {
 		logger.Error(err.Error())
 		return

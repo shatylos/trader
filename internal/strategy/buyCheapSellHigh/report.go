@@ -1,6 +1,7 @@
 package buyCheapSellHigh
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
@@ -94,8 +95,8 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 	}
 
 	data := StrategyReportPage{
-		PrevPeriodLink:         from.AddDate(0, 0, -1).Format("2006-01"),
-		NextPeriodLink:         from.AddDate(0, 1, 0).Format("2006-01"),
+		PrevPeriodLink:         fmt.Sprintf("/report/%s/%s/", s.Id, from.AddDate(0, 0, -1).Format("2006-01")),
+		NextPeriodLink:         fmt.Sprintf("/report/%s/%s/", s.Id, from.AddDate(0, 1, 0).Format("2006-01")),
 		DateFrom:               from,
 		DateTo:                 to,
 		Revenue:                revenueAmount,
