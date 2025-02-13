@@ -12,6 +12,7 @@ import (
 const defaultPort = "8080"
 
 func StartWebApp() {
+	logger.Info("Start web app")
 	port := defaultPort
 	appConfig, err := config.GetConfig()
 	if err != nil {
@@ -20,10 +21,11 @@ func StartWebApp() {
 		port = appConfig.App["web_port"]
 	}
 
-	http.Handle("GET /", http.HandlerFunc(handlers.SetupListController))
-	http.Handle("GET /report/{setup_id}/{period}/", http.HandlerFunc(handlers.ReportController))
+	mux := http.NewServeMux()
+	mux.Handle("GET /", http.HandlerFunc(handlers.SetupListController))
+	mux.Handle("GET /report/{setup_id}/{period}/", http.HandlerFunc(handlers.ReportController))
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error http ListenAndServe: %s", err.Error()))
 		os.Exit(1)

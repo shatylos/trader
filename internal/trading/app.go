@@ -8,6 +8,7 @@ import (
 )
 
 func StartTradingApp() {
+	logger.Info("Start trading app")
 	err := setup.SetupListInit()
 	if err != nil {
 		logger.Error(err.Error())
