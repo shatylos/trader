@@ -3,7 +3,7 @@ package buyCheapSellHigh
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
+	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	storageStructs "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
@@ -82,12 +82,12 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 
 func (s *BuyCheapSellHigh) setOrderToStorage(orderId string, mainCurrencyBalance float64, tradeCurrencyBalance float64) error {
 
-	storage, err := storage.GetStorage(s.Id)
+	storage, err := strategyStorage.GetStorage(s.Id)
 	if err != nil {
 		return err
 	}
 
-	_, err = (*storage).AddDomainOrderOnce(storageStructs.HistoryOrder{
+	_, err = storage.AddDomainOrderOnce(storageStructs.HistoryOrder{
 		DomainOrderId:             orderId,
 		CreatedTime:               time.Now().Unix(),
 		MainCurrencyAmountBefore:  mainCurrencyBalance,
@@ -105,11 +105,10 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 
 	logger.Info("Filling prices")
 
-	storagePointer, err := storage.GetStorage(s.Id)
+	storage, err := strategyStorage.GetStorage(s.Id)
 	if err != nil {
 		return err
 	}
-	storage := *storagePointer
 
 	historyOrders, err := storage.GetNotFilledHistoryOrders()
 	if err != nil {
@@ -163,11 +162,10 @@ func (s *BuyCheapSellHigh) calculateHistoryOrderValues() error {
 
 	logger.Info("Calculating average prices")
 
-	storagePointer, err := storage.GetStorage(s.Id)
+	storage, err := strategyStorage.GetStorage(s.Id)
 	if err != nil {
 		return err
 	}
-	storage := *storagePointer
 
 	historyOrders, err := storage.GetNotCalculatedHistoryOrders()
 	if err != nil {
@@ -284,11 +282,10 @@ func (s *BuyCheapSellHigh) calculateCommission(historyOrder *storageStructs.Hist
 }
 
 func (s *BuyCheapSellHigh) ResetOrderData() error {
-	storagePointer, err := storage.GetStorage(s.Id)
+	storage, err := strategyStorage.GetStorage(s.Id)
 	if err != nil {
 		return err
 	}
-	storage := *storagePointer
 
 	err = storage.ResetHistoryOrderData()
 	if err != nil {

@@ -6,8 +6,9 @@ import (
 )
 
 type MongoStorage struct {
-	setupCode string
-	db        *mongo.Database
+	setupCode  string
+	db         *mongo.Database
+	collection *mongo.Collection
 }
 
 func New(setupCode string) (*MongoStorage, error) {
@@ -16,9 +17,12 @@ func New(setupCode string) (*MongoStorage, error) {
 		return nil, err
 	}
 
+	collection := db.Collection(getOrderCollectionName(setupCode))
+
 	return &MongoStorage{
-		setupCode: setupCode,
-		db:        db,
+		setupCode:  setupCode,
+		db:         db,
+		collection: collection,
 	}, nil
 }
 

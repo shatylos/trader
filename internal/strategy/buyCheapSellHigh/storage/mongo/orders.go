@@ -16,14 +16,13 @@ import (
 // AddDomainOrderOnce add order to storage.
 func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, error) {
 
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
 	var res structs.HistoryOrder
-	err := s.db.Collection(collectionName).FindOne(ctx, bson.D{{"domain_order_id", order.DomainOrderId}}).Decode(&res)
+	err := s.collection.FindOne(ctx, bson.D{{"domain_order_id", order.DomainOrderId}}).Decode(&res)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		_, err := s.db.Collection(collectionName).InsertOne(ctx, order)
+		_, err := s.collection.InsertOne(ctx, order)
 		if err != nil {
 			return false, err
 		}
@@ -38,10 +37,9 @@ func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, err
 }
 
 func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error) {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+	cursor, err := s.collection.Find(ctx, bson.D{
 		{"$or", bson.A{
 			bson.D{{"filled_price", 0}},
 			bson.D{{"filled_qty", 0}},
@@ -65,10 +63,9 @@ func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, erro
 }
 
 func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error) {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+	cursor, err := s.collection.Find(ctx, bson.D{
 		{"$and", bson.A{
 			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
 			bson.D{{"filled_qty", bson.D{{"$gt", 0}}}},
@@ -95,10 +92,9 @@ func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, 
 }
 
 func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error) {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	cursor, err := s.db.Collection(collectionName).Find(ctx, bson.D{
+	cursor, err := s.collection.Find(ctx, bson.D{
 		{"$and", bson.A{
 			bson.D{{"average_price", bson.D{{"$gt", 0}}}},
 			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
@@ -125,11 +121,10 @@ func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) 
 }
 
 func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
 	var lastCalculatedOrder structs.HistoryOrder
-	err := s.db.Collection(collectionName).FindOne(
+	err := s.collection.FindOne(
 		ctx,
 		bson.D{{
 			"average_price", bson.D{{"$gt", 0}},
@@ -149,10 +144,9 @@ func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
 }
 
 func (s *MongoStorage) RemoveOrder(domainOrderId string) error {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	_, err := s.db.Collection(collectionName).DeleteOne(ctx, bson.D{{"domain_order_id", domainOrderId}})
+	_, err := s.collection.DeleteOne(ctx, bson.D{{"domain_order_id", domainOrderId}})
 
 	if err != nil {
 		return err
@@ -162,7 +156,6 @@ func (s *MongoStorage) RemoveOrder(domainOrderId string) error {
 }
 
 func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
 	if order.Id == nil {
@@ -192,7 +185,7 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 		{"comission", order.Comission},
 	}}}
 
-	_, err = s.db.Collection(collectionName).UpdateOne(ctx, filter, update)
+	_, err = s.collection.UpdateOne(ctx, filter, update)
 
 	if err != nil {
 		return err
@@ -202,10 +195,9 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 }
 
 func (s *MongoStorage) ResetHistoryOrderData() error {
-	collectionName := getOrderCollectionName(s.setupCode)
 	ctx := context.TODO()
 
-	_, err := s.db.Collection(collectionName).UpdateMany(ctx, bson.D{}, bson.D{
+	_, err := s.collection.UpdateMany(ctx, bson.D{}, bson.D{
 		{"$set", bson.D{
 			{"filled_price", 0},
 			{"filled_qty", 0},

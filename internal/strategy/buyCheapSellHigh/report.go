@@ -2,7 +2,7 @@ package buyCheapSellHigh
 
 import (
 	"fmt"
-	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
+	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/web/helper"
@@ -143,13 +143,12 @@ func (s *BuyCheapSellHigh) getReportOrderItems(from time.Time, to time.Time) ([]
 
 	var reportOrderItems []ReportOrderItem
 
-	storagePointer, err := storage.GetStorage(s.Id)
+	storage, err := strategyStorage.GetStorage(s.Id)
 	if err != nil {
 		return reportOrderItems, err
 	}
-	storageInst := *storagePointer
 
-	historyOrders, err := storageInst.GetCalculatedHistoryOrders(from, to)
+	historyOrders, err := storage.GetCalculatedHistoryOrders(from, to)
 	if err != nil {
 		return reportOrderItems, err
 	}
