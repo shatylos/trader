@@ -12,7 +12,6 @@ import (
 const defaultPort = "8080"
 
 func StartWebApp() {
-	logger.Info("Start web app")
 	port := defaultPort
 	appConfig, err := config.GetConfig()
 	if err != nil {
@@ -21,6 +20,7 @@ func StartWebApp() {
 		port = appConfig.App["web_port"]
 	}
 
+	logger.Info(fmt.Sprintf("Starting web app http://127.0.0.1:%s/", port))
 	mux := http.NewServeMux()
 	mux.Handle("GET /", http.HandlerFunc(handlers.SetupListController))
 	mux.Handle("GET /report/{setup_id}/{period}/", http.HandlerFunc(handlers.ReportController))

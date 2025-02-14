@@ -11,7 +11,7 @@ import (
 
 func main() {
 	go func() {
-		logger.Info("Start listening pprof: http://127.0.0.1:6060/debug/pprof/")
+		logger.Info("Starting pprof listen: http://127.0.0.1:6060/debug/pprof/")
 		err := http.ListenAndServe(":6060", nil)
 		logger.Error(fmt.Sprintf("Error listening pprof %s", err.Error()))
 	}()

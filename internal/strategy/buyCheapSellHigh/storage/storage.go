@@ -17,19 +17,19 @@ type Storage interface {
 	UpdateOrder(order structs.HistoryOrder) error
 }
 
-var storages = map[string]Storage{}
+var storages = map[string]*mongo.MongoStorage{}
 
-func GetStorage(setupId string) (*Storage, error) {
-	err := error(nil)
-
-	storage, ok := storages[setupId]
-	if !ok {
-		storage, err = mongo.New(setupId)
-		if err != nil {
-			return nil, err
-		}
-		storages[setupId] = storage
+func GetStorage(setupId string) (*mongo.MongoStorage, error) {
+	_, ok := storages[setupId]
+	if ok {
+		return storages[setupId], nil
 	}
 
-	return &storage, nil
+	var err error
+	storages[setupId], err = mongo.New(setupId)
+	if err != nil {
+		return nil, err
+	}
+
+	return storages[setupId], nil
 }
