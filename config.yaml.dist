@@ -1,5 +1,6 @@
 app:
   web_port: "8085"
+  mongodb_uri: "mongodb://127.0.0.1:17027"
   ferretdb_listener_tcp: "127.0.0.1:17027"
   ferretdb_handler: "sqlite"
   ferretdb_sqlite_url: "file:var/ferretdb/"

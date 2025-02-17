@@ -17,21 +17,31 @@ var documentStorage *mongo.Client
 func GetDocumentDB() (*mongo.Database, error) {
 	if documentStorage == nil {
 		var err error
-		documentStorage, err = InitStorage()
+
+		appConfig, err := config.GetConfig()
 		if err != nil {
 			return nil, err
 		}
+		mongodbUri := appConfig.App["mongodb_uri"]
+
+		ctx := context.Background()
+		documentStorage, err = mongo.Connect(ctx, options.Client().ApplyURI(mongodbUri))
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, err
+		}
+
 	}
 	return documentStorage.Database("trader"), nil
 }
 
-func InitStorage() (*mongo.Client, error) {
+func InitStorage() error {
 
 	var err error
 
 	appConfig, err := config.GetConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	ferretdbListenerTcp := appConfig.App["ferretdb_listener_tcp"]
 	ferretdbListenerHandler := appConfig.App["ferretdb_handler"]
@@ -39,13 +49,13 @@ func InitStorage() (*mongo.Client, error) {
 
 	if ferretdbListenerTcp == "" || ferretdbListenerHandler == "" || ferretdbSqliteUrl == "" {
 		logger.Error("ferretdb config is not set")
-		return nil, tools.AppError{Message: "ferretdb config is not set"}
+		return tools.AppError{Message: "ferretdb config is not set"}
 	}
 
 	dirPath := strings.TrimPrefix(ferretdbSqliteUrl, "file:")
 	err = os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	fdb, err := ferretdb.New(&ferretdb.Config{
@@ -56,31 +66,14 @@ func InitStorage() (*mongo.Client, error) {
 		SQLiteURL: ferretdbSqliteUrl,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	//ctx, cancel := context.WithCancel(context.Background())
 	ctx := context.Background()
-
-	done := make(chan struct{})
-
-	go func() {
-		err := fdb.Run(ctx)
-		if err != nil {
-			logger.Error(err.Error())
-		}
-		close(done)
-	}()
-
-	uri := fdb.MongoDBURI()
-
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	err = fdb.Run(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		//cancel()
-		<-done
-		return nil, err
 	}
 
-	return mongoClient, nil
+	return nil
 }
