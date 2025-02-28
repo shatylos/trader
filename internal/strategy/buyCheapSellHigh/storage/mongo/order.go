@@ -19,10 +19,10 @@ func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, err
 	ctx := context.TODO()
 
 	var res structs.HistoryOrder
-	err := s.collection.FindOne(ctx, bson.D{{"domain_order_id", order.DomainOrderId}}).Decode(&res)
+	err := s.orderCollection.FindOne(ctx, bson.D{{"domain_order_id", order.DomainOrderId}}).Decode(&res)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		_, err := s.collection.InsertOne(ctx, order)
+		_, err := s.orderCollection.InsertOne(ctx, order)
 		if err != nil {
 			return false, err
 		}
@@ -39,7 +39,7 @@ func (s *MongoStorage) AddDomainOrderOnce(order structs.HistoryOrder) (bool, err
 func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, error) {
 	ctx := context.TODO()
 
-	cursor, err := s.collection.Find(ctx, bson.D{
+	cursor, err := s.orderCollection.Find(ctx, bson.D{
 		{"$or", bson.A{
 			bson.D{{"filled_price", 0}},
 			bson.D{{"filled_qty", 0}},
@@ -65,7 +65,7 @@ func (s *MongoStorage) GetNotFilledHistoryOrders() ([]structs.HistoryOrder, erro
 func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, error) {
 	ctx := context.TODO()
 
-	cursor, err := s.collection.Find(ctx, bson.D{
+	cursor, err := s.orderCollection.Find(ctx, bson.D{
 		{"$and", bson.A{
 			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
 			bson.D{{"filled_qty", bson.D{{"$gt", 0}}}},
@@ -94,7 +94,7 @@ func (s *MongoStorage) GetNotCalculatedHistoryOrders() ([]structs.HistoryOrder, 
 func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error) {
 	ctx := context.TODO()
 
-	cursor, err := s.collection.Find(ctx, bson.D{
+	cursor, err := s.orderCollection.Find(ctx, bson.D{
 		{"$and", bson.A{
 			bson.D{{"average_price", bson.D{{"$gt", 0}}}},
 			bson.D{{"filled_price", bson.D{{"$gt", 0}}}},
@@ -120,11 +120,36 @@ func (s *MongoStorage) GetCalculatedHistoryOrders(from time.Time, to time.Time) 
 	return orders, nil
 }
 
+func (s *MongoStorage) GetHistoryOrders(from time.Time, to time.Time) ([]structs.HistoryOrder, error) {
+	ctx := context.TODO()
+
+	cursor, err := s.orderCollection.Find(ctx, bson.D{
+		{"$and", bson.A{
+			bson.D{{"created_time", bson.D{{"$gt", from.Unix()}}}},
+			bson.D{{"created_time", bson.D{{"$lt", to.Unix()}}}},
+		}},
+	}, options.Find().SetSort(
+		bson.D{{"created_time", -1}},
+	))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var orders []structs.HistoryOrder
+
+	if err = cursor.All(ctx, &orders); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
 func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
 	ctx := context.TODO()
 
 	var lastCalculatedOrder structs.HistoryOrder
-	err := s.collection.FindOne(
+	err := s.orderCollection.FindOne(
 		ctx,
 		bson.D{{
 			"average_price", bson.D{{"$gt", 0}},
@@ -146,7 +171,7 @@ func (s *MongoStorage) GetLastCalculatedOrder() (*structs.HistoryOrder, error) {
 func (s *MongoStorage) RemoveOrder(domainOrderId string) error {
 	ctx := context.TODO()
 
-	_, err := s.collection.DeleteOne(ctx, bson.D{{"domain_order_id", domainOrderId}})
+	_, err := s.orderCollection.DeleteOne(ctx, bson.D{{"domain_order_id", domainOrderId}})
 
 	if err != nil {
 		return err
@@ -181,11 +206,12 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 		{"side", order.Side},
 		{"updated_time", order.UpdatedTime},
 		{"average_price", order.AveragePrice},
+		{"main_currency_amount_before", order.MainCurrencyAmountBefore},
 		{"revenue", order.Revenue},
 		{"comission", order.Comission},
 	}}}
 
-	_, err = s.collection.UpdateOne(ctx, filter, update)
+	_, err = s.orderCollection.UpdateOne(ctx, filter, update)
 
 	if err != nil {
 		return err
@@ -197,7 +223,7 @@ func (s *MongoStorage) UpdateOrder(order structs.HistoryOrder) error {
 func (s *MongoStorage) ResetHistoryOrderData() error {
 	ctx := context.TODO()
 
-	_, err := s.collection.UpdateMany(ctx, bson.D{}, bson.D{
+	_, err := s.orderCollection.UpdateMany(ctx, bson.D{}, bson.D{
 		{"$set", bson.D{
 			{"filled_price", 0},
 			{"filled_qty", 0},

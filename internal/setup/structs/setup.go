@@ -8,6 +8,7 @@ import (
 )
 
 type Setup struct {
+	ID         string
 	errorCount int64
 	Strategy   _struct.StrategyInterface
 }

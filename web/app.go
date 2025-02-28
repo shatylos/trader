@@ -24,6 +24,8 @@ func StartWebApp() {
 	mux := http.NewServeMux()
 	mux.Handle("GET /", http.HandlerFunc(handlers.SetupListController))
 	mux.Handle("GET /report/{setup_id}/{period}/", http.HandlerFunc(handlers.ReportController))
+	mux.Handle("GET /assets/{setup_id}/", http.HandlerFunc(handlers.AssetFormHandler))
+	mux.Handle("POST /assets/{setup_id}/", http.HandlerFunc(handlers.AssetAddHandler))
 
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 	if err != nil {

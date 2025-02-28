@@ -29,6 +29,7 @@ type StrategyReportPage struct {
 	TradeCurrencyPrecision int
 	ReportOrderItems       []ReportOrderItem
 	Amounts                ReportAmounts
+	Assets                 ReportAssets
 }
 
 type ReportAmounts struct {
@@ -41,6 +42,11 @@ type ReportAmounts struct {
 	DiffMainCurrency   float64
 	DiffTradeCurrency  float64
 	DiffTotal          float64
+}
+
+type ReportAssets struct {
+	Deposit  float64
+	Withdraw float64
 }
 
 type ReportOrderItem struct {
@@ -62,6 +68,11 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 	report := _struct.Report{}
 
 	reportItems, err := s.getReportOrderItems(from, to)
+	if err != nil {
+		return &report, err
+	}
+
+	deposit, withdraw, err := s.getAssets(from, to)
 	if err != nil {
 		return &report, err
 	}
@@ -122,6 +133,10 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 			DiffTradeCurrency:  EndTradeCurrency - BeginTradeCurrency,
 			DiffTotal:          EndTotal - BeginTotal,
 		},
+		Assets: ReportAssets{
+			Deposit:  deposit,
+			Withdraw: withdraw,
+		},
 	}
 
 	var resultBuilder strings.Builder
@@ -134,6 +149,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 
 	report = _struct.Report{
 		InnerHtml: template.HTML(htmlStr),
+		SetupId:   s.Id,
 	}
 
 	return &report, nil
@@ -172,6 +188,26 @@ func (s *BuyCheapSellHigh) getReportOrderItems(from time.Time, to time.Time) ([]
 
 	return reportOrderItems, nil
 
+}
+
+func (s *BuyCheapSellHigh) getAssets(from time.Time, to time.Time) (float64, float64, error) {
+	storage, err := strategyStorage.GetStorage(s.Id)
+	assets, err := storage.GetAssetTransactions(from, to)
+	if err != nil {
+		return 0, 0, err
+	}
+	var deposit, withdraw float64
+
+	for _, asset := range assets {
+		if asset.TransactionType == "deposit" {
+			deposit += asset.Amount
+		}
+		if asset.TransactionType == "withdraw" {
+			withdraw += asset.Amount
+		}
+	}
+
+	return deposit, withdraw, nil
 }
 
 func (s *BuyCheapSellHigh) getRevenue(reportOrderItems []ReportOrderItem) (float64, float64, error) {

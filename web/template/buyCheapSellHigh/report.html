@@ -14,7 +14,7 @@
 
 <div class="row align-items-start">
     <h4>Amounts:</h4>
-    <div class="col md-4">
+    <div class="col md-3">
         <h5>Beginning of the period:</h5>
         <div>
             {{ .Amounts.BeginMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
@@ -26,7 +26,7 @@
             Total: {{ .Amounts.BeginTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
         </div>
     </div>
-    <div class="col md-4">
+    <div class="col md-3">
         <h5>Ending of the period:</h5>
         <div>
             {{ .Amounts.EndMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
@@ -38,7 +38,16 @@
             Total: {{ .Amounts.EndTotal | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
         </div>
     </div>
-    <div class="col md-4">
+    <div class="col md-3">
+        <h5>Assets:</h5>
+        <div>
+            Deposit: {{ .Assets.Deposit | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+        <div>
+            Withdraw: {{ .Assets.Withdraw | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>
+        </div>
+    </div>
+    <div class="col md-3">
         <h5>Difference:</h5>
         <div>
             {{ .Amounts.DiffMainCurrency | longFloatShort .MainCurrencyPrecision }} {{ .MainCurrency }}<br/>

@@ -15,6 +15,8 @@ type Storage interface {
 	RemoveOrder(domainOrderId string) error
 	ResetHistoryOrderData() error
 	UpdateOrder(order structs.HistoryOrder) error
+	AddAssetTransaction(transaction structs.AssetTransaction) error
+	GetAssetTransactions(from time.Time, to time.Time) ([]structs.AssetTransaction, error)
 }
 
 var storages = map[string]*mongo.MongoStorage{}

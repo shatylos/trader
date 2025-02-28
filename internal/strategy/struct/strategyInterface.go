@@ -7,6 +7,7 @@ import (
 
 type Report struct {
 	InnerHtml template.HTML
+	SetupId   string
 }
 
 type StrategyInterface interface {
@@ -19,4 +20,5 @@ type StrategyInterface interface {
 	GetReport(from time.Time, to time.Time) (*Report, error)
 	Wait()
 	ResetOrderData() error
+	AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error
 }

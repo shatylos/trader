@@ -15,7 +15,7 @@
             integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h"
             crossorigin="anonymous"></script>
 
-    <title>Setup List</title>
+    <title>Asset transaction</title>
 </head>
 
 <body class="bg-dark text-white">
@@ -24,7 +24,7 @@
 <div class="container">
 
     <header class="text-center">
-        <h1>Setup List:</h1>
+        <h1>Asset transaction:</h1>
     </header>
 
     <main class="row md-12">
@@ -36,15 +36,28 @@
         <hr/>
 
         <div class="row">
-            {{ range .SetupItems }}
-            <div class="row">
-                <p><a href="/report/{{ .SetupId }}/{{ .CurrentPeriod }}">{{ .Title }}</a></p>
-            </div>
-            {{ else }}
-            <div class="row">
-                <p>No setups found.</p>
-            </div>
-            {{ end }}
+
+            {{ .Message }}
+
+            <form method="post" id="assetForm">
+                <h5>Type:</h5>
+                <select name="type">
+                    <option value="deposit">Deposit</option>
+                    <option value="withdraw">Withdraw</option>
+                </select>
+                <p></p>
+
+                <h5>Amount:</h5>
+                <input name="amount" type="number" step=".01"/>
+                <p></p>
+
+                <h5>Date / Time:</h5>
+                <input name="datetime" type="datetime-local"/>
+                <p></p>
+                <input id="timezoneOffset" name="timezoneOffset" type="hidden"/>
+
+                <input type="submit" />
+            </form>
         </div>
     </main>
 
@@ -52,3 +65,13 @@
 
 </body>
 </html>
+
+<script>
+    document.getElementById("assetForm").addEventListener("submit", function() {
+        // Get the timezone offset in minutes
+        let offset = new Date().getTimezoneOffset();
+
+        // Convert to hours and minutes (e.g., -300 for UTC-5:00)
+        document.getElementById("timezoneOffset").value = offset;
+    });
+</script>
