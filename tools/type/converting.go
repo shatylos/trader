@@ -1,7 +1,9 @@
 package _type
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"strconv"
 	"time"
 )
@@ -22,19 +24,32 @@ func ToInt64(value interface{}) (int64, error) {
 	}
 }
 
-func ToFloat64(value interface{}) (float64, error) {
+func ToFloat64(value interface{}) (newVal float64, err error) {
 	if value == nil {
 		return 0, tools.EmptyValueError
 	}
 	switch value.(type) {
 	case int:
-		return float64(value.(int)), nil
+		newVal = float64(value.(int))
+		return
 	case int64:
-		return float64(value.(int64)), nil
+		newVal = float64(value.(int64))
+		return
 	case float64:
-		return value.(float64), nil
+		newVal = value.(float64)
+		return
 	case string:
-		return strconv.ParseFloat(value.(string), 64)
+		if value == "" {
+			newVal = 0
+			logger.Warning("Empty string convert to float64")
+			return
+		}
+		newVal, err = strconv.ParseFloat(value.(string), 64)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error converting string to float64: %s", err.Error()))
+			return
+		}
+		return
 	}
 	return 0, tools.AppError{
 		Message: "The value can not be converted to float64",
