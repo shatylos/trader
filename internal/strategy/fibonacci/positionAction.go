@@ -2,19 +2,18 @@ package fibonacci
 
 import (
 	"fmt"
-	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/math"
 )
 
-func (f *Fibonacci) actionByPosition(internalPosition structs.Position, providerPosition domainStructs.DomainPosition) (err error) {
+func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentPrice float64) (err error) {
 	switch internalPosition.Trend {
 	case TrendLong:
-		err = f.actionByPositionBullish(internalPosition, providerPosition)
+		err = f.actionByPositionBullish(internalPosition, currentPrice)
 		break
 	case TrendShort:
-		err = f.actionByPositionBearish(internalPosition, providerPosition)
+		err = f.actionByPositionBearish(internalPosition, currentPrice)
 		break
 	default:
 		err = tools.AppError{
@@ -24,15 +23,15 @@ func (f *Fibonacci) actionByPosition(internalPosition structs.Position, provider
 	return
 }
 
-func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, providerPosition domainStructs.DomainPosition) (err error) {
+func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, currentPrice float64) (err error) {
 
 	if internalPosition.Orders.Order1.OrderId == "" &&
-		providerPosition.MarkPrice < internalPosition.FibonacciChart.EntryPoint1 &&
-		providerPosition.MarkPrice > internalPosition.FibonacciChart.StopLoss {
+		currentPrice < internalPosition.FibonacciChart.EntryPoint1 &&
+		currentPrice > internalPosition.FibonacciChart.StopLoss {
 
 		// calculate position QTY
 		var fullQty, ep1Qty float64
-		fullQty, err = f.calculateFullQty(providerPosition.MarkPrice)
+		fullQty, err = f.calculateFullQty(currentPrice)
 		if err != nil {
 			return
 		}
@@ -46,15 +45,15 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, p
 	return
 }
 
-func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, providerPosition domainStructs.DomainPosition) (err error) {
+func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, currentPrice float64) (err error) {
 
 	if internalPosition.Orders.Order1.OrderId == "" &&
-		providerPosition.MarkPrice > internalPosition.FibonacciChart.EntryPoint1 &&
-		providerPosition.MarkPrice < internalPosition.FibonacciChart.StopLoss {
+		currentPrice > internalPosition.FibonacciChart.EntryPoint1 &&
+		currentPrice < internalPosition.FibonacciChart.StopLoss {
 
 		// calculate position QTY
 		var fullQty, ep1Qty float64
-		fullQty, err = f.calculateFullQty(providerPosition.MarkPrice)
+		fullQty, err = f.calculateFullQty(currentPrice)
 		if err != nil {
 			return
 		}

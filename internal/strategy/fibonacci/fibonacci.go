@@ -57,6 +57,12 @@ func (f *Fibonacci) DoAction() (err error) {
 		return
 	}
 
+	var currentPrice float64
+	currentPrice, err = f.getCurrentPrice()
+	if err != nil {
+		return
+	}
+
 	if providerPosition.Size == 0 {
 		if internalPosition.Id != nil && internalPosition.Status != structs.StatusClosed {
 			err = f.closeInternalPosition(internalPosition)
@@ -67,7 +73,7 @@ func (f *Fibonacci) DoAction() (err error) {
 		internalPosition, err = f.calculateNewPosition(internalPosition)
 	}
 
-	err = f.actionByPosition(internalPosition, providerPosition)
+	err = f.actionByPosition(internalPosition, currentPrice)
 
 	return
 }
