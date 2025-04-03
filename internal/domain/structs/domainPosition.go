@@ -3,8 +3,9 @@ package structs
 type DomainPosition struct {
 	Leverage      int64
 	PositionId    string
-	Price         float64
-	Qty           float64
+	AvgPrice      float64
+	MarkPrice     float64
+	Size          float64
 	RealizedPnl   float64
 	Side          string
 	StopLoss      float64

@@ -244,7 +244,7 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 	return domainOrders, nil
 }
 
-func (d *DomainBybitSpot) GetPositionList(coinPare string) ([]structs.DomainPosition, error) {
+func (d *DomainBybitSpot) GetPosition(coinPare string) (structs.DomainPosition, error) {
 	panic("Not implemented")
 }
 

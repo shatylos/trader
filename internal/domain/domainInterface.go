@@ -7,7 +7,7 @@ import (
 type DomainInterface interface {
 	GetOrder(domainId string) (structs.DomainOrder, error)
 	GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error)
-	GetPositionList(coinPare string) ([]structs.DomainPosition, error)
+	GetPosition(coinPare string) (structs.DomainPosition, error)
 	GetType() int64
 	GetWallet() (*structs.DomainWallet, error)
 	LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error)

@@ -34,7 +34,7 @@ func getClient() *http.Client {
 	return httpClient
 }
 
-func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, *tools.AppError) {
+func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
 	return apiQuery(uri, params, secrets, "GET",
 		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
 			queryParams := url.Values{}
@@ -59,7 +59,7 @@ func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (in
 		})
 }
 
-func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, *tools.AppError) {
+func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
 	return apiQuery(uri, params, secrets, "POST",
 		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
 			postContent, err := json.Marshal(params)
@@ -78,7 +78,7 @@ func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (i
 		})
 }
 
-func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (interface{}, *tools.AppError) {
+func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (interface{}, error) {
 
 	params["api_key"] = secrets.Key
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())
@@ -86,7 +86,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 
 	requestUrl, requestBody, err := getRequestData(params, secrets.ApiEndpoint, uri)
 	if err != nil {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message:     fmt.Sprintf("ByBit API error prepare request query: %s", err.Error()),
 			ParentError: err,
 		}
@@ -98,7 +98,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	client := getClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message:     fmt.Sprintf("ByBit API error get request: %s", err.Error()),
 			ParentError: err,
 		}
@@ -106,7 +106,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	defer resp.Body.Close()
 
 	if resp.Status != "200 OK" {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message: fmt.Sprintf("ByBit API error. http status: %s", resp.Status),
 		}
 	}
@@ -114,7 +114,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	body := &bytes.Buffer{}
 	_, err1 := io.Copy(body, resp.Body)
 	if err1 != nil {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message:     fmt.Sprintf("ByBit API error read body: %s", err1.Error()),
 			ParentError: err,
 		}
@@ -124,14 +124,14 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	err2 := json.Unmarshal(body.Bytes(), &dat)
 	body.Reset()
 	if err2 != nil {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message:     fmt.Sprintf("ByBit API error unmarshal data: %s", err2.Error()),
 			ParentError: err,
 		}
 	}
 
 	if retCode, ok := dat["retCode"]; ok && retCode.(float64) != 0 {
-		return nil, &tools.AppError{
+		return nil, tools.AppError{
 			Message: fmt.Sprintf("ByBit API error: %s", dat["retMsg"].(string)),
 			Code:    retCode.(float64),
 		}

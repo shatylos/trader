@@ -24,62 +24,64 @@ type OrderRequest struct {
 }
 
 type OrderResponse struct {
-	UserId         float64 `json:"user_id"`          // -> 646256
-	Symbol         string  `json:"symbol"`           // -> BTCUSDT
-	Side           string  `json:"side"`             // -> Buy
-	Price          float64 `json:"price"`            // -> 24553
-	CumExecValue   float64 `json:"cum_exec_value"`   // -> 0
-	StopLoss       float64 `json:"stop_loss"`        // -> 22800
-	OrderType      string  `json:"order_type"`       // -> Market
-	TimeInForce    string  `json:"time_in_force"`    // -> ImmediateOrCancel
-	OrderStatus    string  `json:"order_status"`     // -> Created
-	ReduceOnly     bool    `json:"reduce_only"`      // -> false
-	CloseOnTrigger bool    `json:"close_on_trigger"` // -> false
-	CreatedTime    string  `json:"created_time"`     // -> 2022-08-17T20:45:45Z
-	TakeProfit     float64 `json:"take_profit"`      // -> 23600
-	SlTriggerBy    string  `json:"sl_trigger_by"`    // -> LastPrice
-	PositionIdx    float64 `json:"position_idx"`     // -> 1
-	LastExecPrice  float64 `json:"last_exec_price"`  // -> 0
-	CumExecQty     float64 `json:"cum_exec_qty"`     // -> 0
-	TpTriggerBy    string  `json:"tp_trigger_by"`    // -> LastPrice
-	OrderId        string  `json:"order_id"`         // -> 10772450-26ce-4c92-8bf6-5cf29d190a50
-	Qty            float64 `json:"qty"`              // -> 0.005
-	CumExecFee     float64 `json:"cum_exec_fee"`     // -> 0
-	OrderLinkId    string  `json:"order_link_id"`    // -> 123qwe
-	UpdatedTime    string  `json:"updated_time"`     // -> 2022-08-17T20:45:45Z
+	Symbol         string  `json:"symbol"`         // -> BTCUSDT
+	Side           string  `json:"side"`           // -> Buy
+	Price          string  `json:"price"`          // -> 24553
+	AvgPrice       string  `json:"avgPrice"`       // -> 24553
+	CumExecValue   string  `json:"cumExecValue"`   // -> 0
+	StopLoss       string  `json:"stopLoss"`       // -> 22800
+	OrderType      string  `json:"orderType"`      // -> Market
+	TimeInForce    string  `json:"timeInForce"`    // -> ImmediateOrCancel
+	OrderStatus    string  `json:"orderStatus"`    // -> Created
+	ReduceOnly     bool    `json:"reduceOnly"`     // -> false
+	CloseOnTrigger bool    `json:"closeOnTrigger"` // -> false
+	CreatedTime    string  `json:"createdTime"`    // -> 2022-08-17T20:45:45Z
+	TakeProfit     string  `json:"takeProfit"`     // -> 23600
+	SlTriggerBy    string  `json:"slTriggerBy"`    // -> LastPrice
+	PositionIdx    float64 `json:"positionIdx"`    // -> 1
+	CumExecQty     string  `json:"cumExecQty"`     // -> 0
+	TpTriggerBy    string  `json:"tpTriggerBy"`    // -> LastPrice
+	OrderId        string  `json:"orderId"`        // -> 10772450-26ce-4c92-8bf6-5cf29d190a50
+	Qty            string  `json:"qty"`            // -> 0.005
+	CumExecFee     string  `json:"cumExecFee"`     // -> 0
+	OrderLinkId    string  `json:"orderLinkId"`    // -> 123qwe
+	UpdatedTime    string  `json:"updatedTime"`    // -> 2022-08-17T20:45:45Z
 }
 
 func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*OrderResponse, error) {
 	params := make(ApiParams, 0)
-	params["time_in_force"] = orderRequest.TimeInForce
-	params["reduce_only"] = orderRequest.ReduceOnly
-	params["close_on_trigger"] = orderRequest.CloseOnTrigger
+	params["category"] = "linear"
+	params["isLeverage"] = "1"
+	params["timeInForce"] = orderRequest.TimeInForce
+	params["reduceOnly"] = orderRequest.ReduceOnly
+	params["closeOnTrigger"] = orderRequest.CloseOnTrigger
 
 	params["side"] = orderRequest.Side
 	params["symbol"] = orderRequest.Symbol
-	params["order_type"] = orderRequest.OrderType
-	params["qty"] = fmt.Sprintf("%f", orderRequest.Qty)
+	params["orderType"] = orderRequest.OrderType
+	params["qty"] = fmt.Sprintf("%g", orderRequest.Qty)
+	params["marketUnit"] = "quoteCoin"
 
 	if orderRequest.Price > 0 {
-		params["price"] = fmt.Sprintf("%f", orderRequest.Price)
+		params["price"] = fmt.Sprintf("%g", orderRequest.Price)
 	}
 	if orderRequest.TakeProfit > 0 {
-		params["take_profit"] = fmt.Sprintf("%f", orderRequest.TakeProfit)
+		params["takeProfit"] = fmt.Sprintf("%g", orderRequest.TakeProfit)
 	}
 	if orderRequest.StopLoss > 0 {
-		params["stop_loss"] = fmt.Sprintf("%f", orderRequest.StopLoss)
+		params["stopLoss"] = fmt.Sprintf("%g", orderRequest.StopLoss)
 	}
 	if orderRequest.OrderLinkId != "" {
-		params["order_link_id"] = orderRequest.OrderLinkId
+		params["orderLinkId"] = orderRequest.OrderLinkId
 	}
 	if orderRequest.TpTriggerBy != "" {
-		params["tp_trigger_by"] = orderRequest.TpTriggerBy
+		params["tpTriggerBy"] = orderRequest.TpTriggerBy
 	}
 	if orderRequest.SlTriggerBy != "" {
-		params["sl_trigger_by"] = orderRequest.SlTriggerBy
+		params["slTriggerBy"] = orderRequest.SlTriggerBy
 	}
 
-	queryResp, err := apiQueryPost("/private/linear/order/create", params, secrets)
+	queryResp, err := apiQueryPost("/v5/order/create", params, secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +89,19 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*Orde
 	return mapOrderResponse(queryResp)
 }
 
-func GetOrderList(coinPare string, status string, secrets bybitStructs.Secrets) ([]*OrderResponse, error) {
+func GetOrderList(coinPare string, orderId string, secrets bybitStructs.Secrets) ([]*OrderResponse, error) {
 	params := make(ApiParams, 0)
-	params["symbol"] = coinPare
-	params["order_status"] = status
+	params["category"] = "linear"
+	if coinPare != "" {
+		params["symbol"] = coinPare
+	}
+	if orderId != "" {
+		params["orderId"] = orderId
+	}
+	params["openOnly"] = "0"
 	orders := make([]*OrderResponse, 0)
 
-	queryResp, er := apiQueryGet("/private/linear/order/list", params, secrets)
+	queryResp, er := apiQueryGet("/v5/order/realtime", params, secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -103,11 +111,11 @@ func GetOrderList(coinPare string, status string, secrets bybitStructs.Secrets) 
 		return nil, tools.AppError{Message: "Can not parse order list query response"}
 	}
 
-	if queryRespMap["data"] == nil {
+	if queryRespMap["list"] == nil {
 		return orders, nil
 	}
 
-	queryRespData, ok := queryRespMap["data"].([]interface{})
+	queryRespData, ok := queryRespMap["list"].([]interface{})
 	if !ok {
 		return nil, tools.AppError{Message: "Can not parse order list data values"}
 	}
