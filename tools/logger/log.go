@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"time"
 )
 
@@ -33,7 +34,9 @@ func Error(msg string) {
 	if ok {
 		funcName = runtime.FuncForPC(pc).Name()
 	}
-	log.Println(colorRed, "Error", colorReset, msg, file, line, funcName)
+	stackTrace := string(debug.Stack())
+	log.Printf("%sError%s %s [%s:%d %s]\nStack Trace:\n%s",
+		colorRed, colorReset, msg, file, line, funcName, stackTrace)
 }
 
 func Warning(msg string) {
@@ -45,7 +48,9 @@ func Warning(msg string) {
 	if ok {
 		funcName = runtime.FuncForPC(pc).Name()
 	}
-	log.Println(colorYellow, "Warning", colorReset, msg, file, line, funcName)
+	stackTrace := string(debug.Stack())
+	log.Printf("%sWarning%s %s [%s:%d %s]\nStack Trace:\n%s",
+		colorYellow, colorReset, msg, file, line, funcName, stackTrace)
 }
 
 func Info(msg string) {
