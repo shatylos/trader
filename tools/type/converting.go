@@ -39,11 +39,6 @@ func ToFloat64(value interface{}) (newVal float64, err error) {
 		newVal = value.(float64)
 		return
 	case string:
-		if value == "" {
-			newVal = 0
-			logger.Warning("Empty string convert to float64")
-			return
-		}
 		newVal, err = strconv.ParseFloat(value.(string), 64)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error converting string to float64: %s", err.Error()))

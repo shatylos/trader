@@ -261,13 +261,17 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 	resultPosition.Symbol = providerPosition.Symbol
 	resultPosition.Side = providerPosition.Side
 
-	resultPosition.AvgPrice, err = _type.ToFloat64(providerPosition.AvgPrice)
-	if err != nil {
-		return
+	if providerPosition.AvgPrice != "" {
+		resultPosition.AvgPrice, err = _type.ToFloat64(providerPosition.AvgPrice)
+		if err != nil {
+			return
+		}
 	}
-	resultPosition.MarkPrice, err = _type.ToFloat64(providerPosition.MarkPrice)
-	if err != nil {
-		return
+	if providerPosition.MarkPrice != "" {
+		resultPosition.MarkPrice, err = _type.ToFloat64(providerPosition.MarkPrice)
+		if err != nil {
+			return
+		}
 	}
 	resultPosition.Leverage, err = _type.ToInt64(providerPosition.Leverage)
 	if err != nil {
@@ -277,9 +281,11 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 	if err != nil {
 		return
 	}
-	resultPosition.RealizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
-	if err != nil {
-		return
+	if providerPosition.CurRealisedPnl != "" {
+		resultPosition.RealizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
+		if err != nil {
+			return
+		}
 	}
 	if providerPosition.StopLoss != "" {
 		resultPosition.StopLoss, err = _type.ToFloat64(providerPosition.StopLoss)
