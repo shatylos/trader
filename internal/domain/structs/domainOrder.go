@@ -13,8 +13,8 @@ type DomainOrder struct {
 	Symbol      string  `bson:"Symbol"`
 	TimeInForce string  `bson:"TimeInForce"`
 	UpdatedTime int64   `bson:"UpdatedTime"`
-	TakeProfit  int64   `bson:"TakeProfit"`
-	StopLoss    int64   `bson:"StopLoss"`
+	TakeProfit  float64 `bson:"TakeProfit"`
+	StopLoss    float64 `bson:"StopLoss"`
 }
 
 const OrderStatusOpen = "Open"

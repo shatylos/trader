@@ -18,7 +18,7 @@ const (
 	TrendUnknown = "UNKNOWN"
 )
 
-func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) (position structs.Position, err error) {
+func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, currentPrice float64) (position structs.Position, err error) {
 	limit := f.config.MinCandleReview
 	if prevInternalPosition.CreatedTime != 0 {
 		mins := (time.Now().Unix() - prevInternalPosition.CreatedTime) / 60
@@ -54,13 +54,18 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 		err = tools.AppError{Message: fmt.Sprintf("Unexpected trend value: %s", trend)}
 		return
 	}
+	var fullQty float64
+	fullQty, err = f.calculateFullQty(currentPrice)
+	if err != nil {
+		return
+	}
 
 	position = structs.Position{
 		Id:             nil,
 		FibonacciChart: fibChart,
 		Trend:          trend,
 		Orders:         structs.PositionOrders{},
-		FullQty:        0,
+		FullQty:        fullQty,
 		Status:         structs.StatusNew,
 	}
 
@@ -256,6 +261,17 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		return
 	}
 	err = storage.SaveInternalPosition(internalPosition)
+	if err != nil {
+		return
+	}
+	logger.Info(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %f. Price: %f. Side: %s. TakeProfit: %f. StopLoss %f",
+		*internalPosition.Id,
+		orderNum,
+		newOrder.Qty,
+		newOrder.Price,
+		newOrder.Side,
+		newOrder.TakeProfit,
+		newOrder.StopLoss))
 	return
 }
 

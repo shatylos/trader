@@ -70,7 +70,7 @@ func (f *Fibonacci) DoAction() (err error) {
 				return
 			}
 		}
-		internalPosition, err = f.calculateNewPosition(internalPosition)
+		internalPosition, err = f.calculateNewPosition(internalPosition, currentPrice)
 	}
 
 	err = f.actionByPosition(internalPosition, currentPrice)

@@ -22,6 +22,7 @@ type Config struct {
 	ResolutionMins       int64
 	TimeoutSeconds       time.Duration
 	QtyPrecision         int64
+	MinQty               float64
 	PricePrecision       int64
 	FibEntryPoint1       float64
 	FibEntryPoint2       float64
@@ -216,6 +217,14 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field qty_precision is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.MinQty, err = _type.ToFloat64(configMap["min_qty"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field min_qty is empty or contains not correct value type. Expects ToFloat64 value",
 			ParentError: err,
 		}
 	}
