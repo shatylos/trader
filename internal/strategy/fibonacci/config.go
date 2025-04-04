@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	MaxCandleReview      int64
 	MinCandleReview      int64
 	Code                 string
 	CoinPare             string
@@ -134,6 +135,14 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	if !ok {
 		return tools.AppError{
 			Message: "The field contains not correct value",
+		}
+	}
+
+	f.config.MaxCandleReview, err = _type.ToInt64(configMap["max_candle_review"])
+	if err != nil || f.config.MaxCandleReview < 10 {
+		return tools.AppError{
+			Message:     "The field max_candle_review is empty or contains not correct value type. Expects int64 value more than 10",
+			ParentError: err,
 		}
 	}
 

@@ -27,9 +27,11 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 			limit = fromPrevLimit
 		}
 	}
+	if limit > f.config.MaxCandleReview {
+		limit = f.config.MaxCandleReview
+	}
 
 	var candles []domainStructs.DomainCandle
-	// @TODO: Fix behaviour if the limit more then 1000
 	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, time.Now().Unix(), limit)
 	if err != nil {
 		return
