@@ -260,8 +260,12 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 	if err != nil {
 		return
 	}
-	err = storage.SaveInternalPosition(internalPosition)
+	internalPosition, err = storage.SaveInternalPosition(internalPosition)
 	if err != nil {
+		return
+	}
+	if internalPosition.Id == nil {
+		err = tools.AppError{Message: "Internal position was not saved"}
 		return
 	}
 	logger.Info(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %f. Price: %f. Side: %s. TakeProfit: %f. StopLoss %f",
@@ -327,7 +331,14 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 	if err != nil {
 		return
 	}
-	err = storage.SaveInternalPosition(internalPosition)
-
+	internalPosition, err = storage.SaveInternalPosition(internalPosition)
+	if err != nil {
+		return
+	}
+	if internalPosition.Id == nil {
+		err = tools.AppError{Message: "Internal position was not closed"}
+		return
+	}
+	logger.Info(fmt.Sprintf("Position was closed. PositionId %s.", *internalPosition.Id))
 	return
 }
