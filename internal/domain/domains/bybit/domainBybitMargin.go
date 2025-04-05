@@ -211,6 +211,16 @@ func (d *DomainBybitMargin) mapOrder(order *request.OrderResponse) (domainOrder 
 		err = er
 		return
 	}
+	takeProfit, er := _type.ToFloat64(order.TakeProfit)
+	if er != nil {
+		err = er
+		return
+	}
+	stopLoss, er := _type.ToFloat64(order.StopLoss)
+	if er != nil {
+		err = er
+		return
+	}
 	status := d.mapStatus(order.OrderStatus)
 	domainOrder = structs.DomainOrder{
 		CreatedTime: createdTime,
@@ -224,6 +234,8 @@ func (d *DomainBybitMargin) mapOrder(order *request.OrderResponse) (domainOrder 
 		Symbol:      order.Symbol,
 		TimeInForce: order.TimeInForce,
 		UpdatedTime: updatedTime,
+		TakeProfit:  takeProfit,
+		StopLoss:    stopLoss,
 	}
 	return
 }
