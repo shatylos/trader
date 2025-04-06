@@ -20,17 +20,16 @@
 
     <thead>
     <tr>
-        <th>Position Created Date/Time</th>
-        <th>Trend</th>
-        <th>Full Qty</th>
-        <th>Status</th>
-<!--        <th>Price</th>-->
-<!--        <th>{{ .MainCurrency }}</th>-->
-<!--        <th>{{ .TradeCurrency }}</th>-->
-<!--        <th>Avarage Price</th>-->
-<!--        <th>Revenue</th>-->
-<!--        <th>Commission</th>-->
-<!--        <th>Total Revenue</th>-->
+        <th>#</th>
+        <th>Side</th>
+        <th>Qty</th>
+        <th>Entry Price</th>
+        <th>Filled Price</th>
+        <th>TakeProfit</th>
+        <th>StopLoss</th>
+        <th>OrderStatus</th>
+        <th>CreatedTime</th>
+        <th>UpdatedTime</th>
     </tr>
     </thead>
 
@@ -38,11 +37,56 @@
 
     {{ range .Positions }}
     <tr>
-        <td>{{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-        <td>{{ .Trend }}</td>
-        <td>{{ .FibonacciChart.FullQty }}</td>
-        <td>{{ .Status }}</td>
+        <td colspan="10">
+            Position.
+            Created: {{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}.
+            Trend: {{ .Trend }}.
+            Full QTY: {{ .FibonacciChart.FullQty }}
+            Status: {{ .Status }}.
+        </td>
     </tr>
+        {{ if gt .Orders.Order1.CreatedTime 0 }}
+        <tr>
+            <td>1</td>
+            <td>{{ .Orders.Order1.Side }}</td>
+            <td>{{ .Orders.Order1.Qty }}</td>
+            <td>0</td>
+            <td>{{ .Orders.Order1.Price }}</td>
+            <td>{{ .Orders.Order1.TakeProfit }}</td>
+            <td>{{ .Orders.Order1.StopLoss }}</td>
+            <td>{{ .Orders.Order1.OrderStatus }}</td>
+            <td>{{ .Orders.Order1.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+            <td>{{ .Orders.Order1.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+        </tr>
+        {{ end }}
+        {{ if gt .Orders.Order2.CreatedTime 0 }}
+        <tr>
+            <td>2</td>
+            <td>{{ .Orders.Order2.Side }}</td>
+            <td>{{ .Orders.Order2.Qty }}</td>
+            <td>0</td>
+            <td>{{ .Orders.Order2.Price }}</td>
+            <td>{{ .Orders.Order2.TakeProfit }}</td>
+            <td>{{ .Orders.Order2.StopLoss }}</td>
+            <td>{{ .Orders.Order2.OrderStatus }}</td>
+            <td>{{ .Orders.Order2.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+            <td>{{ .Orders.Order2.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+        </tr>
+        {{ end }}
+        {{ if gt .Orders.Order3.CreatedTime 0 }}
+        <tr>
+            <td>3</td>
+            <td>{{ .Orders.Order3.Side }}</td>
+            <td>{{ .Orders.Order3.Qty }}</td>
+            <td>0</td>
+            <td>{{ .Orders.Order3.Price }}</td>
+            <td>{{ .Orders.Order3.TakeProfit }}</td>
+            <td>{{ .Orders.Order3.StopLoss }}</td>
+            <td>{{ .Orders.Order3.OrderStatus }}</td>
+            <td>{{ .Orders.Order3.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+            <td>{{ .Orders.Order3.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+        </tr>
+        {{ end }}
     {{ else }}
     <tr>
         <td colspan="9">No positions found.</td>

@@ -196,11 +196,13 @@ func (d *DomainBybitMargin) mapOrder(order *request.OrderResponse) (domainOrder 
 		err = er
 		return
 	}
+	createdTime = createdTime / 1000
 	updatedTime, er := _type.ToInt64(order.UpdatedTime)
 	if er != nil {
 		err = er
 		return
 	}
+	updatedTime = updatedTime / 1000
 	price, er := _type.ToFloat64(order.Price)
 	if er != nil {
 		err = er
