@@ -46,7 +46,6 @@ func (s *MongoStorage) SaveInternalPosition(position structs.Position) (savedPos
 			{"FibonacciChart", position.FibonacciChart},
 			{"Trend", position.Trend},
 			{"Orders", position.Orders},
-			{"FullQty", position.FullQty},
 			{"UpdatedTime", time.Now().Unix()},
 			{"Status", position.Status},
 		}}}
@@ -83,5 +82,27 @@ func (s *MongoStorage) GetPositionById(idString string) (position structs.Positi
 	}
 	ctx := context.Background()
 	err = s.positionCollection.FindOne(ctx, bson.D{{"_id", id}}).Decode(&position)
+	return
+}
+
+func (s *MongoStorage) GetPositions(from time.Time, to time.Time) (positions []structs.Position, err error) {
+	ctx := context.Background()
+	var cursor *mongo.Cursor
+
+	cursor, err = s.positionCollection.Find(ctx, bson.D{{
+		"$and", bson.A{
+			bson.D{{"CreatedTime", bson.D{{"$gt", from.Unix()}}}},
+			bson.D{{"CreatedTime", bson.D{{"$lt", to.Unix()}}}},
+		},
+	}}, options.Find().SetSort(
+		bson.D{{"CreatedTime", -1}},
+	))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, &positions)
+
 	return
 }

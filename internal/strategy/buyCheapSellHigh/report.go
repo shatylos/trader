@@ -64,27 +64,26 @@ type ReportOrderItem struct {
 	TotalTradeCurrencyAmountBefore float64
 }
 
-func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Report, error) {
-	report := _struct.Report{}
+func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
 
 	reportItems, err := s.getReportOrderItems(from, to)
 	if err != nil {
-		return &report, err
+		return
 	}
 
 	deposit, withdraw, err := s.getAssets(from, to)
 	if err != nil {
-		return &report, err
+		return
 	}
 
 	tmpl, err := helper.GetTemplate("web/template/buyCheapSellHigh/report.html")
 	if err != nil {
-		return &report, err
+		return
 	}
 
 	revenueAmount, revenuePercent, err := s.getRevenue(reportItems)
 	if err != nil {
-		return &report, err
+		return
 	}
 
 	revenueLocal, revenueLocalPercents, AvgPriceBuy, AvgPriceSell, commission, err := s.getRevenueLocal(reportItems)
@@ -142,7 +141,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 	var resultBuilder strings.Builder
 	err = tmpl.Execute(&resultBuilder, data)
 	if err != nil {
-		return &report, err
+		return
 	}
 
 	htmlStr := resultBuilder.String()
@@ -152,7 +151,7 @@ func (s *BuyCheapSellHigh) GetReport(from time.Time, to time.Time) (*_struct.Rep
 		SetupId:   s.Id,
 	}
 
-	return &report, nil
+	return
 }
 
 func (s *BuyCheapSellHigh) getReportOrderItems(from time.Time, to time.Time) ([]ReportOrderItem, error) {

@@ -7,8 +7,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
-	structs "github.com/shatylos/trader/internal/strategy/fibonacci/structs"
-	"github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools"
 	"time"
 )
@@ -76,11 +75,6 @@ func (f *Fibonacci) DoAction() (err error) {
 	err = f.actionByPosition(internalPosition, currentPrice)
 
 	return
-}
-
-func (f *Fibonacci) GetReport(from time.Time, to time.Time) (*_struct.Report, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (f *Fibonacci) Wait() {

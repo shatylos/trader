@@ -12,8 +12,9 @@ func GetTemplate(fileName string) (*template.Template, error) {
 	baseFileName := filepath.Base(fileName)
 
 	tmpl, err := template.New(baseFileName).Funcs(template.FuncMap{
-		"dateFormat":     dateFormat,
-		"longFloatShort": longFloatShort,
+		"dateFormat":         dateFormat,
+		"dateFormatFromUnix": dateFormatFromUnix,
+		"longFloatShort":     longFloatShort,
 	}).ParseFiles(fileName)
 
 	if err != nil {
@@ -24,6 +25,11 @@ func GetTemplate(fileName string) (*template.Template, error) {
 }
 
 func dateFormat(layout string, t time.Time) string {
+	return t.Format(layout)
+}
+
+func dateFormatFromUnix(layout string, timeUnix int64) string {
+	t := time.Unix(timeUnix, 0)
 	return t.Format(layout)
 }
 

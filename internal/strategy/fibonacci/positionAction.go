@@ -29,7 +29,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		currentPrice < internalPosition.FibonacciChart.EntryPoint1 &&
 		currentPrice > internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 1, "Buy")
 			return
@@ -42,7 +42,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		currentPrice < internalPosition.FibonacciChart.EntryPoint2 &&
 		currentPrice > internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 2, "Buy")
 			return
@@ -55,7 +55,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		currentPrice < internalPosition.FibonacciChart.EntryPoint3 &&
 		currentPrice > internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 3, "Buy")
 			return
@@ -72,7 +72,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		currentPrice > internalPosition.FibonacciChart.EntryPoint1 &&
 		currentPrice < internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 1, "Sell")
 			return
@@ -85,7 +85,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		currentPrice > internalPosition.FibonacciChart.EntryPoint2 &&
 		currentPrice < internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 2, "Sell")
 			return
@@ -98,7 +98,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		currentPrice > internalPosition.FibonacciChart.EntryPoint3 &&
 		currentPrice < internalPosition.FibonacciChart.StopLoss {
 
-		epQty := math.Round(math.Mul(math.Div(internalPosition.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
+		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty > f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 3, "Sell")
 			return

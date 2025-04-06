@@ -54,8 +54,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		err = tools.AppError{Message: fmt.Sprintf("Unexpected trend value: %s", trend)}
 		return
 	}
-	var fullQty float64
-	fullQty, err = f.calculateFullQty(currentPrice)
+	fibChart.FullQty, err = f.calculateFullQty(currentPrice)
 	if err != nil {
 		return
 	}
@@ -65,7 +64,6 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		FibonacciChart: fibChart,
 		Trend:          trend,
 		Orders:         structs.PositionOrders{},
-		FullQty:        fullQty,
 		Status:         structs.StatusNew,
 	}
 

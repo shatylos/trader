@@ -7,7 +7,6 @@ type Position struct {
 	FibonacciChart FibonacciChart `bson:"FibonacciChart"`
 	Trend          string         `bson:"Trend"`
 	Orders         PositionOrders `bson:"Orders"`
-	FullQty        float64        `bson:"FullQty"`
 	CreatedTime    int64          `bson:"CreatedTime"`
 	UpdatedTime    int64          `bson:"UpdatedTime"`
 	Status         string         `bson:"Status"`

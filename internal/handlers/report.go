@@ -98,7 +98,7 @@ func ReportController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ReportPage{
-		StrategyReport: *strategyReport,
+		StrategyReport: strategyReport,
 	}
 
 	tmpl, err := helper.GetTemplate("web/template/report.html")
