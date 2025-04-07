@@ -16,20 +16,22 @@
 <div class="clearfix"></div>
 <hr/>
 
-<table class="table table-hover table-dark">
+<table class="table table-dark">
 
     <thead>
     <tr>
-        <th>#</th>
+        <th>AvgPrice</th>
+        <th>MarkPrice</th>
+        <th>Size</th>
+        <th>Full QTY</th>
+        <th>Leverage</th>
         <th>Side</th>
-        <th>Qty</th>
-        <th>Entry Price</th>
-        <th>Filled Price</th>
+        <th>RealizedPnl</th>
+        <th>UnrealizedPnl</th>
         <th>TakeProfit</th>
         <th>StopLoss</th>
-        <th>OrderStatus</th>
-        <th>CreatedTime</th>
-        <th>UpdatedTime</th>
+        <th>Status</th>
+        <th>Created</th>
     </tr>
     </thead>
 
@@ -37,59 +39,74 @@
 
     {{ range .Positions }}
     <tr>
-        <td colspan="10">
-            Position.
-            Created: {{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}.
-            Trend: {{ .Trend }}.
-            Full QTY: {{ .FibonacciChart.FullQty }}
-            Status: {{ .Status }}.
+        {{ $class := "bg-success" }}
+        {{ if lt .ProviderPosition.TotalPnl 0.0 }}
+        {{ $class = "bg-danger" }}
+        {{ end }}
+        <td class="{{ $class }}">{{ .ProviderPosition.AvgPrice }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.MarkPrice }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.Size }}</td>
+        <td class="{{ $class }}">{{ .FibonacciChart.FullQty }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.Leverage }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.Side }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.RealizedPnl }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.UnrealizedPnl }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.StopLoss }}</td>
+        <td class="{{ $class }}">{{ .Status }}</td>
+        <td class="{{ $class }}">{{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
+    </tr>
+    {{ if gt .Orders.Order1.CreatedTime 0 }}
+    <tr>
+        <td colspan="100" class="bg-secondary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1">Order #1</div>
+                    <div class="col-1">Qty: {{ .Orders.Order1.Qty }}</div>
+                    <div class="col-1">Price: {{ .Orders.Order1.Price }}</div>
+                    <div class="col-1">TakeProfit: {{ .Orders.Order1.TakeProfit }}</div>
+                    <div class="col-1">StopLoss: {{ .Orders.Order1.StopLoss }}</div>
+                    <div class="col-2">Created Time:<br/>{{ .Orders.Order1.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
+                </div>
+            </div>
         </td>
     </tr>
-        {{ if gt .Orders.Order1.CreatedTime 0 }}
-        <tr>
-            <td>1</td>
-            <td>{{ .Orders.Order1.Side }}</td>
-            <td>{{ .Orders.Order1.Qty }}</td>
-            <td>{{ .Orders.Order1.Price }}</td>
-            <td>0</td>
-            <td>{{ .Orders.Order1.TakeProfit }}</td>
-            <td>{{ .Orders.Order1.StopLoss }}</td>
-            <td>{{ .Orders.Order1.OrderStatus }}</td>
-            <td>{{ .Orders.Order1.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-            <td>{{ .Orders.Order1.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-        </tr>
-        {{ end }}
-        {{ if gt .Orders.Order2.CreatedTime 0 }}
-        <tr>
-            <td>2</td>
-            <td>{{ .Orders.Order2.Side }}</td>
-            <td>{{ .Orders.Order2.Qty }}</td>
-            <td>{{ .Orders.Order2.Price }}</td>
-            <td>0</td>
-            <td>{{ .Orders.Order2.TakeProfit }}</td>
-            <td>{{ .Orders.Order2.StopLoss }}</td>
-            <td>{{ .Orders.Order2.OrderStatus }}</td>
-            <td>{{ .Orders.Order2.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-            <td>{{ .Orders.Order2.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-        </tr>
-        {{ end }}
-        {{ if gt .Orders.Order3.CreatedTime 0 }}
-        <tr>
-            <td>3</td>
-            <td>{{ .Orders.Order3.Side }}</td>
-            <td>{{ .Orders.Order3.Qty }}</td>
-            <td>{{ .Orders.Order3.Price }}</td>
-            <td>0</td>
-            <td>{{ .Orders.Order3.TakeProfit }}</td>
-            <td>{{ .Orders.Order3.StopLoss }}</td>
-            <td>{{ .Orders.Order3.OrderStatus }}</td>
-            <td>{{ .Orders.Order3.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-            <td>{{ .Orders.Order3.UpdatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
-        </tr>
-        {{ end }}
+    {{ end }}
+    {{ if gt .Orders.Order2.CreatedTime 0 }}
+    <tr>
+        <td colspan="100" class="bg-secondary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1">Order #2</div>
+                    <div class="col-1">Qty: {{ .Orders.Order2.Qty }}</div>
+                    <div class="col-1">Price: {{ .Orders.Order2.Price }}</div>
+                    <div class="col-1">TakeProfit: {{ .Orders.Order2.TakeProfit }}</div>
+                    <div class="col-1">StopLoss: {{ .Orders.Order2.StopLoss }}</div>
+                    <div class="col-2">Created Time:<br/>{{ .Orders.Order2.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
+                </div>
+            </div>
+        </td>
+    </tr>
+    {{ end }}
+    {{ if gt .Orders.Order3.CreatedTime 0 }}
+    <tr>
+        <td colspan="100" class="bg-secondary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1">Order #3</div>
+                    <div class="col-1">Qty: {{ .Orders.Order3.Qty }}</div>
+                    <div class="col-1">Price: {{ .Orders.Order3.Price }}</div>
+                    <div class="col-1">TakeProfit: {{ .Orders.Order3.TakeProfit }}</div>
+                    <div class="col-1">StopLoss: {{ .Orders.Order3.StopLoss }}</div>
+                    <div class="col-2">Created Time:<br/>{{ .Orders.Order3.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
+                </div>
+            </div>
+        </td>
+    </tr>
+    {{ end }}
     {{ else }}
     <tr>
-        <td colspan="9">No positions found.</td>
+        <td colspan="100">No positions found.</td>
     </tr>
     {{ end }}
 

@@ -7,6 +7,7 @@ type DomainPosition struct {
 	MarkPrice     float64
 	Size          float64
 	RealizedPnl   float64
+	TotalPnl      float64
 	Side          string
 	StopLoss      float64
 	Symbol        string

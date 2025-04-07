@@ -1,15 +1,19 @@
 package structs
 
-import "github.com/shatylos/trader/internal/domain/structs"
+import (
+	"github.com/shatylos/trader/internal/domain/structs"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+)
 
 type Position struct {
-	Id             *string        `bson:"_id,omitempty"`
-	FibonacciChart FibonacciChart `bson:"FibonacciChart"`
-	Trend          string         `bson:"Trend"`
-	Orders         PositionOrders `bson:"Orders"`
-	CreatedTime    int64          `bson:"CreatedTime"`
-	UpdatedTime    int64          `bson:"UpdatedTime"`
-	Status         string         `bson:"Status"`
+	Id               *string                      `bson:"_id,omitempty"`
+	FibonacciChart   FibonacciChart               `bson:"FibonacciChart"`
+	Trend            string                       `bson:"Trend"`
+	Orders           PositionOrders               `bson:"Orders"`
+	CreatedTime      int64                        `bson:"CreatedTime"`
+	UpdatedTime      int64                        `bson:"UpdatedTime"`
+	Status           string                       `bson:"Status"`
+	ProviderPosition domainStructs.DomainPosition `bson:"ProviderPosition"`
 }
 type FibonacciChart struct {
 	EntryPoint1    float64

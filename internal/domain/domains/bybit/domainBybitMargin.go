@@ -295,12 +295,6 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 	if err != nil {
 		return
 	}
-	if providerPosition.CurRealisedPnl != "" {
-		resultPosition.RealizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
-		if err != nil {
-			return
-		}
-	}
 	if providerPosition.StopLoss != "" {
 		resultPosition.StopLoss, err = _type.ToFloat64(providerPosition.StopLoss)
 		if err != nil {
@@ -319,6 +313,13 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 			return
 		}
 	}
+	if providerPosition.CurRealisedPnl != "" {
+		resultPosition.RealizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
+		if err != nil {
+			return
+		}
+	}
+	resultPosition.TotalPnl = resultPosition.RealizedPnl + resultPosition.UnrealizedPnl
 
 	return
 }

@@ -70,6 +70,13 @@ func (f *Fibonacci) DoAction() (err error) {
 			}
 		}
 		internalPosition, err = f.calculateNewPosition(internalPosition, currentPrice)
+		internalPosition.ProviderPosition = providerPosition
+	} else {
+		internalPosition.ProviderPosition = providerPosition
+		internalPosition, err = storage.SaveInternalPosition(internalPosition)
+		if err != nil {
+			return
+		}
 	}
 
 	err = f.actionByPosition(internalPosition, currentPrice)

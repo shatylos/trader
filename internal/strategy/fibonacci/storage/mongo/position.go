@@ -48,6 +48,7 @@ func (s *MongoStorage) SaveInternalPosition(position structs.Position) (savedPos
 			{"Orders", position.Orders},
 			{"UpdatedTime", time.Now().Unix()},
 			{"Status", position.Status},
+			{"ProviderPosition", position.ProviderPosition},
 		}}}
 
 		_, err = s.positionCollection.UpdateOne(ctx, filter, update)
