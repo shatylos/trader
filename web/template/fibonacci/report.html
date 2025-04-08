@@ -26,8 +26,7 @@
         <th>Full QTY</th>
         <th>Leverage</th>
         <th>Side</th>
-        <th>RealizedPnl</th>
-        <th>UnrealizedPnl</th>
+        <th>TotalPnl</th>
         <th>TakeProfit</th>
         <th>StopLoss</th>
         <th>Status</th>
@@ -49,8 +48,7 @@
         <td class="{{ $class }}">{{ .FibonacciChart.FullQty }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Leverage }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Side }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.RealizedPnl }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.UnrealizedPnl }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.TotalPnl }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.StopLoss }}</td>
         <td class="{{ $class }}">{{ .Status }}</td>
