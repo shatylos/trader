@@ -20,8 +20,9 @@ const orderStatusClosedTriggered = "Triggered"
 const orderStatusClosedDeactivated = "Deactivated"
 
 type DomainBybitMargin struct {
-	code    string
-	secrets bybitStructs.Secrets
+	code     string
+	secrets  bybitStructs.Secrets
+	leverage int64
 }
 
 func (d *DomainBybitMargin) GetCode() string {
@@ -324,7 +325,26 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 	return
 }
 
-func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
+func (d *DomainBybitMargin) setLeverage(symbol string, leverage int64) (err error) {
+	leverageRequest := request.LeverageRequest{
+		Symbol:       symbol,
+		BuyLeverage:  leverage,
+		SellLeverage: leverage,
+	}
+
+	err = request.SetLeverage(leverageRequest, d.secrets)
+	return
+}
+
+func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (orderId string, err error) {
+
+	if d.leverage == 0 && positionRequest.Leverage > 0 {
+		err = d.setLeverage(positionRequest.Symbol, positionRequest.Leverage)
+		if err != nil {
+			return
+		}
+		d.leverage = positionRequest.Leverage
+	}
 
 	orderRequest := request.OrderRequest{
 		CloseOnTrigger: false,
@@ -342,12 +362,14 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 		TpTriggerBy:    "LastPrice",
 	}
 
-	order, err := request.CreateOrder(orderRequest, d.secrets)
+	var order *request.OrderResponse
+	order, err = request.CreateOrder(orderRequest, d.secrets)
 	if err != nil {
-		return "", err
+		return
 	}
 
-	return order.OrderId, nil
+	orderId = order.OrderId
+	return
 }
 
 func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
