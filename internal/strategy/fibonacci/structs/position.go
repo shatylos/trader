@@ -14,6 +14,9 @@ type Position struct {
 	UpdatedTime      int64                        `bson:"UpdatedTime"`
 	Status           string                       `bson:"Status"`
 	ProviderPosition domainStructs.DomainPosition `bson:"ProviderPosition"`
+	BalanceBefore    float64                      `bson:"BalanceBefore"`
+	BalanceAfter     float64                      `bson:"BalanceAfter"`
+	TotalClosePnl    float64                      `bson:"TotalClosePnl"`
 }
 type FibonacciChart struct {
 	EntryPoint1    float64

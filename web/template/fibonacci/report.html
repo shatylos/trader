@@ -39,7 +39,10 @@
     {{ range .Positions }}
     <tr>
         {{ $class := "bg-success" }}
-        {{ if lt .ProviderPosition.TotalPnl 0.0 }}
+        {{ if or
+            (and (eq .Status "CLOSED") (lt .TotalClosePnl 0.0))
+            (and (eq .Status "ACTIVE") (lt .ProviderPosition.TotalPnl 0.0))
+        }}
         {{ $class = "bg-danger" }}
         {{ end }}
         <td class="{{ $class }}">{{ .ProviderPosition.AvgPrice | longFloatShort $.PricePrecision }}</td>
@@ -48,7 +51,13 @@
         <td class="{{ $class }}">{{ .FibonacciChart.FullQty }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Leverage }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Side }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.TotalPnl | longFloatShort $.PricePrecision }}</td>
+        <td class="{{ $class }}">
+            {{ if eq .Status "CLOSED" }}
+            {{ .TotalClosePnl | longFloatShort $.PricePrecision }}
+            {{ else }}
+            {{ .ProviderPosition.TotalPnl | longFloatShort $.PricePrecision }}
+            {{ end }}
+        </td>
         <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.StopLoss | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .Status }}</td>

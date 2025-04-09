@@ -54,7 +54,14 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		err = tools.AppError{Message: fmt.Sprintf("Unexpected trend value: %s", trend)}
 		return
 	}
-	fibChart.FullQty, err = f.calculateFullQty(currentPrice)
+
+	availableBalance := float64(0)
+	availableBalance, err = f.getAvailableBalance()
+	if err != nil {
+		return
+	}
+
+	fibChart.FullQty, err = f.calculateFullQty(availableBalance, currentPrice)
 	if err != nil {
 		return
 	}
@@ -65,6 +72,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		Trend:          trend,
 		Orders:         structs.PositionOrders{},
 		Status:         structs.StatusNew,
+		BalanceBefore:  availableBalance,
 	}
 
 	return
@@ -165,21 +173,22 @@ func (f *Fibonacci) valueByCoeff(minPrice float64, maxPrice float64, coeff float
 	return
 }
 
-func (f *Fibonacci) calculateFullQty(price float64) (fullQty float64, err error) {
-	depoMainCurrency := float64(0)
+func (f *Fibonacci) getAvailableBalance() (balance float64, err error) {
 	var wallet *domainStructs.DomainWallet
 	wallet, err = f.provider.GetWallet()
 	if err != nil {
 		return
 	}
-
 	for _, coin := range wallet.Available {
 		if coin.Coin == f.config.MainCurrency {
-			depoMainCurrency = coin.Amount
+			balance = coin.Amount
 		}
 	}
+	return
+}
 
-	if depoMainCurrency < 0 {
+func (f *Fibonacci) calculateFullQty(availableBalance float64, price float64) (fullQty float64, err error) {
+	if availableBalance < 0 {
 		logger.Warning("Not enough deposit")
 		err = tools.AppError{
 			Message: "Not enough deposit",
@@ -187,7 +196,7 @@ func (f *Fibonacci) calculateFullQty(price float64) (fullQty float64, err error)
 		return
 	}
 
-	fullQty = math.Mul(math.Div(math.Div(depoMainCurrency, price), 100), f.config.FullQtyToDepoPercent)
+	fullQty = math.Mul(math.Div(math.Div(availableBalance, price), 100), f.config.FullQtyToDepoPercent)
 	fullQty = math.Round(fullQty, f.config.QtyPrecision)
 	return
 }
@@ -326,6 +335,14 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 	}
 
 	internalPosition.Status = structs.StatusClosed
+
+	availableBalance := float64(0)
+	availableBalance, err = f.getAvailableBalance()
+	if err != nil {
+		return
+	}
+	internalPosition.BalanceAfter = availableBalance
+	internalPosition.TotalClosePnl = internalPosition.BalanceAfter - internalPosition.BalanceBefore
 
 	var storage mongo.MongoStorage
 	storage, err = strategyStorage.GetStorage(f.config.Id)
