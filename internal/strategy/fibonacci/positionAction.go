@@ -124,8 +124,8 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 			internalPosition.FibonacciChart.SourceMinPrice,
 			internalPosition.FibonacciChart.SourceMaxPrice,
 			internalPosition.Orders.Order1.OrderId == "",
-			currentPrice < internalPosition.FibonacciChart.EntryPoint1,
-			currentPrice > internalPosition.FibonacciChart.StopLoss,
+			currentPrice > internalPosition.FibonacciChart.EntryPoint1,
+			currentPrice < internalPosition.FibonacciChart.StopLoss,
 		))
 	}
 
@@ -149,8 +149,8 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 			internalPosition.FibonacciChart.SourceMinPrice,
 			internalPosition.FibonacciChart.SourceMaxPrice,
 			internalPosition.Orders.Order2.OrderId == "",
-			currentPrice < internalPosition.FibonacciChart.EntryPoint2,
-			currentPrice > internalPosition.FibonacciChart.StopLoss,
+			currentPrice > internalPosition.FibonacciChart.EntryPoint2,
+			currentPrice < internalPosition.FibonacciChart.StopLoss,
 		))
 	}
 
@@ -174,8 +174,8 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 			internalPosition.FibonacciChart.SourceMinPrice,
 			internalPosition.FibonacciChart.SourceMaxPrice,
 			internalPosition.Orders.Order3.OrderId == "",
-			currentPrice < internalPosition.FibonacciChart.EntryPoint3,
-			currentPrice > internalPosition.FibonacciChart.StopLoss,
+			currentPrice > internalPosition.FibonacciChart.EntryPoint3,
+			currentPrice < internalPosition.FibonacciChart.StopLoss,
 		))
 	}
 	return
