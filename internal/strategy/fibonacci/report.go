@@ -23,6 +23,7 @@ type TemplateData struct {
 	Positions      []structs.Position
 	MainCurrency   string
 	TradeCurrency  string
+	PricePrecision int
 }
 
 func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
@@ -47,6 +48,7 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 		Positions:      positions,
 		MainCurrency:   f.config.MainCurrency,
 		TradeCurrency:  f.config.TradeCurrency,
+		PricePrecision: int(f.config.PricePrecision),
 	}
 
 	var resultBuilder strings.Builder

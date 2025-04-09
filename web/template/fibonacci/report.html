@@ -42,15 +42,15 @@
         {{ if lt .ProviderPosition.TotalPnl 0.0 }}
         {{ $class = "bg-danger" }}
         {{ end }}
-        <td class="{{ $class }}">{{ .ProviderPosition.AvgPrice }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.MarkPrice }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.AvgPrice | longFloatShort $.PricePrecision }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.MarkPrice | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Size }}</td>
         <td class="{{ $class }}">{{ .FibonacciChart.FullQty }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Leverage }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.Side }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.TotalPnl }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit }}</td>
-        <td class="{{ $class }}">{{ .ProviderPosition.StopLoss }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.TotalPnl | longFloatShort $.PricePrecision }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit | longFloatShort $.PricePrecision }}</td>
+        <td class="{{ $class }}">{{ .ProviderPosition.StopLoss | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .Status }}</td>
         <td class="{{ $class }}">{{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
     </tr>
