@@ -37,7 +37,9 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 
 	err := strategy.DoAction()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error DoAction, setup: %s. Error: %s", s.Strategy.GetTitle(), err.Error()))
+		errorMsg := err.Error()
+		strategyTitle := strategy.GetTitle()
+		logger.Error(fmt.Sprintf("Error DoAction, setup: %s. Error: %s", strategyTitle, errorMsg))
 		s.errorCount++
 		logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
 		time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
