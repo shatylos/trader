@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"time"
 )
 
@@ -71,12 +72,15 @@ func (f *Fibonacci) DoAction() (err error) {
 		}
 		internalPosition, err = f.calculateNewPosition(internalPosition, currentPrice)
 		internalPosition.ProviderPosition = providerPosition
-	} else {
+	} else if internalPosition.Status == structs.StatusActive {
 		internalPosition.ProviderPosition = providerPosition
 		internalPosition, err = storage.SaveInternalPosition(internalPosition)
 		if err != nil {
 			return
 		}
+	} else {
+		logger.Info("Wait for close current provider position")
+		return
 	}
 
 	err = f.actionByPosition(internalPosition, currentPrice)
