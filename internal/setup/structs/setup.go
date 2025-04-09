@@ -14,6 +14,13 @@ type Setup struct {
 }
 
 func (s *Setup) NextStep(setupChanel chan *Setup) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error(fmt.Sprintf("Recovered from panic: %v", r))
+		}
+	}()
+
 	strategy := s.Strategy
 
 	if !strategy.IsInit() {
