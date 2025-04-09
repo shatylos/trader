@@ -36,6 +36,16 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 1 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bullish Order 1 was not opened: OrderId: %s. currentPrice: %f. EntryPoint1: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order1.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint1,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order1.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint1,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 
 	if internalPosition.Orders.Order2.OrderId == "" &&
@@ -49,6 +59,16 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 2 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bullish Order 2 was not opened: OrderId: %s. currentPrice: %f. EntryPoint2: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order2.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint2,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order2.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint2,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 
 	if internalPosition.Orders.Order3.OrderId == "" &&
@@ -62,6 +82,16 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 3 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bullish Order 3 was not opened: OrderId: %s. currentPrice: %f. EntryPoint3: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order3.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint3,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order3.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint3,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 	return
 }
@@ -79,6 +109,16 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 1 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bearish Order 1 was not opened: OrderId: %s. currentPrice: %f. EntryPoint1: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order1.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint1,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order1.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint1,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 
 	if internalPosition.Orders.Order2.OrderId == "" &&
@@ -92,6 +132,16 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 2 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bearish Order 2 was not opened: OrderId: %s. currentPrice: %f. EntryPoint2: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order2.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint2,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order2.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint2,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 
 	if internalPosition.Orders.Order3.OrderId == "" &&
@@ -105,6 +155,16 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 3 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
 		}
+	} else {
+		logger.Info(fmt.Sprintf("Bearish Order 3 was not opened: OrderId: %s. currentPrice: %f. EntryPoint3: %f. StopLoss: %f. Cond1: %t. Cond2: %t. Cond3: %t.",
+			internalPosition.Orders.Order3.OrderId,
+			currentPrice,
+			internalPosition.FibonacciChart.EntryPoint3,
+			internalPosition.FibonacciChart.StopLoss,
+			internalPosition.Orders.Order3.OrderId == "",
+			currentPrice < internalPosition.FibonacciChart.EntryPoint3,
+			currentPrice > internalPosition.FibonacciChart.StopLoss,
+		))
 	}
 	return
 }
