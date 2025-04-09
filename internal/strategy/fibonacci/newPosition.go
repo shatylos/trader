@@ -266,14 +266,17 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		err = tools.AppError{Message: "Internal position was not saved"}
 		return
 	}
-	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %f. Price: %f. Side: %s. TakeProfit: %f. StopLoss %f",
+	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %f. Price: %f. Side: %s. TakeProfit: %f. StopLoss %f. SourceMinPrice: %f. SourceMaxPrice: %f.",
 		*internalPosition.Id,
 		orderNum,
 		newOrder.Qty,
 		newOrder.Price,
 		newOrder.Side,
 		newOrder.TakeProfit,
-		newOrder.StopLoss))
+		newOrder.StopLoss,
+		internalPosition.FibonacciChart.SourceMinPrice,
+		internalPosition.FibonacciChart.SourceMaxPrice,
+	))
 	return
 }
 
