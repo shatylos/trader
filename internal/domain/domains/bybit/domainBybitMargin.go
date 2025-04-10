@@ -6,6 +6,7 @@ import (
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/type"
 )
 
@@ -72,8 +73,24 @@ func (d *DomainBybitMargin) SetConfig(config map[interface{}]interface{}) error 
 		}
 	}
 	secrets.Pass = pass
-	d.secrets = secrets
 
+	var verbose int64
+	verbose, err = _type.ToInt64(secretMap["verbose"])
+	if err != nil {
+		logger.Error("The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0")
+		err = tools.AppError{
+			Message:     "The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0",
+			ParentError: err,
+		}
+		return err
+	}
+	if verbose == 1 {
+		secrets.Verbose = true
+	} else {
+		secrets.Verbose = false
+	}
+
+	d.secrets = secrets
 	return nil
 }
 

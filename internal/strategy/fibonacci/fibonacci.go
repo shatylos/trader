@@ -43,6 +43,13 @@ func (f *Fibonacci) Initialise() error {
 
 func (f *Fibonacci) DoAction() (err error) {
 
+	if !f.config.Enabled {
+		if f.config.Verbose {
+			logger.Info("The setup is disabled. Set enabled:1 in config file to enable it.")
+		}
+		return
+	}
+
 	var internalPosition structs.Position
 	var storage mongo.MongoStorage
 	storage, err = strategyStorage.GetStorage(f.config.Id)

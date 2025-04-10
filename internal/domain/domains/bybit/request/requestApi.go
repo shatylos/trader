@@ -9,6 +9,7 @@ import (
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"io"
 	"net/http"
 	"net/url"
@@ -79,6 +80,18 @@ func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (i
 }
 
 func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (interface{}, error) {
+
+	if secrets.Verbose {
+		paramsJsonBytes, err := json.Marshal(params)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error marshalling params to JSON: %s", err))
+			return nil, tools.AppError{
+				Message:     "Error marshalling params to JSON",
+				ParentError: err,
+			}
+		}
+		logger.Info(fmt.Sprintf("Send %s request to: URI: %s. Params: %s", method, uri, paramsJsonBytes))
+	}
 
 	params["api_key"] = secrets.Key
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())

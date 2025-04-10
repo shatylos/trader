@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	Enabled              bool
+	Verbose              bool
 	MaxCandleReview      int64
 	MinCandleReview      int64
 	Code                 string
@@ -73,6 +75,38 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 			ParentError: err,
 		}
 		return
+	}
+
+	var enabled int64
+	enabled, err = _type.ToInt64(configMap["enabled"])
+	if err != nil {
+		logger.Error("The field enabled is empty or contains not correct value type. Expects 1 or 0")
+		err = tools.AppError{
+			Message:     "The field enabled is empty or contains not correct value type. Expects 1 or 0",
+			ParentError: err,
+		}
+		return
+	}
+	if enabled == 1 {
+		f.config.Enabled = true
+	} else {
+		f.config.Enabled = false
+	}
+
+	var verbose int64
+	verbose, err = _type.ToInt64(configMap["verbose"])
+	if err != nil {
+		logger.Error("The field verbose in strategy config is empty or contains not correct value type. Expects 1 or 0")
+		err = tools.AppError{
+			Message:     "The field verbose in strategy config is empty or contains not correct value type. Expects 1 or 0",
+			ParentError: err,
+		}
+		return
+	}
+	if verbose == 1 {
+		f.config.Verbose = true
+	} else {
+		f.config.Verbose = false
 	}
 
 	f.config.CoinPare, err = _type.ToString(configMap["coin_pare"])

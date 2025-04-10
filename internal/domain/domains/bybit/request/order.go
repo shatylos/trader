@@ -60,7 +60,7 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*Orde
 	params["symbol"] = orderRequest.Symbol
 	params["orderType"] = orderRequest.OrderType
 	params["qty"] = fmt.Sprintf("%g", orderRequest.Qty)
-	params["marketUnit"] = "quoteCoin"
+	params["marketUnit"] = "baseCoin"
 
 	if orderRequest.Price > 0 {
 		params["price"] = fmt.Sprintf("%g", orderRequest.Price)
