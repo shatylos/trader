@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/tgNotifier"
 	"time"
 )
 
@@ -29,6 +30,9 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 			logger.Error(err.Error())
 			s.errorCount++
 			logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+			if s.errorCount == 10 || s.errorCount%100 == 0 {
+				tgNotifier.Notify(fmt.Sprintf("Errors for setup %s. Error count: %d", s.ID, s.errorCount))
+			}
 			time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
 			setupChanel <- s
 			return
@@ -42,6 +46,9 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 		logger.Error(fmt.Sprintf("Error DoAction, setup: %s. Error: %s", strategyTitle, errorMsg))
 		s.errorCount++
 		logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+		if s.errorCount == 10 || s.errorCount%100 == 0 {
+			tgNotifier.Notify(fmt.Sprintf("Errors for setup %s. Error count: %d", s.ID, s.errorCount))
+		}
 		time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
 		setupChanel <- s
 		return
