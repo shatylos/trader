@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	math2 "math"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		return
 	}
 
-	fibChart.FullQty, err = f.calculateFullQty(availableBalance, currentPrice)
+	fibChart.FullQty, err = f.calculateFullQty(availableBalance, fibChart)
 	if err != nil {
 		return
 	}
@@ -187,7 +188,7 @@ func (f *Fibonacci) getAvailableBalance() (balance float64, err error) {
 	return
 }
 
-func (f *Fibonacci) calculateFullQty(availableBalance float64, price float64) (fullQty float64, err error) {
+func (f *Fibonacci) calculateFullQty(availableBalance float64, fibChart structs.FibonacciChart) (fullQty float64, err error) {
 	if availableBalance < 0 {
 		logger.Warning("Not enough deposit")
 		err = tools.AppError{
@@ -196,8 +197,37 @@ func (f *Fibonacci) calculateFullQty(availableBalance float64, price float64) (f
 		return
 	}
 
-	fullQty = math.Mul(math.Div(math.Div(availableBalance, price), 100), f.config.FullQtyToDepoPercent)
-	fullQty = math.Round(fullQty, f.config.QtyPrecision)
+	tempFullQty := float64(1)                                                      // 1
+	tempQty1 := math.Mul(math.Div(tempFullQty, 100), f.config.EP1ToFullQtyPercent) // 1 / 100 * 20 = 0.2
+	tempQty2 := math.Mul(math.Div(tempFullQty, 100), f.config.EP2ToFullQtyPercent) // 1 / 100 * 30 = 0.3
+	tempQty3 := math.Mul(math.Div(tempFullQty, 100), f.config.EP3ToFullQtyPercent) // 1 / 100 * 50 = 0.5
+
+	var tempLoss1, tempLoss2, tempLoss3 float64
+	if fibChart.EntryPoint1 > 0 {
+		tempLoss1 = f.calculateLoss(tempQty1, fibChart.EntryPoint1, fibChart.StopLoss) // 2000
+	}
+	if fibChart.EntryPoint2 > 0 {
+		tempLoss2 = f.calculateLoss(tempQty2, fibChart.EntryPoint2, fibChart.StopLoss) // 1800
+	}
+	if fibChart.EntryPoint3 > 0 {
+		tempLoss3 = f.calculateLoss(tempQty3, fibChart.EntryPoint3, fibChart.StopLoss) // 1500
+	}
+
+	tempFullLoss := tempLoss1 + tempLoss2 + tempLoss3                           // 2000 + 1800 + 1500 = 5300
+	fullRisk := math.Mul(math.Div(availableBalance, 100), f.config.RiskPercent) // 500 / 100 * 10 = 50
+
+	if tempFullLoss > 0 {
+		reduceCoef := math.Div(tempFullLoss, fullRisk) // 5300 / 50 = 106
+		fullQty = math.Div(tempFullQty, reduceCoef)    // 1 / 106 = 0,009433962
+		fullQty = math.Round(fullQty, f.config.QtyPrecision)
+	}
+	return
+}
+
+func (f *Fibonacci) calculateLoss(qty float64, entryPoint float64, stopLoss float64) (loss float64) {
+	amountIn := entryPoint * qty           // 80000 * 0.2 = 16000
+	amountOut := stopLoss * qty            // 70000 * 0.2 = 14000
+	loss = math2.Abs(amountIn - amountOut) // 16000 - 14000 = 2000
 	return
 }
 

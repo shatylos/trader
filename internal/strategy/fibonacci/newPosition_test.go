@@ -1,6 +1,9 @@
 package fibonacci
 
-import "testing"
+import (
+	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
+	"testing"
+)
 
 func TestGetMinMaxPriceLong(t *testing.T) {
 }
@@ -97,5 +100,133 @@ func TestCalculateShortFibonacciChart(t *testing.T) {
 	expected = 11722.8419
 	if chart.TakeProfit3 != expected {
 		t.Errorf("calculateFibonacciChart(%f, %f, true).TakeProfit3 = %f; expects %f", minPrice, maxPrice, chart.TakeProfit3, expected)
+	}
+}
+
+func TestCalculateFullQtyBull(t *testing.T) {
+	f := Fibonacci{}
+	f.config = Config{
+		FibStopLoss:         0,
+		QtyPrecision:        4,
+		RiskPercent:         10,
+		EP1ToFullQtyPercent: 20,
+		EP2ToFullQtyPercent: 30,
+		EP3ToFullQtyPercent: 50,
+	}
+	fibChart := structs.FibonacciChart{
+		EntryPoint1:    80000,
+		EntryPoint2:    76000,
+		EntryPoint3:    73000,
+		SourceMaxPrice: 0,
+		SourceMinPrice: 0,
+		StopLoss:       70000,
+		TakeProfit1:    0,
+		TakeProfit2:    0,
+		TakeProfit3:    0,
+		FullQty:        0,
+	}
+
+	fullQty, err := f.calculateFullQty(500.0, fibChart)
+	if err != nil {
+		t.Errorf("Error calculateFullQty: %s", err.Error())
+	}
+
+	expected := 0.0094
+	if fullQty != expected {
+		t.Errorf("calculateFullQty Bull. FullQty %f; expects %f", fullQty, expected)
+	}
+}
+
+func TestCalculateFullQtyBear(t *testing.T) {
+	f := Fibonacci{}
+	f.config = Config{
+		FibStopLoss:         0,
+		QtyPrecision:        4,
+		RiskPercent:         10,
+		EP1ToFullQtyPercent: 20,
+		EP2ToFullQtyPercent: 30,
+		EP3ToFullQtyPercent: 50,
+	}
+	fibChart := structs.FibonacciChart{
+		EntryPoint1:    70000,
+		EntryPoint2:    74000,
+		EntryPoint3:    77000,
+		SourceMaxPrice: 0,
+		SourceMinPrice: 0,
+		StopLoss:       80000,
+		TakeProfit1:    0,
+		TakeProfit2:    0,
+		TakeProfit3:    0,
+		FullQty:        0,
+	}
+
+	fullQty, err := f.calculateFullQty(500.0, fibChart)
+	if err != nil {
+		t.Errorf("Error calculateFullQty: %s", err.Error())
+	}
+
+	expected := 0.0094
+	if fullQty != expected {
+		t.Errorf("calculateFullQty Bull. FullQty %f; expects %f", fullQty, expected)
+	}
+}
+
+func TestCalculateFullQtyOneOrder1(t *testing.T) {
+	f := Fibonacci{}
+	f.config = Config{
+		FibStopLoss:         0,
+		QtyPrecision:        4,
+		RiskPercent:         10,
+		EP1ToFullQtyPercent: 20,
+		EP2ToFullQtyPercent: 30,
+		EP3ToFullQtyPercent: 50,
+	}
+	fibChart := structs.FibonacciChart{
+		EntryPoint1: 80000,
+		EntryPoint2: 0,
+		EntryPoint3: 0,
+		StopLoss:    70000,
+		FullQty:     0,
+	}
+
+	fullQty, err := f.calculateFullQty(500.0, fibChart)
+	if err != nil {
+		t.Errorf("Error calculateFullQty: %s", err.Error())
+	}
+
+	expected := 0.025
+	if fullQty != expected {
+		t.Errorf("calculateFullQty Bull. FullQty %f; expects %f", fullQty, expected)
+	}
+}
+
+func TestCalculateFullQtyOneOrder2(t *testing.T) {
+	f := Fibonacci{}
+	f.config = Config{
+		FibStopLoss:         0,
+		QtyPrecision:        4,
+		RiskPercent:         10,
+		EP1ToFullQtyPercent: 20,
+		EP2ToFullQtyPercent: 0,
+		EP3ToFullQtyPercent: 0,
+	}
+	fibChart := structs.FibonacciChart{
+		EntryPoint1:    80000,
+		EntryPoint2:    76000,
+		EntryPoint3:    73000,
+		SourceMaxPrice: 0,
+		SourceMinPrice: 0,
+		StopLoss:       70000,
+		FullQty:        0,
+	}
+
+	fullQty, err := f.calculateFullQty(500.0, fibChart)
+	if err != nil {
+		t.Errorf("Error calculateFullQty: %s", err.Error())
+	}
+
+	expected := 0.025
+	if fullQty != expected {
+		t.Errorf("calculateFullQty Bull. FullQty %f; expects %f", fullQty, expected)
 	}
 }

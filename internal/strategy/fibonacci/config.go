@@ -9,34 +9,34 @@ import (
 )
 
 type Config struct {
-	Enabled              bool
-	Verbose              bool
-	MaxCandleReview      int64
-	MinCandleReview      int64
-	Code                 string
-	CoinPare             string
-	MainCurrency         string
-	TradeCurrency        string
-	MinDepo              float64
-	Leverage             int64
-	Id                   string
-	Resolution           string
-	ResolutionMins       int64
-	TimeoutSeconds       time.Duration
-	QtyPrecision         int64
-	MinQty               float64
-	PricePrecision       int64
-	FibEntryPoint1       float64
-	FibEntryPoint2       float64
-	FibEntryPoint3       float64
-	FibStopLoss          float64
-	FibTakeProfit1       float64
-	FibTakeProfit2       float64
-	FibTakeProfit3       float64
-	FullQtyToDepoPercent float64
-	EP1ToFullQtyPercent  float64
-	EP2ToFullQtyPercent  float64
-	EP3ToFullQtyPercent  float64
+	Enabled             bool
+	Verbose             bool
+	MaxCandleReview     int64
+	MinCandleReview     int64
+	Code                string
+	CoinPare            string
+	MainCurrency        string
+	TradeCurrency       string
+	MinDepo             float64
+	Leverage            int64
+	Id                  string
+	Resolution          string
+	ResolutionMins      int64
+	TimeoutSeconds      time.Duration
+	QtyPrecision        int64
+	MinQty              float64
+	PricePrecision      int64
+	FibEntryPoint1      float64
+	FibEntryPoint2      float64
+	FibEntryPoint3      float64
+	FibStopLoss         float64
+	FibTakeProfit1      float64
+	FibTakeProfit2      float64
+	FibTakeProfit3      float64
+	RiskPercent         float64
+	EP1ToFullQtyPercent float64
+	EP2ToFullQtyPercent float64
+	EP3ToFullQtyPercent float64
 }
 
 var resolutions = map[string]int64{
@@ -263,10 +263,10 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 		}
 	}
 
-	f.config.FullQtyToDepoPercent, err = _type.ToFloat64(configMap["full_qty_to_depo_percent"])
-	if err != nil || f.config.FullQtyToDepoPercent == 0 {
+	f.config.RiskPercent, err = _type.ToFloat64(configMap["risk_percent"])
+	if err != nil || f.config.RiskPercent == 0 {
 		return tools.AppError{
-			Message:     "Empty value full_qty_to_depo_percent",
+			Message:     "Empty value risk_percent",
 			ParentError: err,
 		}
 	}
