@@ -7,17 +7,21 @@ import (
 	"github.com/shatylos/trader/internal/strategy"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
 var setupList []*setupStructs.Setup
 
-func SetupListInit() error {
+func TraderInit() error {
 	setupList = make([]*setupStructs.Setup, 0)
 
 	appConfig, err := config.GetConfig()
 	if err != nil {
 		return err
 	}
+
+	tgNotifierUrl := appConfig.App["tg_notifier_url"]
+	tgNotifier.Init(tgNotifierUrl)
 
 	setups, err := prepareSetupStrategies(appConfig.StrategyItems, appConfig.DomainItems)
 	if err != nil {

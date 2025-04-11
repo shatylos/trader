@@ -18,7 +18,7 @@ func main() {
 		logger.Error(fmt.Sprintf("Error listening pprof %s", err.Error()))
 	}()
 
-	err := setup.SetupListInit()
+	err := setup.TraderInit()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)

@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/tgNotifier"
 	math2 "math"
 	"time"
 )
@@ -316,6 +317,13 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		internalPosition.FibonacciChart.SourceMinPrice,
 		internalPosition.FibonacciChart.SourceMaxPrice,
 	))
+	if f.config.TelegramNotifier {
+		tgNotifier.Notify(fmt.Sprintf("Created new order. Qty: %f. Price: %f. Side: %s.",
+			newOrder.Qty,
+			newOrder.Price,
+			newOrder.Side,
+		))
+	}
 	return
 }
 
@@ -388,5 +396,8 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 		return
 	}
 	logger.Info(fmt.Sprintf("Position was closed. PositionId %s.", *internalPosition.Id))
+	if f.config.TelegramNotifier {
+		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %f.", internalPosition.TotalClosePnl))
+	}
 	return
 }

@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Enabled             bool
 	Verbose             bool
+	TelegramNotifier    bool
 	MaxCandleReview     int64
 	MinCandleReview     int64
 	Code                string
@@ -107,6 +108,22 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 		f.config.Verbose = true
 	} else {
 		f.config.Verbose = false
+	}
+
+	if configMap["telegram_notifier"] != "" {
+		var tgNotifier int64
+		tgNotifier, err = _type.ToInt64(configMap["telegram_notifier"])
+		if err != nil {
+			logger.Error("The field telegram_notifier in strategy config is empty or contains not correct value type. Expects 1 or 0")
+			err = tools.AppError{
+				Message:     "The field telegram_notifier in strategy config is empty or contains not correct value type. Expects 1 or 0",
+				ParentError: err,
+			}
+			return
+		}
+		if tgNotifier == 1 {
+			f.config.TelegramNotifier = true
+		}
 	}
 
 	f.config.CoinPare, err = _type.ToString(configMap["coin_pare"])
