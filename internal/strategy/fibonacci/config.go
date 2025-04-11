@@ -110,7 +110,7 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 		f.config.Verbose = false
 	}
 
-	if configMap["telegram_notifier"] != "" {
+	if configMap["telegram_notifier"] != nil {
 		var tgNotifier int64
 		tgNotifier, err = _type.ToInt64(configMap["telegram_notifier"])
 		if err != nil {
