@@ -274,6 +274,19 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		TimeInForce: "",
 		Type:        "Market",
 	})
+	if err != nil {
+		err = tools.AppError{
+			Message: fmt.Sprintf("Error opening new position. Leverage: %d. Qty: %g. Side: %s, TakeProfit: %g. StopLoss: %g",
+				f.config.Leverage,
+				qty,
+				side,
+				takeProfit,
+				stopLoss,
+			),
+			ParentError: err,
+		}
+		return
+	}
 	var newOrder domainStructs.DomainOrder
 	newOrder, err = f.provider.GetOrder(orderId)
 	if err != nil {
@@ -306,7 +319,7 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		err = tools.AppError{Message: "Internal position was not saved"}
 		return
 	}
-	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %f. Price: %f. Side: %s. TakeProfit: %f. StopLoss %f. SourceMinPrice: %f. SourceMaxPrice: %f.",
+	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %g. Price: %g. Side: %s. TakeProfit: %g. StopLoss %g. SourceMinPrice: %g. SourceMaxPrice: %g.",
 		*internalPosition.Id,
 		orderNum,
 		newOrder.Qty,
@@ -318,7 +331,7 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		internalPosition.FibonacciChart.SourceMaxPrice,
 	))
 	if f.config.TelegramNotifier {
-		tgNotifier.Notify(fmt.Sprintf("Created new order. Qty: %f. Price: %f. Side: %s.",
+		tgNotifier.Notify(fmt.Sprintf("Created new order. Qty: %g. Price: %g. Side: %s.",
 			newOrder.Qty,
 			newOrder.Price,
 			newOrder.Side,
@@ -397,7 +410,7 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 	}
 	logger.Info(fmt.Sprintf("Position was closed. PositionId %s.", *internalPosition.Id))
 	if f.config.TelegramNotifier {
-		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %f.", internalPosition.TotalClosePnl))
+		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %g.", internalPosition.TotalClosePnl))
 	}
 	return
 }
