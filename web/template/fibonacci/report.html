@@ -12,6 +12,20 @@
 <div class="clearfix"></div>
 <hr/>
 
+<div class="row align-items-start">
+    <h4>
+        Total PNL:
+        {{ .TotalPnl | longFloatShort .PricePrecision }}
+        {{ .MainCurrency }}
+        ({{ .TotalPnlPercent | longFloatShort 2 }}%)
+    </h4>
+    <div>
+        Balance before: {{ .BalanceBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    </div>
+    <div>
+        Balance after: {{ .BalanceAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    </div>
+</div>
 
 <div class="clearfix"></div>
 <hr/>
