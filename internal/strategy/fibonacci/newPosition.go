@@ -410,7 +410,7 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 	}
 	logger.Info(fmt.Sprintf("Position was closed. PositionId %s.", *internalPosition.Id))
 	if f.config.TelegramNotifier {
-		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %.2g.", internalPosition.TotalClosePnl))
+		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %g.", math.Round(internalPosition.TotalClosePnl, 2)))
 	}
 	return
 }
