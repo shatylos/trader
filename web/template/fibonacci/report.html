@@ -44,6 +44,8 @@
         <th>TakeProfit</th>
         <th>StopLoss</th>
         <th>Status</th>
+        <th>Fib Min Price</th>
+        <th>Fib Max Price</th>
         <th>Created</th>
     </tr>
     </thead>
@@ -75,6 +77,8 @@
         <td class="{{ $class }}">{{ .ProviderPosition.TakeProfit | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .ProviderPosition.StopLoss | longFloatShort $.PricePrecision }}</td>
         <td class="{{ $class }}">{{ .Status }}</td>
+        <td class="{{ $class }}">{{ .FibonacciChart.SourceMinPrice }}</td>
+        <td class="{{ $class }}">{{ .FibonacciChart.SourceMaxPrice }}</td>
         <td class="{{ $class }}">{{ .CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</td>
     </tr>
     {{ if gt .Orders.Order1.CreatedTime 0 }}
