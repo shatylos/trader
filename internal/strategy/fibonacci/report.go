@@ -88,10 +88,12 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position) (totalPnl float6
 		balanceBefore = filteredPositions[len(filteredPositions)-1].BalanceBefore
 		balanceAfter = filteredPositions[0].BalanceAfter
 	}
-	if totalPnl > 0 && balanceBefore > 0 && balanceAfter > 0 {
+	if balanceBefore > 0 {
 		onePercent := math.Div(balanceBefore, 100)
 		amountDiff := balanceAfter - balanceBefore
-		totalPnlPercent = math.Div(amountDiff, onePercent)
+		if amountDiff != 0.0 {
+			totalPnlPercent = math.Div(amountDiff, onePercent)
+		}
 	}
 	return
 }
