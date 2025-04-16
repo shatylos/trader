@@ -24,7 +24,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 	limit := f.config.MinCandleReview
 	if prevInternalPosition.CreatedTime != 0 {
 		mins := (time.Now().Unix() - prevInternalPosition.CreatedTime) / 60
-		fromPrevLimit := mins / f.config.ResolutionMins
+		fromPrevLimit := mins/f.config.ResolutionMins + 2
 		if limit < fromPrevLimit {
 			limit = fromPrevLimit
 		}
