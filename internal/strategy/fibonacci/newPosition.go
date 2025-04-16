@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, currentPrice float64) (position structs.Position, err error) {
+func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) (position structs.Position, err error) {
 	limit := f.config.MinCandleReview
 	if prevInternalPosition.CreatedTime != 0 {
 		mins := (time.Now().Unix() - prevInternalPosition.CreatedTime) / 60
@@ -34,7 +34,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		return
 	}
 
-	trend := trading.GetTrend(candles)
+	trend := trading.GetFullTrend(candles, f.config.Verbose)
 
 	var fibChart structs.FibonacciChart
 	var minPrice, maxPrice float64

@@ -1,6 +1,10 @@
 package trading
 
-import domainStructs "github.com/shatylos/trader/internal/domain/structs"
+import (
+	"fmt"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/tools/logger"
+)
 
 const (
 	TrendLong    = "BULLISH"
@@ -8,7 +12,20 @@ const (
 	TrendUnknown = "UNKNOWN"
 )
 
-func GetTrend(candles []domainStructs.DomainCandle) string {
+func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
+	trendLinearRegression := GetTrendLinearRegression(candles)
+	trendSimpleCompare := GetTrendSimpleCompare(candles)
+
+	if trendLinearRegression == trendSimpleCompare {
+		return trendLinearRegression
+	}
+	if verbose {
+		logger.Info(fmt.Sprintf("Trend unknown. trendLinearRegression: %s, trendSimpleCompare: %s", trendLinearRegression, trendSimpleCompare))
+	}
+	return TrendUnknown
+}
+
+func GetTrendLinearRegression(candles []domainStructs.DomainCandle) string {
 	if len(candles) < 2 {
 		return TrendUnknown
 	}
@@ -52,7 +69,7 @@ func GetTrend(candles []domainStructs.DomainCandle) string {
 	return TrendUnknown
 }
 
-func GetTrendOld(candles []domainStructs.DomainCandle) string {
+func GetTrendSimpleCompare(candles []domainStructs.DomainCandle) string {
 	var minCandle, maxCandle domainStructs.DomainCandle
 	if len(candles) == 0 {
 		return TrendUnknown

@@ -77,7 +77,7 @@ func (f *Fibonacci) DoAction() (err error) {
 				return
 			}
 		}
-		internalPosition, err = f.calculateNewPosition(internalPosition, currentPrice)
+		internalPosition, err = f.calculateNewPosition(internalPosition)
 		internalPosition.ProviderPosition = providerPosition
 	} else if internalPosition.Status == structs.StatusActive {
 		internalPosition.ProviderPosition = providerPosition
