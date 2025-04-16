@@ -10,14 +10,9 @@ import (
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
+	"github.com/shatylos/trader/tools/trading"
 	math2 "math"
 	"time"
-)
-
-const (
-	TrendLong    = "BULLISH"
-	TrendShort   = "BEARISH"
-	TrendUnknown = "UNKNOWN"
 )
 
 func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, currentPrice float64) (position structs.Position, err error) {
@@ -39,16 +34,16 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 		return
 	}
 
-	trend := f.getTrend(candles)
+	trend := trading.GetTrend(candles)
 
 	var fibChart structs.FibonacciChart
 	var minPrice, maxPrice float64
 	switch trend {
-	case TrendLong:
+	case trading.TrendLong:
 		minPrice, maxPrice, err = f.getMinMaxPriceLong(candles)
 		fibChart = f.calculateFibonacciChart(minPrice, maxPrice, true)
 		break
-	case TrendShort:
+	case trading.TrendShort:
 		minPrice, maxPrice, err = f.getMinMaxPriceShort(candles)
 		fibChart = f.calculateFibonacciChart(minPrice, maxPrice, false)
 		break
@@ -78,29 +73,6 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position, 
 	}
 
 	return
-}
-
-func (f *Fibonacci) getTrend(candles []domainStructs.DomainCandle) string {
-	var minCandle, maxCandle domainStructs.DomainCandle
-	if len(candles) == 0 {
-		return TrendUnknown
-	}
-	minCandle = candles[0]
-	maxCandle = candles[0]
-	for _, candle := range candles {
-		if candle.Low < minCandle.Low {
-			minCandle = candle
-		}
-		if candle.High > maxCandle.High {
-			maxCandle = candle
-		}
-	}
-
-	if maxCandle.Time > minCandle.Time {
-		return TrendLong
-	} else {
-		return TrendShort
-	}
 }
 
 func (f *Fibonacci) getMinMaxPriceLong(candles []domainStructs.DomainCandle) (minPrice float64, maxPrice float64, err error) {

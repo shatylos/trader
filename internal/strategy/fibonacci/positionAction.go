@@ -6,14 +6,15 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 )
 
 func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentPrice float64) (err error) {
 	switch internalPosition.Trend {
-	case TrendLong:
+	case trading.TrendLong:
 		err = f.actionByPositionBullish(internalPosition, currentPrice)
 		break
-	case TrendShort:
+	case trading.TrendShort:
 		err = f.actionByPositionBearish(internalPosition, currentPrice)
 		break
 	default:
