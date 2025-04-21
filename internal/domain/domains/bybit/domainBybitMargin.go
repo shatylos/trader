@@ -1,6 +1,7 @@
 package bybit
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/internal/domain/constant"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
@@ -115,6 +116,11 @@ func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {
 		Coin:   "USDT",
 		Amount: walletBalance.TotalInitialMargin,
 	})
+
+	if d.secrets.Verbose {
+		logger.Info(fmt.Sprintf("GetWallet Available: %s (%g)", availableCoins[0].Coin, availableCoins[0].Amount))
+		logger.Info(fmt.Sprintf("GetWallet Reserved: %s (%g)", reservedCoins[0].Coin, reservedCoins[0].Amount))
+	}
 
 	result := structs.DomainWallet{
 		DomainCode: d.code,
