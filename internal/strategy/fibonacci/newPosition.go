@@ -57,6 +57,9 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 	if err != nil {
 		return
 	}
+	if f.config.Verbose {
+		logger.Info(fmt.Sprintf("Available balance: %g", availableBalance))
+	}
 
 	fibChart.FullQty, err = f.calculateFullQty(availableBalance, fibChart)
 	if err != nil {
@@ -189,7 +192,7 @@ func (f *Fibonacci) calculateFullQty(availableBalance float64, fibChart structs.
 	tempFullLoss := tempLoss1 + tempLoss2 + tempLoss3                           // 2000 + 1800 + 1500 = 5300
 	fullRisk := math.Mul(math.Div(availableBalance, 100), f.config.RiskPercent) // 500 / 100 * 10 = 50
 
-	if tempFullLoss > 0 {
+	if tempFullLoss > 0 && fullRisk > 0 {
 		reduceCoef := math.Div(tempFullLoss, fullRisk) // 5300 / 50 = 106
 		fullQty = math.Div(tempFullQty, reduceCoef)    // 1 / 106 = 0,009433962
 		fullQty = math.Round(fullQty, f.config.QtyPrecision)
