@@ -45,8 +45,6 @@ func mapMarginWalletBalance(source interface{}) (response MarginWalletBalance, e
 		return
 	}
 
-	logger.Info(fmt.Sprintf("sourceList Length: %d", len(sourceList)))
-
 	var sourceBytes []byte
 	sourceBytes, err = json.Marshal(sourceList[0])
 
@@ -56,6 +54,8 @@ func mapMarginWalletBalance(source interface{}) (response MarginWalletBalance, e
 		}
 		return
 	}
+
+	logger.Info(fmt.Sprintf("SourceBytes: %s", sourceBytes))
 
 	type MarginWalletBalanceRaw struct {
 		TotalEquity           string `json:"totalEquity"`
