@@ -5,6 +5,7 @@ import (
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
 )
 
@@ -43,6 +44,8 @@ func mapMarginWalletBalance(source interface{}) (response MarginWalletBalance, e
 		}
 		return
 	}
+
+	logger.Info(fmt.Sprintf("sourceList Length: %d", len(sourceList)))
 
 	var sourceBytes []byte
 	sourceBytes, err = json.Marshal(sourceList[0])
