@@ -165,7 +165,7 @@ func (f *Fibonacci) getAvailableBalance() (balance float64, err error) {
 }
 
 func (f *Fibonacci) calculateFullQty(availableBalance float64, fibChart structs.FibonacciChart) (fullQty float64, err error) {
-	if availableBalance < 0 {
+	if availableBalance <= 0 {
 		logger.Warning("Not enough deposit")
 		err = tools.AppError{
 			Message: "Not enough deposit",
