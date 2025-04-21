@@ -17,8 +17,13 @@ func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentP
 	case trading.TrendShort:
 		err = f.actionByPositionBearish(internalPosition, currentPrice)
 		break
-	default:
+	case trading.TrendUnknown:
 		logger.Info(fmt.Sprintf("Trend is %s. Wait for %s or %s.", internalPosition.Trend, trading.TrendLong, trading.TrendShort))
+		break
+	default:
+		err = tools.AppError{
+			Message: fmt.Sprintf("Unexpected trend \"%s\" for action by position", internalPosition.Trend),
+		}
 	}
 	return
 }

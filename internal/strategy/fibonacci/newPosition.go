@@ -47,6 +47,9 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 		minPrice, maxPrice, err = f.getMinMaxPriceShort(candles)
 		fibChart = f.calculateFibonacciChart(minPrice, maxPrice, false)
 		break
+	case trading.TrendUnknown:
+		fibChart = f.calculateFibonacciChart(0, 0, true)
+		break
 	default:
 		err = tools.AppError{Message: fmt.Sprintf("Unexpected trend value: %s", trend)}
 		return

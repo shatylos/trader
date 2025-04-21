@@ -17,6 +17,9 @@ func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
 	trendSimpleCompare := GetTrendSimpleCompare(candles)
 
 	if trendLinearRegression == trendSimpleCompare {
+		if verbose {
+			logger.Info(fmt.Sprintf("Detected full trend: %s", trendLinearRegression))
+		}
 		return trendLinearRegression
 	}
 	if verbose {
