@@ -26,6 +26,10 @@ func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentP
 }
 
 func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, currentPrice float64) (err error) {
+
+	logger.Info(fmt.Sprintf("internalPosition.Status %s", internalPosition.Status))
+	logger.Info(fmt.Sprintf("internalPosition.BalanceBefore %g", internalPosition.BalanceBefore))
+
 	if internalPosition.Status == structs.StatusNew && internalPosition.BalanceBefore <= 0 {
 		msg := fmt.Sprintf("Not enough balance (%g) to action", internalPosition.BalanceBefore)
 		logger.Error(msg)
@@ -121,6 +125,10 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 }
 
 func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, currentPrice float64) (err error) {
+
+	logger.Info(fmt.Sprintf("internalPosition.Status %s", internalPosition.Status))
+	logger.Info(fmt.Sprintf("internalPosition.BalanceBefore %g", internalPosition.BalanceBefore))
+
 	if internalPosition.Status == structs.StatusNew && internalPosition.BalanceBefore <= 0 {
 		msg := fmt.Sprintf("Not enough balance (%g) to action", internalPosition.BalanceBefore)
 		logger.Error(msg)
