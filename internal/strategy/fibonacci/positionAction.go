@@ -32,6 +32,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		err = tools.AppError{
 			Message: msg,
 		}
+		return
 	}
 
 	if internalPosition.Orders.Order1.OrderId == "" &&
@@ -126,6 +127,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 		err = tools.AppError{
 			Message: msg,
 		}
+		return
 	}
 
 	if internalPosition.Orders.Order1.OrderId == "" &&
