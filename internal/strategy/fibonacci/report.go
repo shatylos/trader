@@ -81,13 +81,13 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position) (totalPnl float6
 	for _, position := range positions {
 		if position.Status == structs.StatusClosed {
 			filteredPositions = append(filteredPositions, position)
-			totalPnl += position.TotalClosePnl
 		}
 	}
 	if len(filteredPositions) > 0 {
 		balanceBefore = filteredPositions[len(filteredPositions)-1].BalanceBefore
 		balanceAfter = filteredPositions[0].BalanceAfter
 	}
+	totalPnl = balanceAfter - balanceBefore
 	if balanceBefore > 0 {
 		onePercent := math.Div(balanceBefore, 100)
 		amountDiff := balanceAfter - balanceBefore
