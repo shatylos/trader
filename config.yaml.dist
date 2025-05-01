@@ -37,11 +37,53 @@ strategy:
     avg_price_candle_offset: 2
     manual_buy_price_before_start: 20000
 
+  - code: fibonacci
+    id:  BTC_USDT_FIBONACCI_1
+    domain: bybit_derivatives_demo_btc
+    enabled: 1
+    verbose: 0
+    telegram_notifier333: 1
+    coin_pare: BTCUSDT
+    main_currency: USDT
+    trade_currency: BTC
+    min_depo: 10
+    leverage: 2
+    timeout_seconds: 10
+    resolution: 15
+    max_candle_review: 100
+    min_candle_review: 15
+    long_trend_resolution: 60
+    long_trend_candle_review: 168 # 24 * 7 - 1 week
+    price_precision: 2
+    qty_precision: 2
+    min_qty: 0.01
+    fib_entry_point_1: 0.618
+    fib_entry_point_2: 0.5
+    fib_entry_point_3: 0.382
+    fib_stop_loss: -0.5
+    fib_take_profit_1: 1
+    fib_take_profit_2: 1
+    fib_take_profit_3: 1
+    risk_percent: 5
+    ep_1_to_full_qty_percent: 20
+    ep_2_to_full_qty_percent: 30
+    ep_3_to_full_qty_percent: 50
+
 domain:
   bybit_spot_demo_btc:
     code: bybitSpot
     secrets:
       endpoint: https://api-testnet.bybit.com
 #      endpoint: https://api.bybit.com
-      key: XR1neYfQwXyVLnXJh1
-      pass: q4kJrPfUHTjqoMIuOUehjURfyP1X0DNVJsXS
+      key: 123
+      pass: asdfasdfasdf
+      verbose: 0
+
+  bybit_derivatives_demo_btc:
+    code: bybitMargin
+    secrets:
+      endpoint: https://api-testnet.bybit.com
+#      endpoint: https://api.bybit.com
+      key: 123
+      pass: asdfasdfasdf
+      verbose: 0

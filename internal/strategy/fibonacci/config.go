@@ -9,35 +9,37 @@ import (
 )
 
 type Config struct {
-	Enabled             bool
-	Verbose             bool
-	TelegramNotifier    bool
-	MaxCandleReview     int64
-	MinCandleReview     int64
-	Code                string
-	CoinPare            string
-	MainCurrency        string
-	TradeCurrency       string
-	MinDepo             float64
-	Leverage            int64
-	Id                  string
-	Resolution          string
-	ResolutionMins      int64
-	TimeoutSeconds      time.Duration
-	QtyPrecision        int64
-	MinQty              float64
-	PricePrecision      int64
-	FibEntryPoint1      float64
-	FibEntryPoint2      float64
-	FibEntryPoint3      float64
-	FibStopLoss         float64
-	FibTakeProfit1      float64
-	FibTakeProfit2      float64
-	FibTakeProfit3      float64
-	RiskPercent         float64
-	EP1ToFullQtyPercent float64
-	EP2ToFullQtyPercent float64
-	EP3ToFullQtyPercent float64
+	Enabled               bool
+	Verbose               bool
+	TelegramNotifier      bool
+	MaxCandleReview       int64
+	MinCandleReview       int64
+	Code                  string
+	CoinPare              string
+	MainCurrency          string
+	TradeCurrency         string
+	MinDepo               float64
+	Leverage              int64
+	Id                    string
+	Resolution            string
+	ResolutionMins        int64
+	LongTrendResolution   string
+	LongTrendCandleReview int64
+	TimeoutSeconds        time.Duration
+	QtyPrecision          int64
+	MinQty                float64
+	PricePrecision        int64
+	FibEntryPoint1        float64
+	FibEntryPoint2        float64
+	FibEntryPoint3        float64
+	FibStopLoss           float64
+	FibTakeProfit1        float64
+	FibTakeProfit2        float64
+	FibTakeProfit3        float64
+	RiskPercent           float64
+	EP1ToFullQtyPercent   float64
+	EP2ToFullQtyPercent   float64
+	EP3ToFullQtyPercent   float64
 }
 
 var resolutions = map[string]int64{
@@ -194,6 +196,22 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	if err != nil || f.config.MaxCandleReview < 10 {
 		return tools.AppError{
 			Message:     "The field max_candle_review is empty or contains not correct value type. Expects int64 value more than 10",
+			ParentError: err,
+		}
+	}
+
+	f.config.LongTrendResolution, err = _type.ToString(configMap["long_trend_resolution"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field long_trend_resolution is empty or contains not correct value type",
+			ParentError: err,
+		}
+	}
+
+	f.config.LongTrendCandleReview, err = _type.ToInt64(configMap["long_trend_candle_review"])
+	if err != nil || f.config.MaxCandleReview < 10 {
+		return tools.AppError{
+			Message:     "The field long_trend_candle_review is empty or contains not correct value type. Expects int64 value more than 10",
 			ParentError: err,
 		}
 	}

@@ -28,13 +28,24 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 		limit = f.config.MaxCandleReview
 	}
 
-	var candles []domainStructs.DomainCandle
+	var candles, ltCandles []domainStructs.DomainCandle
 	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, time.Now().Unix(), limit)
 	if err != nil {
 		return
 	}
+	ltCandles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.LongTrendResolution, time.Now().Unix(), f.config.LongTrendCandleReview)
+	if err != nil {
+		return
+	}
 
-	trend := trading.GetFullTrend(candles, f.config.Verbose)
+	shortTrend := trading.GetFullTrend(candles, f.config.Verbose)
+	longTrend := trading.GetFullTrend(ltCandles, f.config.Verbose)
+	trend := trading.TrendUnknown
+	if shortTrend == longTrend {
+		trend = shortTrend
+	} else if f.config.Verbose {
+		logger.Info(fmt.Sprintf("Long trend (%s) and short (%s) trend are different", longTrend, shortTrend))
+	}
 
 	var fibChart structs.FibonacciChart
 	var minPrice, maxPrice float64
