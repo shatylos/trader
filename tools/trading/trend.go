@@ -1,9 +1,7 @@
 package trading
 
 import (
-	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/tools/logger"
 )
 
 const (
@@ -12,18 +10,12 @@ const (
 	TrendUnknown = "UNKNOWN"
 )
 
-func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
+func GetFullTrend(candles []domainStructs.DomainCandle) string {
 	trendLinearRegression := GetTrendLinearRegression(candles)
 	trendSimpleCompare := GetTrendSimpleCompare(candles)
 
 	if trendLinearRegression == trendSimpleCompare {
-		if verbose {
-			logger.Info(fmt.Sprintf("Detected full trend: %s", trendLinearRegression))
-		}
 		return trendLinearRegression
-	}
-	if verbose {
-		logger.Info(fmt.Sprintf("Trend unknown. trendLinearRegression: %s, trendSimpleCompare: %s", trendLinearRegression, trendSimpleCompare))
 	}
 	return TrendUnknown
 }
