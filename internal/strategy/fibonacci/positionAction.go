@@ -237,7 +237,7 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 	timeToReduce := now.Add(time.Duration(f.config.HoursToReduceTP*-1) * time.Hour)
 	unixTimeToReduce := timeToReduce.Unix()
 
-	newTakeProfit := f.calculateReducedTakeProfit(internalPosition.ProviderPosition.TakeProfit, internalPosition.ProviderPosition.AvgPrice)
+	newTakeProfit := f.calculateReducedTakeProfit(internalPosition)
 	updOrder := 0
 
 	if internalPosition.Orders.Order3.CreatedTime > 0 {
@@ -295,9 +295,22 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 	return
 }
 
-func (f *Fibonacci) calculateReducedTakeProfit(oldTakeProfit float64, avgPrice float64) (newTakeProfit float64) {
+func (f *Fibonacci) calculateReducedTakeProfit(internalPosition structs.Position) (newTakeProfit float64) {
+
+	oldTakeProfit := internalPosition.ProviderPosition.TakeProfit
+	avgPrice := internalPosition.ProviderPosition.AvgPrice
+	markPrice := internalPosition.ProviderPosition.MarkPrice
+
 	profDiff := oldTakeProfit - avgPrice
 	valueToReduce := math.Mul(math.Div(profDiff, 100), float64(f.config.PercentToReduceTP))
 	newTakeProfit = oldTakeProfit - valueToReduce
+
+	if internalPosition.ProviderPosition.Side == trading.SideBuy && newTakeProfit < markPrice {
+		newTakeProfit = markPrice
+	}
+	if internalPosition.ProviderPosition.Side == trading.SideSell && newTakeProfit < markPrice {
+		newTakeProfit = markPrice
+	}
+
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/tools/type"
 )
 
@@ -20,6 +21,11 @@ const orderStatusClosedFilled = "Filled"
 const orderStatusClosedCancelled = "Cancelled"
 const orderStatusClosedTriggered = "Triggered"
 const orderStatusClosedDeactivated = "Deactivated"
+
+const (
+	SideBuy  = "Buy"
+	SideSell = "Sell"
+)
 
 type DomainBybitMargin struct {
 	code     string
@@ -297,7 +303,14 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 		return
 	}
 	resultPosition.Symbol = providerPosition.Symbol
-	resultPosition.Side = providerPosition.Side
+	switch providerPosition.Side {
+	case SideBuy:
+		resultPosition.Side = trading.SideBuy
+		break
+	case SideSell:
+		resultPosition.Side = trading.SideSell
+		break
+	}
 
 	if providerPosition.AvgPrice != "" {
 		resultPosition.AvgPrice, err = _type.ToFloat64(providerPosition.AvgPrice)
