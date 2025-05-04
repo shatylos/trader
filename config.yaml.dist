@@ -68,6 +68,8 @@ strategy:
     ep_1_to_full_qty_percent: 20
     ep_2_to_full_qty_percent: 30
     ep_3_to_full_qty_percent: 50
+    hours_to_reduce_tp: 24
+    percent_to_reduce_tp: 30
 
 domain:
   bybit_spot_demo_btc:

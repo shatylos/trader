@@ -2,11 +2,16 @@ package fibonacci
 
 import (
 	"fmt"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
+	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/tgNotifier"
 	"github.com/shatylos/trader/tools/trading"
+	"time"
 )
 
 func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentPrice float64) (err error) {
@@ -25,6 +30,10 @@ func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentP
 			Message: fmt.Sprintf("Unexpected trend \"%s\" for action by position", internalPosition.Trend),
 		}
 	}
+	if err != nil {
+		return
+	}
+	err = f.takeProfitCorrection(internalPosition)
 	return
 }
 
@@ -215,5 +224,80 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 			currentPrice < internalPosition.FibonacciChart.StopLoss,
 		))
 	}
+	return
+}
+
+func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err error) {
+
+	if internalPosition.Status != structs.StatusActive {
+		return
+	}
+
+	now := time.Now()
+	timeToReduce := now.Add(time.Duration(f.config.HoursToReduceTP*-1) * time.Hour)
+	unixTimeToReduce := timeToReduce.Unix()
+
+	newTakeProfit := f.calculateReducedTakeProfit(internalPosition.ProviderPosition.TakeProfit, internalPosition.ProviderPosition.AvgPrice)
+	updOrder := 0
+
+	if internalPosition.Orders.Order3.CreatedTime > 0 {
+		if internalPosition.Orders.Order3.CreatedTime < unixTimeToReduce &&
+			internalPosition.Orders.Order3.TpModifyTime < unixTimeToReduce {
+
+			updOrder = 3
+		}
+	} else if internalPosition.Orders.Order2.CreatedTime > 0 {
+		if internalPosition.Orders.Order2.CreatedTime < unixTimeToReduce &&
+			internalPosition.Orders.Order2.TpModifyTime < unixTimeToReduce {
+
+			updOrder = 2
+		}
+	} else if internalPosition.Orders.Order1.CreatedTime > 0 {
+		if internalPosition.Orders.Order1.CreatedTime < unixTimeToReduce &&
+			internalPosition.Orders.Order1.TpModifyTime < unixTimeToReduce {
+
+			updOrder = 1
+		}
+	}
+
+	if updOrder > 0 {
+		err = f.provider.ModifyTpSl(domainStructs.TpSlRequest{
+			CoinPare:   f.config.CoinPare,
+			TakeProfit: newTakeProfit,
+			StopLoss:   internalPosition.ProviderPosition.StopLoss,
+		})
+		if err != nil {
+			return
+		}
+		var storage mongo.MongoStorage
+		storage, err = strategyStorage.GetStorage(f.config.Id)
+		if err != nil {
+			return
+		}
+		switch updOrder {
+		case 3:
+			internalPosition.Orders.Order3.TpModifyTime = time.Now().Unix()
+			break
+		case 2:
+			internalPosition.Orders.Order2.TpModifyTime = time.Now().Unix()
+			break
+		case 1:
+			internalPosition.Orders.Order1.TpModifyTime = time.Now().Unix()
+			break
+		}
+		internalPosition, err = storage.SaveInternalPosition(internalPosition)
+		if err != nil {
+			return
+		}
+		tgNotifier.Notify(fmt.Sprintf("Reduced take profit from %g to %g", internalPosition.ProviderPosition.TakeProfit, newTakeProfit))
+	}
+
+	return
+}
+
+func (f *Fibonacci) calculateReducedTakeProfit(oldTakeProfit float64, avgPrice float64) (newTakeProfit float64) {
+	profDiff := oldTakeProfit - avgPrice
+	valueToReduce := math.Mul(math.Div(profDiff, 100), float64(f.config.PercentToReduceTP))
+	newTakeProfit = oldTakeProfit - valueToReduce
 	return
 }

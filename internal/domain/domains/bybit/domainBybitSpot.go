@@ -251,6 +251,9 @@ func (d *DomainBybitSpot) GetPosition(coinPare string) (structs.DomainPosition, 
 func (d *DomainBybitSpot) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
 	panic("Not implemented")
 }
+func (d *DomainBybitSpot) ModifyTpSl(tpSlRequest structs.TpSlRequest) error {
+	panic("Not implemented")
+}
 
 func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
 

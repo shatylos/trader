@@ -13,3 +13,9 @@ type DomainPositionRequest struct {
 	TimeInForce string
 	Type        string
 }
+
+type TpSlRequest struct {
+	CoinPare   string
+	TakeProfit float64
+	StopLoss   float64
+}

@@ -1,20 +1,21 @@
 package structs
 
 type DomainOrder struct {
-	Id          *string `bson:"_id,omitempty"`
-	CreatedTime int64   `bson:"CreatedTime"`
-	OrderId     string  `bson:"OrderId"`
-	OrderStatus string  `bson:"OrderStatus"`
-	OrderType   string  `bson:"OrderType"`
-	Price       float64 `bson:"Price"`
-	Qty         float64 `bson:"Qty"`
-	ReduceOnly  bool    `bson:"ReduceOnly"`
-	Side        string  `bson:"Side"`
-	Symbol      string  `bson:"Symbol"`
-	TimeInForce string  `bson:"TimeInForce"`
-	UpdatedTime int64   `bson:"UpdatedTime"`
-	TakeProfit  float64 `bson:"TakeProfit"`
-	StopLoss    float64 `bson:"StopLoss"`
+	Id           *string `bson:"_id,omitempty"`
+	CreatedTime  int64   `bson:"CreatedTime"`
+	OrderId      string  `bson:"OrderId"`
+	OrderStatus  string  `bson:"OrderStatus"`
+	OrderType    string  `bson:"OrderType"`
+	Price        float64 `bson:"Price"`
+	Qty          float64 `bson:"Qty"`
+	ReduceOnly   bool    `bson:"ReduceOnly"`
+	Side         string  `bson:"Side"`
+	Symbol       string  `bson:"Symbol"`
+	TimeInForce  string  `bson:"TimeInForce"`
+	UpdatedTime  int64   `bson:"UpdatedTime"`
+	TakeProfit   float64 `bson:"TakeProfit"`
+	TpModifyTime int64   `bson:"TpModifyTime"`
+	StopLoss     float64 `bson:"StopLoss"`
 }
 
 const OrderStatusOpen = "Open"

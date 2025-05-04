@@ -395,6 +395,17 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 	return
 }
 
+func (d *DomainBybitMargin) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err error) {
+	requestData := request.TpSlRequest{
+		Symbol:     tpSlRequest.CoinPare,
+		TakeProfit: tpSlRequest.TakeProfit,
+		StopLoss:   tpSlRequest.StopLoss,
+		TpSlMode:   "Full",
+	}
+	err = request.ModifyTpSl(requestData, d.secrets)
+	return
+}
+
 func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
 
 	domainOrderRequest := request.OrderRequest{

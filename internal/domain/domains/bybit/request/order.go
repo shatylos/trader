@@ -23,6 +23,13 @@ type OrderRequest struct {
 	TpTriggerBy    string  //			not mandatory
 }
 
+type TpSlRequest struct {
+	Symbol     string
+	TakeProfit float64
+	StopLoss   float64
+	TpSlMode   string // Full | Partial
+}
+
 type OrderResponse struct {
 	Symbol         string  `json:"symbol"`         // -> BTCUSDT
 	Side           string  `json:"side"`           // -> Buy
@@ -86,6 +93,25 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*Orde
 	}
 
 	return mapOrderResponse(queryResp)
+}
+
+func ModifyTpSl(orderRequest TpSlRequest, secrets bybitStructs.Secrets) (err error) {
+
+	params := ApiParams{}
+	params["category"] = "linear"
+	params["symbol"] = orderRequest.Symbol
+	params["tpslMode"] = orderRequest.TpSlMode
+	params["positionIdx"] = "0"
+
+	if orderRequest.TakeProfit > 0 {
+		params["takeProfit"] = fmt.Sprintf("%g", orderRequest.TakeProfit)
+	}
+	if orderRequest.StopLoss > 0 {
+		params["stopLoss"] = fmt.Sprintf("%g", orderRequest.StopLoss)
+	}
+
+	_, err = apiQueryPost("/v5/position/trading-stop", params, secrets)
+	return
 }
 
 func GetOrderList(coinPare string, orderId string, secrets bybitStructs.Secrets) ([]*OrderResponse, error) {
