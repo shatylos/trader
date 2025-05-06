@@ -233,26 +233,25 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 		return
 	}
 
-	now := time.Now()
-	timeToReduce := now.Add(time.Duration(f.config.HoursToReduceTP*-1) * time.Hour)
-	unixTimeToReduce := timeToReduce.Unix()
-
 	newTakeProfit := f.calculateReducedTakeProfit(internalPosition)
 	updOrder := 0
 
 	if internalPosition.Orders.Order3.CreatedTime > 0 {
+		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP3*-1) * time.Hour).Unix()
 		if internalPosition.Orders.Order3.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order3.TpModifyTime < unixTimeToReduce {
 
 			updOrder = 3
 		}
 	} else if internalPosition.Orders.Order2.CreatedTime > 0 {
+		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP2*-1) * time.Hour).Unix()
 		if internalPosition.Orders.Order2.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order2.TpModifyTime < unixTimeToReduce {
 
 			updOrder = 2
 		}
 	} else if internalPosition.Orders.Order1.CreatedTime > 0 {
+		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP1*-1) * time.Hour).Unix()
 		if internalPosition.Orders.Order1.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order1.TpModifyTime < unixTimeToReduce {
 

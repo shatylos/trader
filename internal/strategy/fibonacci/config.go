@@ -40,7 +40,9 @@ type Config struct {
 	EP1ToFullQtyPercent   float64
 	EP2ToFullQtyPercent   float64
 	EP3ToFullQtyPercent   float64
-	HoursToReduceTP       int64
+	HoursToReduceTP1      int64
+	HoursToReduceTP2      int64
+	HoursToReduceTP3      int64
 	PercentToReduceTP     int64
 }
 
@@ -329,10 +331,26 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 		}
 	}
 
-	f.config.HoursToReduceTP, err = _type.ToInt64(configMap["hours_to_reduce_tp"])
+	f.config.HoursToReduceTP1, err = _type.ToInt64(configMap["hours_to_reduce_tp_1"])
 	if err != nil {
 		return tools.AppError{
-			Message:     "The field hours_to_reduce_tp is empty or contains not correct value type. Expects int64 value",
+			Message:     "The field hours_to_reduce_tp_1 is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.HoursToReduceTP2, err = _type.ToInt64(configMap["hours_to_reduce_tp_2"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field hours_to_reduce_tp_2 is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.HoursToReduceTP3, err = _type.ToInt64(configMap["hours_to_reduce_tp_3"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field hours_to_reduce_tp_3 is empty or contains not correct value type. Expects int64 value",
 			ParentError: err,
 		}
 	}

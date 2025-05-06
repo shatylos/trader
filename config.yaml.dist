@@ -68,7 +68,9 @@ strategy:
     ep_1_to_full_qty_percent: 20
     ep_2_to_full_qty_percent: 30
     ep_3_to_full_qty_percent: 50
-    hours_to_reduce_tp: 24
+    hours_to_reduce_tp_1: 24
+    hours_to_reduce_tp_2: 48
+    hours_to_reduce_tp_3: 72
     percent_to_reduce_tp: 30
 
 domain:
