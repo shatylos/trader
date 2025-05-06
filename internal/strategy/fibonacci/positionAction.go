@@ -311,6 +311,7 @@ func (f *Fibonacci) calculateReducedTakeProfit(internalPosition structs.Position
 	if internalPosition.ProviderPosition.Side == trading.SideSell && newTakeProfit < markPrice {
 		newTakeProfit = markPrice
 	}
+	newTakeProfit = math.Round(newTakeProfit, f.config.PricePrecision)
 
 	return
 }
