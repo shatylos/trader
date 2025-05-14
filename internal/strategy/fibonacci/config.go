@@ -364,9 +364,9 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	}
 
 	f.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
-	if err != nil || f.config.WithdrawPercent == 0 {
+	if err != nil {
 		return tools.AppError{
-			Message:     "Empty value withdraw_percent",
+			Message:     "The field withdraw_percent is empty",
 			ParentError: err,
 		}
 	}
