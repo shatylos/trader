@@ -35,6 +35,7 @@ type BuyCheapSellHigh struct {
 	AvgPriceCandleLimit       int64
 	AvgPriceCandleOffset      int64
 	ManualBuyPriceBeforeStart float64
+	WithdrawPercent           float64
 }
 
 var _ _struct.StrategyInterface = (*BuyCheapSellHigh)(nil)

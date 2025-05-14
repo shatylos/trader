@@ -36,6 +36,7 @@ strategy:
     avg_price_candle_limit: 10
     avg_price_candle_offset: 2
     manual_buy_price_before_start: 20000
+    withdraw_percent: 50
 
   - code: fibonacci
     id:  BTC_USDT_FIBONACCI_1

@@ -186,6 +186,14 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 		}
 	}
 
+	s.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
+	if err != nil || s.WithdrawPercent == 0 {
+		return tools.AppError{
+			Message:     "Empty value withdraw_percent",
+			ParentError: err,
+		}
+	}
+
 	err = s.applyDomainConfig(configMap, domainConfig)
 	if err != nil {
 		return err
