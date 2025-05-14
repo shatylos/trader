@@ -61,17 +61,18 @@ strategy:
     fib_entry_point_2: 0.5
     fib_entry_point_3: 0.382
     fib_stop_loss: -0.5
-    fib_take_profit_1: 1
-    fib_take_profit_2: 1
-    fib_take_profit_3: 1
+    fib_take_profit_1: 1.25
+    fib_take_profit_2: 0.92
+    fib_take_profit_3: 0.59
     risk_percent: 5
-    ep_1_to_full_qty_percent: 20
+    ep_1_to_full_qty_percent: 10
     ep_2_to_full_qty_percent: 30
-    ep_3_to_full_qty_percent: 50
+    ep_3_to_full_qty_percent: 60
     hours_to_reduce_tp_1: 24
     hours_to_reduce_tp_2: 48
     hours_to_reduce_tp_3: 72
     percent_to_reduce_tp: 30
+    withdraw_percent: 50
 
 domain:
   bybit_spot_demo_btc:

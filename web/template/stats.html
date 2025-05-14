@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/htmx.org@1.9.2"
+            integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h"
+            crossorigin="anonymous"></script>
+
+    <title>Report</title>
+</head>
+
+<body class="bg-dark text-white">
+
+
+<div class="container">
+
+    <header class="text-center">
+        <h1>Report</h1>
+    </header>
+
+    <main class="row md-12">
+        <div class="row">
+            <div class="col-1">
+                <a href="/">Home</a>
+            </div>
+            <div class="col-1">
+                <a href="/stats/">Statistics</a>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+        <hr/>
+
+        <div class="col">
+            <div class="container">
+                <div class="row">
+                    <div class="col-3">
+                        <h5>Setup ID</h5>
+                    </div>
+                    <div class="col-2">
+                        <h5>PNL Total</h5>
+                    </div>
+                    <div class="col-2">
+                        <h5>PNL 12 months</h5>
+                    </div>
+                    <div class="col-2">
+                        <h5>PNL Last month</h5>
+                    </div>
+                    <div class="col-2">
+                        <h5>Withdrawable (Prev. Month)</h5>
+                    </div>
+                </div>
+            </div>
+            {{ range .StrategyStats }}
+            <div class="container">
+                <div class="row">
+                    <div class="col-3">
+                        {{ .SetupId }}
+                    </div>
+                    <div class="col-2">
+                        {{ .PNLTotal.Amount | longFloatShort 2 }} {{ .PNLTotal.Currency }} ({{ .PNLTotal.Percent | longFloatShort 2 }}%)
+                    </div>
+                    <div class="col-2">
+                        {{ .PNL12Months.Amount | longFloatShort 2 }} {{ .PNL12Months.Currency }} ({{ .PNL12Months.Percent | longFloatShort 2 }}%)
+                    </div>
+                    <div class="col-2">
+                        {{ .PNLLastMonth.Amount | longFloatShort 2 }} {{ .PNLLastMonth.Currency }} ({{ .PNLLastMonth.Percent | longFloatShort 2 }}%)
+                    </div>
+                    <div class="col-2">
+                        {{ .WithdrawablePrevMonth | longFloatShort 2 }} {{ .PNLLastMonth.Currency }}
+                    </div>
+                </div>
+            </div>
+
+            {{ else }}
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h5>No strategies found</h5>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

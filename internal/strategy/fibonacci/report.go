@@ -16,7 +16,7 @@ import (
 type ReportOrderItem struct {
 }
 
-type TemplateData struct {
+type ReportTemplateData struct {
 	PrevPeriodLink  string
 	NextPeriodLink  string
 	DateFrom        time.Time
@@ -46,7 +46,7 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 	positions, err = storage.GetPositions(from, to)
 	totalPnl, totalPnlPercent, balanceBefore, balanceAfter := f.reportAmounts(positions)
 
-	data := TemplateData{
+	data := ReportTemplateData{
 		PrevPeriodLink:  fmt.Sprintf("/report/%s/%s/", f.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:  fmt.Sprintf("/report/%s/%s/", f.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
 		DateFrom:        from,

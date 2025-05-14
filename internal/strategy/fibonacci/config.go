@@ -44,6 +44,7 @@ type Config struct {
 	HoursToReduceTP2      int64
 	HoursToReduceTP3      int64
 	PercentToReduceTP     int64
+	WithdrawPercent       float64
 }
 
 var resolutions = map[string]int64{
@@ -358,6 +359,14 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field percent_to_reduce_tp is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
+	if err != nil || f.config.WithdrawPercent == 0 {
+		return tools.AppError{
+			Message:     "Empty value withdraw_percent",
 			ParentError: err,
 		}
 	}

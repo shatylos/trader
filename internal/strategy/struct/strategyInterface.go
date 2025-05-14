@@ -10,6 +10,20 @@ type Report struct {
 	SetupId   string
 }
 
+type Stats struct {
+	SetupId               string
+	PNLTotal              Pnl
+	PNL12Months           Pnl
+	PNLLastMonth          Pnl
+	WithdrawablePrevMonth float64
+}
+
+type Pnl struct {
+	Amount   float64
+	Percent  float64
+	Currency string
+}
+
 type StrategyInterface interface {
 	GetId() string
 	GetTitle() string
@@ -18,6 +32,7 @@ type StrategyInterface interface {
 	Initialise() error
 	DoAction() error
 	GetReport(from time.Time, to time.Time) (Report, error)
+	GetStats() (Stats, error)
 	Wait()
 	ResetOrderData() error
 	AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error
