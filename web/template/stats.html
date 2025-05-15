@@ -84,8 +84,6 @@
                         {{ .PNLLastMonth.Amount | longFloatShort 2 }} {{ .PNLLastMonth.Currency }}
                         <br/>
                         {{ .PNLLastMonth.Percent | longFloatShort 2 }}%
-                        <br/>
-                        Av. per month {{ .PNLLastMonth.AvPercPerMonth | longFloatShort 2 }}%
                     </div>
                     <div class="col-2">
                         {{ .WithdrawablePrevMonth | longFloatShort 2 }} {{ .PNLLastMonth.Currency }}
