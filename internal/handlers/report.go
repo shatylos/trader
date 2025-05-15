@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/internal/setup"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/logger"
@@ -53,7 +54,15 @@ func SetupListController(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ReportController(w http.ResponseWriter, r *http.Request) {
+func ReportHandler(w http.ResponseWriter, r *http.Request) {
+	setupId := r.PathValue("setup_id")
+	now := time.Now()
+	redirectTo := fmt.Sprintf("/report/%s/%s/", setupId, now.AddDate(0, 0, -1).Format("2006-01"))
+
+	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+}
+
+func ReportPeriodHandler(w http.ResponseWriter, r *http.Request) {
 
 	setupId := r.PathValue("setup_id")
 	setupList := setup.GetSetupList()
