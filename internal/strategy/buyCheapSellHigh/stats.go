@@ -47,10 +47,10 @@ func (s *BuyCheapSellHigh) calculatePnl(from time.Time, to time.Time) (pnl _stru
 	startAmounts := make(map[string]float64)
 	var amount float64
 	for _, order := range orders {
-		amount += order.Revenue
+		amount += order.Revenue - order.Comission
 		date := time.Unix(order.CreatedTime, 0)
 		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
-		revPerMonth[monthKey] += order.Revenue
+		revPerMonth[monthKey] += order.Revenue - order.Comission
 
 		startAmount := math.Mul(order.TradeCurrencyAmountBefore, order.FilledPrice)
 		startAmount += order.MainCurrencyAmountBefore
