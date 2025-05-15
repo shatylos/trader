@@ -28,9 +28,16 @@
     </header>
 
     <main class="row md-12">
-        <div class="col">
-            <a href="/">Home</a>
-            <a href="/assets/{{ .StrategyReport.SetupId }}/">Assets</a>
+        <div class="row">
+            <div class="col-1">
+                <a href="/">Home</a>
+            </div>
+            <div class="col-1">
+                <a href="/stats/">Statistics</a>
+            </div>
+            <div class="col-1">
+                <a href="/assets/{{ .StrategyReport.SetupId }}/">Assets</a>
+            </div>
         </div>
 
         <div class="clearfix"></div>
