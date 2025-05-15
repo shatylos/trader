@@ -38,7 +38,7 @@ func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) 
 		return
 	}
 
-	shortTrend := trading.GetFullTrend(candles)
+	shortTrend := trading.GetFullTrend(candles, f.config.Verbose)
 	if f.config.Verbose {
 		logger.Info(fmt.Sprintf("Detected short trend: %s", shortTrend))
 	}
