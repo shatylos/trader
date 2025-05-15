@@ -23,7 +23,9 @@ func (f *Fibonacci) actionByPosition(internalPosition structs.Position, currentP
 		err = f.actionByPositionBearish(internalPosition, currentPrice)
 		break
 	case trading.TrendUnknown:
-		logger.Info(fmt.Sprintf("Trend is %s. Wait for %s or %s.", internalPosition.Trend, trading.TrendLong, trading.TrendShort))
+		if f.config.Verbose {
+			logger.Info(fmt.Sprintf("Trend is %s. Wait for %s or %s.", internalPosition.Trend, trading.TrendLong, trading.TrendShort))
+		}
 		break
 	default:
 		err = tools.AppError{
