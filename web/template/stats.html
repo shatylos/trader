@@ -67,19 +67,32 @@
                         {{ .SetupId }}
                     </div>
                     <div class="col-2">
-                        {{ .PNLTotal.Amount | longFloatShort 2 }} {{ .PNLTotal.Currency }} ({{ .PNLTotal.Percent | longFloatShort 2 }}%)
+                        {{ .PNLTotal.Amount | longFloatShort 2 }} {{ .PNLTotal.Currency }}
+                        <br/>
+                        {{ .PNLTotal.Percent | longFloatShort 2 }}%
+                        <br/>
+                        Av. per month {{ .PNLTotal.AvPercPerMonth | longFloatShort 2 }}%
                     </div>
                     <div class="col-2">
-                        {{ .PNL12Months.Amount | longFloatShort 2 }} {{ .PNL12Months.Currency }} ({{ .PNL12Months.Percent | longFloatShort 2 }}%)
+                        {{ .PNL12Months.Amount | longFloatShort 2 }} {{ .PNL12Months.Currency }}
+                        <br/>
+                        {{ .PNL12Months.Percent | longFloatShort 2 }}%
+                        <br/>
+                        Av. per month {{ .PNL12Months.AvPercPerMonth | longFloatShort 2 }}%
                     </div>
                     <div class="col-2">
-                        {{ .PNLLastMonth.Amount | longFloatShort 2 }} {{ .PNLLastMonth.Currency }} ({{ .PNLLastMonth.Percent | longFloatShort 2 }}%)
+                        {{ .PNLLastMonth.Amount | longFloatShort 2 }} {{ .PNLLastMonth.Currency }}
+                        <br/>
+                        {{ .PNLLastMonth.Percent | longFloatShort 2 }}%
+                        <br/>
+                        Av. per month {{ .PNLLastMonth.AvPercPerMonth | longFloatShort 2 }}%
                     </div>
                     <div class="col-2">
                         {{ .WithdrawablePrevMonth | longFloatShort 2 }} {{ .PNLLastMonth.Currency }}
                     </div>
                 </div>
             </div>
+            <p>&nbsp;</p>
 
             {{ else }}
             <div class="container">

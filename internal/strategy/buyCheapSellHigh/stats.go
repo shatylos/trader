@@ -1,6 +1,7 @@
 package buyCheapSellHigh
 
 import (
+	"fmt"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/structs"
@@ -42,9 +43,27 @@ func (s *BuyCheapSellHigh) calculatePnl(from time.Time, to time.Time) (pnl _stru
 		return
 	}
 
+	revPerMonth := make(map[string]float64)
+	startAmounts := make(map[string]float64)
 	var amount float64
 	for _, order := range orders {
 		amount += order.Revenue
+		date := time.Unix(order.CreatedTime, 0)
+		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
+		revPerMonth[monthKey] += order.Revenue
+
+		startAmount := math.Mul(order.TradeCurrencyAmountBefore, order.FilledPrice)
+		startAmount += order.MainCurrencyAmountBefore
+		startAmounts[monthKey] = startAmount
+	}
+
+	revPercAllMonths := 0.0
+	for monthKey, revenue := range revPerMonth {
+		revPercAllMonths += math.Div(revenue, math.Div(startAmounts[monthKey], 100))
+	}
+	avPercPerMonth := 0.0
+	if revPercAllMonths > 0.0 {
+		avPercPerMonth = math.Div(revPercAllMonths, float64(len(revPerMonth)))
 	}
 
 	firstOrder := orders[len(orders)-1]
@@ -57,9 +76,10 @@ func (s *BuyCheapSellHigh) calculatePnl(from time.Time, to time.Time) (pnl _stru
 	}
 
 	pnl = _struct.Pnl{
-		Amount:   amount,
-		Percent:  pnlPercent,
-		Currency: s.MainCurrency,
+		Amount:         amount,
+		Percent:        pnlPercent,
+		AvPercPerMonth: avPercPerMonth,
+		Currency:       s.MainCurrency,
 	}
 	return
 }

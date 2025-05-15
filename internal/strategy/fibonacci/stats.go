@@ -1,6 +1,7 @@
 package fibonacci
 
 import (
+	"fmt"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
@@ -42,9 +43,24 @@ func (f *Fibonacci) calculatePnl(from time.Time, to time.Time) (pnl _struct.Pnl,
 		return
 	}
 
+	revPerMonth := make(map[string]float64)
+	startAmounts := make(map[string]float64)
 	var amount float64
 	for _, position := range positions {
 		amount += position.TotalClosePnl
+		date := time.Unix(position.CreatedTime, 0)
+		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
+		revPerMonth[monthKey] += position.TotalClosePnl
+		startAmounts[monthKey] = position.BalanceBefore
+	}
+
+	revPercAllMonths := 0.0
+	for monthKey, revenue := range revPerMonth {
+		revPercAllMonths += math.Div(revenue, math.Div(startAmounts[monthKey], 100))
+	}
+	avPercPerMonth := 0.0
+	if revPercAllMonths > 0.0 {
+		avPercPerMonth = math.Div(revPercAllMonths, float64(len(revPerMonth)))
 	}
 
 	lastPosition := positions[len(positions)-1]
@@ -52,9 +68,10 @@ func (f *Fibonacci) calculatePnl(from time.Time, to time.Time) (pnl _struct.Pnl,
 	pnlPercent := math.Div(amount, onePercent)
 
 	pnl = _struct.Pnl{
-		Amount:   amount,
-		Percent:  pnlPercent,
-		Currency: f.config.MainCurrency,
+		Amount:         amount,
+		Percent:        pnlPercent,
+		AvPercPerMonth: avPercPerMonth,
+		Currency:       f.config.MainCurrency,
 	}
 	return
 }

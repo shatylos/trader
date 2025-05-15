@@ -19,9 +19,10 @@ type Stats struct {
 }
 
 type Pnl struct {
-	Amount   float64
-	Percent  float64
-	Currency string
+	Amount         float64
+	Percent        float64
+	AvPercPerMonth float64
+	Currency       string
 }
 
 type StrategyInterface interface {
