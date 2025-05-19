@@ -14,6 +14,7 @@ type Config struct {
 	TelegramNotifier      bool
 	MaxCandleReview       int64
 	MinCandleReview       int64
+	PrevPositionsReview   int64
 	Code                  string
 	CoinPare              string
 	MainCurrency          string
@@ -225,6 +226,14 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	if err != nil || f.config.MinCandleReview < 1 {
 		return tools.AppError{
 			Message:     "The field min_candle_review is empty or contains not correct value type. Expects int64 value more than 1",
+			ParentError: err,
+		}
+	}
+
+	f.config.PrevPositionsReview, err = _type.ToInt64(configMap["prev_positions_review"])
+	if err != nil || f.config.PrevPositionsReview < 1 {
+		return tools.AppError{
+			Message:     "The field prev_positions_review is empty or contains not correct value type. Expects int64 value more than 1",
 			ParentError: err,
 		}
 	}

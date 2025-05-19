@@ -2,8 +2,10 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -68,13 +70,20 @@ func (s *MongoStorage) SaveInternalPosition(position structs.Position) (savedPos
 	return
 }
 
-func (s *MongoStorage) GetLastInternalPosition() (position structs.Position, err error) {
+func (s *MongoStorage) GetLastInternalPosition(skip int64) (position structs.Position, err error) {
 	ctx := context.Background()
 	err = s.positionCollection.FindOne(ctx,
 		bson.D{{}},
-		options.FindOne().SetSort(
-			bson.D{{"CreatedTime", -1}},
-		)).Decode(&position)
+		options.FindOne().
+			SetSort(bson.D{{"CreatedTime", -1}}).
+			SetSkip(skip),
+	).Decode(&position)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logger.Warning(fmt.Sprintf("Not found previous positions skipping %d", skip))
+			err = nil
+		}
+	}
 	return
 }
 

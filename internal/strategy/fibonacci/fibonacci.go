@@ -56,7 +56,7 @@ func (f *Fibonacci) DoAction() (err error) {
 	if err != nil {
 		return
 	}
-	internalPosition, err = storage.GetLastInternalPosition()
+	internalPosition, err = storage.GetLastInternalPosition(0)
 
 	var providerPosition domainStructs.DomainPosition
 	providerPosition, err = f.provider.GetPosition(f.config.CoinPare)
@@ -77,7 +77,7 @@ func (f *Fibonacci) DoAction() (err error) {
 				return
 			}
 		}
-		internalPosition, err = f.calculateNewPosition(internalPosition)
+		internalPosition, err = f.calculateNewPosition()
 		internalPosition.ProviderPosition = providerPosition
 	} else if internalPosition.Status == structs.StatusActive {
 		internalPosition.ProviderPosition = providerPosition

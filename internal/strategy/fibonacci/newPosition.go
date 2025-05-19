@@ -15,10 +15,21 @@ import (
 	"time"
 )
 
-func (f *Fibonacci) calculateNewPosition(prevInternalPosition structs.Position) (position structs.Position, err error) {
+func (f *Fibonacci) calculateNewPosition() (position structs.Position, err error) {
+	var calculateFromPosition structs.Position
+	var storage mongo.MongoStorage
+	storage, err = strategyStorage.GetStorage(f.config.Id)
+	if err != nil {
+		return
+	}
+	calculateFromPosition, err = storage.GetLastInternalPosition(f.config.PrevPositionsReview - 1)
+	if err != nil {
+		return
+	}
+
 	limit := f.config.MinCandleReview
-	if prevInternalPosition.CreatedTime != 0 {
-		mins := (time.Now().Unix() - prevInternalPosition.CreatedTime) / 60
+	if calculateFromPosition.CreatedTime != 0 {
+		mins := (time.Now().Unix() - calculateFromPosition.CreatedTime) / 60
 		fromPrevLimit := mins/f.config.ResolutionMins + 2
 		if limit < fromPrevLimit {
 			limit = fromPrevLimit

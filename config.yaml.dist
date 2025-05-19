@@ -53,6 +53,7 @@ strategy:
     resolution: 15
     max_candle_review: 100
     min_candle_review: 15
+    prev_positions_review: 2
     long_trend_resolution: 60
     long_trend_candle_review: 168 # 24 * 7 - 1 week
     price_precision: 2
