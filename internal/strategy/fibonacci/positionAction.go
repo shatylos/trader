@@ -290,7 +290,11 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 		if err != nil {
 			return
 		}
-		tgNotifier.Notify(fmt.Sprintf("Reduced take profit from %g to %g", internalPosition.ProviderPosition.TakeProfit, newTakeProfit))
+		msg := fmt.Sprintf("Reduced take profit from %g to %g", internalPosition.ProviderPosition.TakeProfit, newTakeProfit)
+		logger.Info(msg)
+		if f.config.TelegramNotifier {
+			tgNotifier.Notify(msg)
+		}
 	}
 
 	return
