@@ -11,13 +11,26 @@ import (
 	"time"
 )
 
+type AssetResponseData struct {
+	Message string
+	SetupId string
+}
+
 func AssetFormHandler(w http.ResponseWriter, r *http.Request) {
+	setupInst, err := setup.GetSetupByID(r.PathValue("setup_id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
 	template, err := helper.GetTemplate("web/template/assets.html")
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
-	err = template.Execute(w, nil)
+	err = template.Execute(w, AssetResponseData{
+		SetupId: setupInst.ID,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -75,10 +88,8 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type AssetResponseData struct {
-		Message string
-	}
 	err = template.Execute(w, AssetResponseData{
 		Message: "Success",
+		SetupId: setupInst.ID,
 	})
 }

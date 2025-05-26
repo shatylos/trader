@@ -15,7 +15,11 @@ func GetTemplate(fileName string) (*template.Template, error) {
 		"dateFormat":         dateFormat,
 		"dateFormatFromUnix": dateFormatFromUnix,
 		"longFloatShort":     longFloatShort,
-	}).ParseFiles(fileName)
+	}).ParseFiles(
+		fileName,
+		"web/template/widget/baseMenu.html",
+		"web/template/widget/menu.html",
+	)
 
 	if err != nil {
 		return nil, err

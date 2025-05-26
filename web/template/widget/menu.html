@@ -1,0 +1,16 @@
+{{define "menu"}}
+<div class="row">
+    <div class="col-1">
+        <a href="/">Home</a>
+    </div>
+    <div class="col-1">
+        <a href="/stats/">Statistics</a>
+    </div>
+    <div class="col-1">
+        <a href="/report/{{ .SetupId }}/">Report</a>
+    </div>
+    <div class="col-1">
+        <a href="/assets/{{ .SetupId }}/">Assets</a>
+    </div>
+</div>
+{{end}}
