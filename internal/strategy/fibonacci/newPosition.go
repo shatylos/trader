@@ -393,6 +393,7 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 	}
 
 	internalPosition.Status = structs.StatusClosed
+	internalPosition.ClosedTime = time.Now().Unix()
 
 	availableBalance := float64(0)
 	availableBalance, err = f.getAvailableBalance()

@@ -12,6 +12,7 @@ type Position struct {
 	Orders           PositionOrders               `bson:"Orders"`
 	CreatedTime      int64                        `bson:"CreatedTime"`
 	UpdatedTime      int64                        `bson:"UpdatedTime"`
+	ClosedTime       int64                        `bson:"ClosedTime"`
 	Status           string                       `bson:"Status"`
 	ProviderPosition domainStructs.DomainPosition `bson:"ProviderPosition"`
 	BalanceBefore    float64                      `bson:"BalanceBefore"`

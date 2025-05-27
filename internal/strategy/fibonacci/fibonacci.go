@@ -103,8 +103,3 @@ func (f *Fibonacci) ResetOrderData() error {
 	//TODO implement me
 	panic("implement me")
 }
-
-func (f *Fibonacci) AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error {
-	//TODO implement me
-	panic("implement me")
-}
