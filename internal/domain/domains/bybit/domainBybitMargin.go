@@ -2,7 +2,6 @@ package bybit
 
 import (
 	"fmt"
-	"github.com/shatylos/trader/internal/domain/constant"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
@@ -99,10 +98,6 @@ func (d *DomainBybitMargin) SetConfig(config map[interface{}]interface{}) error 
 
 	d.secrets = secrets
 	return nil
-}
-
-func (d *DomainBybitMargin) GetType() int64 {
-	return constant.DomainTypeMargin
 }
 
 func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {

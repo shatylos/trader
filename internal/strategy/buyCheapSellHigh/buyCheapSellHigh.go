@@ -3,10 +3,8 @@ package buyCheapSellHigh
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
-	"github.com/shatylos/trader/internal/domain/constant"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	tradeConst "github.com/shatylos/trader/internal/trading/constant"
-	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"time"
 )
@@ -15,7 +13,7 @@ type BuyCheapSellHigh struct {
 	isInit                    bool
 	Id                        string
 	CoinPare                  string
-	Domain                    domain.DomainInterface
+	Domain                    domain.SpotDomainInterface
 	MainCurrency              string
 	TradeCurrency             string
 	Resolution                string
@@ -53,11 +51,7 @@ func (s *BuyCheapSellHigh) GetTitle() string {
 }
 
 func (s *BuyCheapSellHigh) Initialise() error {
-	if s.Domain.GetType() != constant.DomainTypeSpot {
-		return tools.AppError{
-			Message: "Strategy buyCheapSellHigh works only with spot domain type",
-		}
-	}
+	// @TODO: remove the method
 	s.isInit = true
 	return nil
 }

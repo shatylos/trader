@@ -223,7 +223,7 @@ func (s *BuyCheapSellHigh) applyDomainConfig(configMap map[interface{}]interface
 			ParentError: err,
 		}
 	}
-	domainItem, err := domain.GetDomainInterface(domainCode)
+	domainItem, err := domain.GetSpotDomain(domainCode)
 	if err != nil {
 		return err
 	}

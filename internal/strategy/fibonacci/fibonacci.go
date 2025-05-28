@@ -3,12 +3,10 @@ package fibonacci
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
-	"github.com/shatylos/trader/internal/domain/constant"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
-	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"time"
 )
@@ -16,7 +14,7 @@ import (
 type Fibonacci struct {
 	isInit   bool
 	config   Config
-	provider domain.DomainInterface
+	provider domain.MarginDomainInterface
 }
 
 func (f *Fibonacci) GetId() string {
@@ -32,11 +30,6 @@ func (f *Fibonacci) IsInit() bool {
 }
 
 func (f *Fibonacci) Initialise() error {
-	if f.provider.GetType() != constant.DomainTypeMargin {
-		return tools.AppError{
-			Message: "Strategy fibonacci works only with Derivatives provider type",
-		}
-	}
 	f.isInit = true
 	return nil
 }

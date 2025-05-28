@@ -1,7 +1,6 @@
 package bybit
 
 import (
-	"github.com/shatylos/trader/internal/domain/constant"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
@@ -15,10 +14,6 @@ import (
 type DomainBybitSpot struct {
 	code    string
 	secrets bybitStructs.Secrets
-}
-
-func (d *DomainBybitSpot) GetType() int64 {
-	return constant.DomainTypeSpot
 }
 
 func (d *DomainBybitSpot) GetCode() string {
@@ -242,17 +237,6 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 	})
 
 	return domainOrders, nil
-}
-
-func (d *DomainBybitSpot) GetPosition(coinPare string) (structs.DomainPosition, error) {
-	panic("Not implemented")
-}
-
-func (d *DomainBybitSpot) OpenPosition(positionRequest structs.DomainPositionRequest) (string, error) {
-	panic("Not implemented")
-}
-func (d *DomainBybitSpot) ModifyTpSl(tpSlRequest structs.TpSlRequest) error {
-	panic("Not implemented")
 }
 
 func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
