@@ -26,18 +26,18 @@ const (
 	SideSell = "Sell"
 )
 
-type DomainBybitMargin struct {
+type DomainBybitFutures struct {
 	code     string
 	secrets  bybitStructs.Secrets
 	leverage int64
 }
 
-func (d *DomainBybitMargin) GetCode() string {
+func (d *DomainBybitFutures) GetCode() string {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (d *DomainBybitMargin) SetConfig(config map[interface{}]interface{}) error {
+func (d *DomainBybitFutures) SetConfig(config map[interface{}]interface{}) error {
 
 	secretMap, ok := config["secrets"].(map[interface{}]interface{})
 	if !ok {
@@ -100,8 +100,8 @@ func (d *DomainBybitMargin) SetConfig(config map[interface{}]interface{}) error 
 	return nil
 }
 
-func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {
-	walletBalance, er := request.GetMarginWalletBalance(d.secrets)
+func (d *DomainBybitFutures) GetWallet() (*structs.DomainWallet, error) {
+	walletBalance, er := request.GetFuturesWalletBalance(d.secrets)
 	if er != nil {
 		return nil, er
 	}
@@ -132,7 +132,7 @@ func (d *DomainBybitMargin) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
+func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
 
 	candles, err := request.GetKlineList(symbol, resolution, from, limit, d.secrets)
 	if err != nil {
@@ -180,7 +180,7 @@ func (d *DomainBybitMargin) LoadCandleHistory(symbol string, resolution string, 
 	return candlesResult, nil
 }
 
-func (d *DomainBybitMargin) GetOrder(orderId string) (order structs.DomainOrder, err error) {
+func (d *DomainBybitFutures) GetOrder(orderId string) (order structs.DomainOrder, err error) {
 	var orders []*request.OrderResponse
 	orders, err = request.GetOrderList("", orderId, d.secrets)
 	if err != nil {
@@ -196,7 +196,7 @@ func (d *DomainBybitMargin) GetOrder(orderId string) (order structs.DomainOrder,
 	return
 }
 
-func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
+func (d *DomainBybitFutures) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
 	orders, err := request.GetOrderList(coinPare, "", d.secrets)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (d *DomainBybitMargin) GetOpenOrderList(coinPare string) ([]structs.DomainO
 	return domainOrders, nil
 }
 
-func (d *DomainBybitMargin) mapOrder(order *request.OrderResponse) (domainOrder structs.DomainOrder, err error) {
+func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder structs.DomainOrder, err error) {
 	createdTime, er := _type.ToInt64(order.CreatedTime)
 	if er != nil {
 		err = er
@@ -267,7 +267,7 @@ func (d *DomainBybitMargin) mapOrder(order *request.OrderResponse) (domainOrder 
 	return
 }
 
-func (d *DomainBybitMargin) mapStatus(providerStatus string) string {
+func (d *DomainBybitFutures) mapStatus(providerStatus string) string {
 	switch providerStatus {
 	case orderStatusOpenNew:
 		return structs.OrderStatusOpen
@@ -291,7 +291,7 @@ func (d *DomainBybitMargin) mapStatus(providerStatus string) string {
 	return ""
 }
 
-func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs.DomainPosition, err error) {
+func (d *DomainBybitFutures) GetPosition(coinPare string) (resultPosition structs.DomainPosition, err error) {
 	var providerPosition request.Position
 	providerPosition, err = request.GetPosition(coinPare, d.secrets)
 	if err != nil {
@@ -356,7 +356,7 @@ func (d *DomainBybitMargin) GetPosition(coinPare string) (resultPosition structs
 	return
 }
 
-func (d *DomainBybitMargin) setLeverage(symbol string, leverage int64) (err error) {
+func (d *DomainBybitFutures) setLeverage(symbol string, leverage int64) (err error) {
 	leverageRequest := request.LeverageRequest{
 		Symbol:       symbol,
 		BuyLeverage:  leverage,
@@ -367,7 +367,7 @@ func (d *DomainBybitMargin) setLeverage(symbol string, leverage int64) (err erro
 	return
 }
 
-func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionRequest) (orderId string, err error) {
+func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPositionRequest) (orderId string, err error) {
 
 	if d.leverage == 0 && positionRequest.Leverage > 0 {
 		err = d.setLeverage(positionRequest.Symbol, positionRequest.Leverage)
@@ -403,7 +403,7 @@ func (d *DomainBybitMargin) OpenPosition(positionRequest structs.DomainPositionR
 	return
 }
 
-func (d *DomainBybitMargin) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err error) {
+func (d *DomainBybitFutures) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err error) {
 	requestData := request.TpSlRequest{
 		Symbol:     tpSlRequest.CoinPare,
 		TakeProfit: tpSlRequest.TakeProfit,
@@ -414,7 +414,7 @@ func (d *DomainBybitMargin) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err err
 	return
 }
 
-func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
+func (d *DomainBybitFutures) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
 
 	domainOrderRequest := request.OrderRequest{
 		CloseOnTrigger: false,
@@ -435,10 +435,10 @@ func (d *DomainBybitMargin) OpenOrder(orderRequest structs.DomainOrderRequest) (
 	return order.OrderId, nil
 }
 
-func (d *DomainBybitMargin) CancelOrder(orderId string, coinPare string) error {
+func (d *DomainBybitFutures) CancelOrder(orderId string, coinPare string) error {
 	panic("Not implemented")
 }
 
-func (d *DomainBybitMargin) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
+func (d *DomainBybitFutures) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
 	panic("Not implemented")
 }

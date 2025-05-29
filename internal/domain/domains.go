@@ -7,9 +7,9 @@ import (
 	"github.com/shatylos/trader/tools"
 )
 
-const DomainBybitMargin = "bybitMargin"
+const DomainBybitFutures = "bybitMargin"
 const DomainBybitSpot = "bybitSpot"
-const DomainBinanceMargin = "binanceMargin"
+const DomainBinanceFutures = "binanceFutures"
 const DomainBinanceSpot = "binanceSpot"
 
 func GetSpotDomain(domainCode string) (SpotDomainInterface, error) {
@@ -26,16 +26,16 @@ func GetSpotDomain(domainCode string) (SpotDomainInterface, error) {
 	}
 }
 
-func GetMarginDomain(domainCode string) (MarginDomainInterface, error) {
+func GetFuturesDomain(domainCode string) (FuturesDomainInterface, error) {
 
 	switch domainCode {
-	case DomainBybitMargin:
-		return &bybit.DomainBybitMargin{}, nil
-	case DomainBinanceMargin:
-		return &binance.DomainBinanceMargin{}, nil
+	case DomainBybitFutures:
+		return &bybit.DomainBybitFutures{}, nil
+	case DomainBinanceFutures:
+		return &binance.DomainBinanceFutures{}, nil
 	}
 
 	return nil, tools.AppError{
-		Message: fmt.Sprintf("margin domain with code \"%s\" not implemented", domainCode),
+		Message: fmt.Sprintf("futures domain with code \"%s\" not implemented", domainCode),
 	}
 }

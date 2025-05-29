@@ -16,7 +16,7 @@ type SpotDomainInterface interface {
 	GetCode() string
 }
 
-type MarginDomainInterface interface {
+type FuturesDomainInterface interface {
 	GetOrder(domainId string) (structs.DomainOrder, error)
 	GetPosition(coinPare string) (structs.DomainPosition, error)
 	GetWallet() (*structs.DomainWallet, error)

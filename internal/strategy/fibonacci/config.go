@@ -409,7 +409,7 @@ func (f *Fibonacci) applyDomainConfig(configMap map[interface{}]interface{}, dom
 			ParentError: err,
 		}
 	}
-	domainItem, err := domain.GetMarginDomain(domainCode)
+	domainItem, err := domain.GetFuturesDomain(domainCode)
 	if err != nil {
 		return err
 	}

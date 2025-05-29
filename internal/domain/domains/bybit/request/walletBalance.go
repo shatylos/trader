@@ -16,7 +16,7 @@ type MarginWalletBalance struct {
 	TotalWalletBalance    float64 `json:"totalWalletBalance"`
 }
 
-func GetMarginWalletBalance(secrets bybitStructs.Secrets) (response MarginWalletBalance, err error) {
+func GetFuturesWalletBalance(secrets bybitStructs.Secrets) (response MarginWalletBalance, err error) {
 	params := make(ApiParams, 0)
 	params["accountType"] = "UNIFIED"
 	queryResp, er := apiQueryGet("/v5/account/wallet-balance", params, secrets)

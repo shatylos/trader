@@ -14,7 +14,7 @@ import (
 type Fibonacci struct {
 	isInit   bool
 	config   Config
-	provider domain.MarginDomainInterface
+	provider domain.FuturesDomainInterface
 }
 
 func (f *Fibonacci) GetId() string {
