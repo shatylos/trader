@@ -1,4 +1,4 @@
-package binance
+package binanceSpot
 
 import (
 	"github.com/shatylos/trader/internal/domain/structs"
@@ -23,7 +23,7 @@ func (d *DomainBinanceSpot) GetWallet() (wallet *structs.DomainWallet, err error
 	return
 }
 
-func (d *DomainBinanceSpot) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) (candles []structs.DomainCandle, err error) {
+func (d *DomainBinanceSpot) LoadCandleHistory(symbol string, resolution string, limit int64) (candles []structs.DomainCandle, err error) {
 	panic("Not implemented")
 	return
 }

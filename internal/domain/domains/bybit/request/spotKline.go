@@ -31,12 +31,11 @@ type SpotCandle struct {
 	Volume    string `json:"v"` //	Trading volume
 }
 
-func GetSpotKlineList(symbol string, resolution string, from int64, limit int64, secrets bybitStructs.Secrets) ([]SpotCandle, error) {
+func GetSpotKlineList(symbol string, resolution string, limit int64, secrets bybitStructs.Secrets) ([]SpotCandle, error) {
 	params := make(ApiParams, 0)
 	params["category"] = "spot"
 	params["symbol"] = symbol
 	params["interval"] = SpotMinToResol[resolution]
-	params["start"] = strconv.FormatInt(from*1000, 10)
 	params["limit"] = strconv.FormatInt(limit, 10)
 
 	queryResp, er := apiQueryGet("/v5/market/kline", params, secrets)

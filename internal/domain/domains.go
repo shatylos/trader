@@ -2,7 +2,8 @@ package domain
 
 import (
 	"fmt"
-	"github.com/shatylos/trader/internal/domain/domains/binance"
+	"github.com/shatylos/trader/internal/domain/domains/binanceFeatures"
+	"github.com/shatylos/trader/internal/domain/domains/binanceSpot"
 	"github.com/shatylos/trader/internal/domain/domains/bybit"
 	"github.com/shatylos/trader/tools"
 )
@@ -18,7 +19,7 @@ func GetSpotDomain(domainCode string) (SpotDomainInterface, error) {
 	case DomainBybitSpot:
 		return &bybit.DomainBybitSpot{}, nil
 	case DomainBinanceSpot:
-		return &binance.DomainBinanceSpot{}, nil
+		return &binanceSpot.DomainBinanceSpot{}, nil
 	}
 
 	return nil, tools.AppError{
@@ -32,7 +33,7 @@ func GetFuturesDomain(domainCode string) (FuturesDomainInterface, error) {
 	case DomainBybitFutures:
 		return &bybit.DomainBybitFutures{}, nil
 	case DomainBinanceFutures:
-		return &binance.DomainBinanceFutures{}, nil
+		return &binanceFeatures.DomainBinanceFutures{}, nil
 	}
 
 	return nil, tools.AppError{

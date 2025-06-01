@@ -4,12 +4,11 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
-	"time"
 )
 
 func (f *Fibonacci) getCurrentPrice() (currentPrice float64, err error) {
 	var candles []domainStructs.DomainCandle
-	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, time.Now().Unix(), 1)
+	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, 1)
 	if err != nil {
 		return
 	}

@@ -18,7 +18,7 @@ type Candle struct {
 	Turnover   string `json:"6"`
 }
 
-func GetKlineList(symbol string, resolution string, from int64, limit int64, secrets bybitStructs.Secrets) ([]Candle, error) {
+func GetKlineList(symbol string, resolution string, limit int64, secrets bybitStructs.Secrets) ([]Candle, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = symbol
 	params["interval"] = resolution

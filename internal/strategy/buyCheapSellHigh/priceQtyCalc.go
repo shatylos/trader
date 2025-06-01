@@ -3,7 +3,6 @@ package buyCheapSellHigh
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
-	tradeConst "github.com/shatylos/trader/internal/trading/constant"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	toolsMath "github.com/shatylos/trader/tools/math"
@@ -43,11 +42,8 @@ func (s *BuyCheapSellHigh) getPricesAndQtysToNewOrders(historyOrders []structs.D
 }
 
 func (s *BuyCheapSellHigh) loadCandles() ([]structs.DomainCandle, error) {
-	now := time.Now()
-	to := now.Unix()
 	candleAmount := s.AvgPriceCandleOffset + s.AvgPriceCandleLimit
-	from := to - (tradeConst.ResolToSec[s.Resolution] * candleAmount)
-	return s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, from, candleAmount)
+	return s.Domain.LoadCandleHistory(s.CoinPare, s.Resolution, candleAmount)
 }
 
 func (s *BuyCheapSellHigh) getCurrentPrice(candles []structs.DomainCandle) (float64, error) {

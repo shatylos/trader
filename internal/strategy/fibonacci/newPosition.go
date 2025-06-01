@@ -40,11 +40,11 @@ func (f *Fibonacci) calculateNewPosition() (position structs.Position, err error
 	}
 
 	var candles, ltCandles []domainStructs.DomainCandle
-	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, time.Now().Unix(), limit)
+	candles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.Resolution, limit)
 	if err != nil {
 		return
 	}
-	ltCandles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.LongTrendResolution, time.Now().Unix(), f.config.LongTrendCandleReview)
+	ltCandles, err = f.provider.LoadCandleHistory(f.config.CoinPare, f.config.LongTrendResolution, f.config.LongTrendCandleReview)
 	if err != nil {
 		return
 	}

@@ -57,7 +57,7 @@ func SetupListController(w http.ResponseWriter, r *http.Request) {
 func ReportHandler(w http.ResponseWriter, r *http.Request) {
 	setupId := r.PathValue("setup_id")
 	now := time.Now()
-	redirectTo := fmt.Sprintf("/report/%s/%s/", setupId, now.AddDate(0, 0, -1).Format("2006-01"))
+	redirectTo := fmt.Sprintf("/report/%s/%s/", setupId, now.Format("2006-01"))
 
 	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
 }

@@ -33,8 +33,7 @@ type DomainBybitFutures struct {
 }
 
 func (d *DomainBybitFutures) GetCode() string {
-	//TODO implement me
-	panic("implement me")
+	return d.code
 }
 
 func (d *DomainBybitFutures) SetConfig(config map[interface{}]interface{}) error {
@@ -132,9 +131,9 @@ func (d *DomainBybitFutures) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
+func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {
 
-	candles, err := request.GetKlineList(symbol, resolution, from, limit, d.secrets)
+	candles, err := request.GetKlineList(symbol, resolution, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}

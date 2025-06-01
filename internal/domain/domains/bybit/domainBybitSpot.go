@@ -103,8 +103,8 @@ func (d *DomainBybitSpot) GetWallet() (*structs.DomainWallet, error) {
 	return &result, nil
 }
 
-func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, from int64, limit int64) ([]structs.DomainCandle, error) {
-	candles, err := request.GetSpotKlineList(symbol, resolution, from, limit, d.secrets)
+func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {
+	candles, err := request.GetSpotKlineList(symbol, resolution, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}
