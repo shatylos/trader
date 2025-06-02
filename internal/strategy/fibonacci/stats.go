@@ -47,6 +47,9 @@ func (f *Fibonacci) calculatePnl(from time.Time, to time.Time) (pnl _struct.Pnl,
 	startAmounts := make(map[string]float64)
 	var amount float64
 	for _, position := range positions {
+		if position.Status == structs.StatusActive {
+			continue
+		}
 		amount += position.TotalClosePnl
 		date := time.Unix(position.CreatedTime, 0)
 		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
