@@ -237,9 +237,18 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 
 	newTakeProfit := f.calculateReducedTakeProfit(internalPosition)
 	updOrder := 0
+	isOpenTooMuchTime := false
+	tooMuctTimeBarrier := time.Unix(internalPosition.CreatedTime, 0).Add(time.Duration(f.config.PositionTooMuchTimeHours) * time.Hour)
+
+	if time.Now().Unix() > tooMuctTimeBarrier.Unix() {
+		isOpenTooMuchTime = true
+	}
 
 	if internalPosition.Orders.Order3.CreatedTime > 0 {
 		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP3*-1) * time.Hour).Unix()
+		if isOpenTooMuchTime {
+			unixTimeToReduce = time.Now().Add(time.Duration(f.config.HoursToReduceTP3LT*-1) * time.Hour).Unix()
+		}
 		if internalPosition.Orders.Order3.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order3.TpModifyTime < unixTimeToReduce {
 
@@ -247,6 +256,9 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 		}
 	} else if internalPosition.Orders.Order2.CreatedTime > 0 {
 		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP2*-1) * time.Hour).Unix()
+		if isOpenTooMuchTime {
+			unixTimeToReduce = time.Now().Add(time.Duration(f.config.HoursToReduceTP2LT*-1) * time.Hour).Unix()
+		}
 		if internalPosition.Orders.Order2.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order2.TpModifyTime < unixTimeToReduce {
 
@@ -254,6 +266,9 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 		}
 	} else if internalPosition.Orders.Order1.CreatedTime > 0 {
 		unixTimeToReduce := time.Now().Add(time.Duration(f.config.HoursToReduceTP1*-1) * time.Hour).Unix()
+		if isOpenTooMuchTime {
+			unixTimeToReduce = time.Now().Add(time.Duration(f.config.HoursToReduceTP1LT*-1) * time.Hour).Unix()
+		}
 		if internalPosition.Orders.Order1.CreatedTime < unixTimeToReduce &&
 			internalPosition.Orders.Order1.TpModifyTime < unixTimeToReduce {
 

@@ -9,43 +9,47 @@ import (
 )
 
 type Config struct {
-	Enabled               bool
-	Verbose               bool
-	TelegramNotifier      bool
-	MaxCandleReview       int64
-	MinCandleReview       int64
-	PrevPositionsReview   int64
-	Code                  string
-	CoinPare              string
-	MainCurrency          string
-	TradeCurrency         string
-	MinDepo               float64
-	Leverage              int64
-	Id                    string
-	Resolution            string
-	ResolutionMins        int64
-	LongTrendResolution   string
-	LongTrendCandleReview int64
-	TimeoutSeconds        time.Duration
-	QtyPrecision          int64
-	MinQty                float64
-	PricePrecision        int64
-	FibEntryPoint1        float64
-	FibEntryPoint2        float64
-	FibEntryPoint3        float64
-	FibStopLoss           float64
-	FibTakeProfit1        float64
-	FibTakeProfit2        float64
-	FibTakeProfit3        float64
-	RiskPercent           float64
-	EP1ToFullQtyPercent   float64
-	EP2ToFullQtyPercent   float64
-	EP3ToFullQtyPercent   float64
-	HoursToReduceTP1      int64
-	HoursToReduceTP2      int64
-	HoursToReduceTP3      int64
-	PercentToReduceTP     int64
-	WithdrawPercent       float64
+	Enabled                  bool
+	Verbose                  bool
+	TelegramNotifier         bool
+	MaxCandleReview          int64
+	MinCandleReview          int64
+	PrevPositionsReview      int64
+	Code                     string
+	CoinPare                 string
+	MainCurrency             string
+	TradeCurrency            string
+	MinDepo                  float64
+	Leverage                 int64
+	Id                       string
+	Resolution               string
+	ResolutionMins           int64
+	LongTrendResolution      string
+	LongTrendCandleReview    int64
+	TimeoutSeconds           time.Duration
+	QtyPrecision             int64
+	MinQty                   float64
+	PricePrecision           int64
+	FibEntryPoint1           float64
+	FibEntryPoint2           float64
+	FibEntryPoint3           float64
+	FibStopLoss              float64
+	FibTakeProfit1           float64
+	FibTakeProfit2           float64
+	FibTakeProfit3           float64
+	RiskPercent              float64
+	EP1ToFullQtyPercent      float64
+	EP2ToFullQtyPercent      float64
+	EP3ToFullQtyPercent      float64
+	HoursToReduceTP1         int64
+	HoursToReduceTP1LT       int64
+	HoursToReduceTP2         int64
+	HoursToReduceTP2LT       int64
+	HoursToReduceTP3         int64
+	HoursToReduceTP3LT       int64
+	PositionTooMuchTimeHours int64
+	PercentToReduceTP        int64
+	WithdrawPercent          float64
 }
 
 var resolutions = map[string]int64{
@@ -349,10 +353,26 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 		}
 	}
 
+	f.config.HoursToReduceTP1LT, err = _type.ToInt64(configMap["hours_to_reduce_tp_1_lt"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field hours_to_reduce_tp_1_lt is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
 	f.config.HoursToReduceTP2, err = _type.ToInt64(configMap["hours_to_reduce_tp_2"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field hours_to_reduce_tp_2 is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.HoursToReduceTP2LT, err = _type.ToInt64(configMap["hours_to_reduce_tp_2_lt"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field hours_to_reduce_tp_2_lt is empty or contains not correct value type. Expects int64 value",
 			ParentError: err,
 		}
 	}
@@ -364,10 +384,27 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 			ParentError: err,
 		}
 	}
+
+	f.config.HoursToReduceTP3LT, err = _type.ToInt64(configMap["hours_to_reduce_tp_3_lt"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field hours_to_reduce_tp_3_lt is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
 	f.config.PercentToReduceTP, err = _type.ToInt64(configMap["percent_to_reduce_tp"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field percent_to_reduce_tp is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	f.config.PositionTooMuchTimeHours, err = _type.ToInt64(configMap["position_too_much_time_hours"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field position_too_much_time_hours is empty or contains not correct value type. Expects int64 value",
 			ParentError: err,
 		}
 	}
