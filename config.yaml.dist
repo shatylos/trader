@@ -71,9 +71,13 @@ strategy:
     ep_2_to_full_qty_percent: 30
     ep_3_to_full_qty_percent: 60
     hours_to_reduce_tp_1: 24
+    hours_to_reduce_tp_1_lt: 6
     hours_to_reduce_tp_2: 48
+    hours_to_reduce_tp_2_lt: 12
     hours_to_reduce_tp_3: 72
+    hours_to_reduce_tp_3_lt: 24
     percent_to_reduce_tp: 30
+    position_too_much_time_hours: 168 # 24 * 7 - 1 week
     withdraw_percent: 50
 
 domain:
