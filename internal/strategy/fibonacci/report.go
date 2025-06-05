@@ -29,6 +29,8 @@ type ReportTemplateData struct {
 	TotalPnlPercent float64
 	BalanceBefore   float64
 	BalanceAfter    float64
+	DepoAmount      float64
+	WithdrawAmount  float64
 }
 
 func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
@@ -42,9 +44,13 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 	if err != nil {
 		return
 	}
+
 	var positions []structs.Position
 	positions, err = storage.GetPositions(from, to)
-	totalPnl, totalPnlPercent, balanceBefore, balanceAfter := f.reportAmounts(positions)
+
+	var assets []structs.AssetTransaction
+	assets, err = storage.GetAssetTransactions(from, to)
+	totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := f.reportAmounts(positions, assets)
 
 	data := ReportTemplateData{
 		PrevPeriodLink:  fmt.Sprintf("/report/%s/%s/", f.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
@@ -59,6 +65,8 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 		TotalPnlPercent: totalPnlPercent,
 		BalanceBefore:   balanceBefore,
 		BalanceAfter:    balanceAfter,
+		DepoAmount:      depoAmount,
+		WithdrawAmount:  withdrawAmount,
 	}
 
 	var resultBuilder strings.Builder
@@ -76,7 +84,7 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 	return
 }
 
-func (f *Fibonacci) reportAmounts(positions []structs.Position) (totalPnl float64, totalPnlPercent float64, balanceBefore float64, balanceAfter float64) {
+func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs.AssetTransaction) (totalPnl float64, totalPnlPercent float64, balanceBefore float64, balanceAfter float64, depoAmount float64, withdrawAmount float64) {
 	filteredPositions := []structs.Position{}
 	for _, position := range positions {
 		if position.Status == structs.StatusClosed {
@@ -88,6 +96,19 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position) (totalPnl float6
 		balanceAfter = filteredPositions[0].BalanceAfter
 	}
 	totalPnl = balanceAfter - balanceBefore
+
+	for _, asset := range assets {
+		switch asset.TransactionType {
+		case "deposit":
+			depoAmount += asset.Amount
+		case "withdraw":
+			withdrawAmount += asset.Amount
+		}
+	}
+
+	totalPnl += withdrawAmount
+	totalPnl -= depoAmount
+
 	if balanceBefore > 0 {
 		onePercent := math.Div(balanceBefore, 100)
 		amountDiff := balanceAfter - balanceBefore

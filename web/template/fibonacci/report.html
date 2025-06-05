@@ -23,6 +23,12 @@
         Balance before: {{ .BalanceBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}
     </div>
     <div>
+        Deposit amount: {{ .DepoAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    </div>
+    <div>
+        Withdraw amount: {{ .WithdrawAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    </div>
+    <div>
         Balance after: {{ .BalanceAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}
     </div>
 </div>
