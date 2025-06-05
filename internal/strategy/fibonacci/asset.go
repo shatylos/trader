@@ -16,21 +16,22 @@ func (f *Fibonacci) AddAssetTransaction(amount float64, dateTime time.Time, tran
 		return
 	}
 
-	err = storage.AddAssetTransaction(structs.AssetTransaction{
-		TransactionType: transactionType,
-		Amount:          amount,
-		CreatedTime:     dateTime.Unix(),
-	})
-	if err != nil {
-		return
-	}
-
 	modifyAmount := amount
 	if transactionType == "withdraw" {
 		modifyAmount *= -1
 	}
 
-	err = modifyPosition(storage, dateTime, modifyAmount)
+	var positionDateTime time.Time
+	positionDateTime, err = modifyPosition(storage, dateTime, modifyAmount)
+	if err != nil {
+		return
+	}
+
+	err = storage.AddAssetTransaction(structs.AssetTransaction{
+		TransactionType: transactionType,
+		Amount:          amount,
+		CreatedTime:     positionDateTime.Unix(),
+	})
 	if err != nil {
 		return
 	}
@@ -38,17 +39,19 @@ func (f *Fibonacci) AddAssetTransaction(amount float64, dateTime time.Time, tran
 	return
 }
 
-func modifyPosition(storage mongo.MongoStorage, dateTime time.Time, amount float64) (err error) {
+func modifyPosition(storage mongo.MongoStorage, dateTime time.Time, amount float64) (positionDateTime time.Time, err error) {
 	var position structs.Position
 	position, err = storage.GetInternalPositionCreatedBeforeTime(dateTime)
 	if err != nil {
 		return
 	}
+	positionDateTime = dateTime
 
 	if position.Id != nil &&
 		(position.Status == structs.StatusActive ||
 			(position.Status == structs.StatusClosed && position.ClosedTime > dateTime.Unix())) {
 
+		positionDateTime = time.Unix(position.CreatedTime, 0)
 		newBalanceBefore := position.BalanceBefore + amount
 		logger.Info(fmt.Sprintf("Changed position %s. Old BalanceBefore %g. New BalanceBefore %g", *position.Id, position.BalanceBefore, newBalanceBefore))
 		position.BalanceBefore = newBalanceBefore
