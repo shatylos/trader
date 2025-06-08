@@ -7,7 +7,7 @@ import (
 type SpotDomainInterface interface {
 	GetOrder(domainId string) (structs.DomainOrder, error)
 	GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error)
-	GetWallet() (*structs.DomainWallet, error)
+	GetWallet() (structs.DomainWallet, error)
 	LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error)
 	OpenOrder(orderRequest structs.DomainOrderRequest) (string, error)
 	CancelOrder(orderId string, coinPare string) error
@@ -19,7 +19,7 @@ type SpotDomainInterface interface {
 type FuturesDomainInterface interface {
 	GetOrder(domainId string) (structs.DomainOrder, error)
 	GetPosition(coinPare string) (structs.DomainPosition, error)
-	GetWallet() (*structs.DomainWallet, error)
+	GetWallet() (structs.DomainWallet, error)
 	LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error)
 	OpenPosition(positionRequest structs.DomainPositionRequest) (string, error)
 	ModifyTpSl(tpSlRequest structs.TpSlRequest) error

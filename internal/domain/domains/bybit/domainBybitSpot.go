@@ -67,23 +67,26 @@ func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) error {
 	return nil
 }
 
-func (d *DomainBybitSpot) GetWallet() (*structs.DomainWallet, error) {
-	walletBalances, er := request.GetSpotWalletBalance(d.secrets)
-	if er != nil {
-		return nil, er
+func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
+	var walletBalances *map[string]request.SpotWalletBalance
+	walletBalances, err = request.GetSpotWalletBalance(d.secrets)
+	if err != nil {
+		return
 	}
 
 	var availableCoins []structs.DomainWalletCoinItem
 	var reservedCoins []structs.DomainWalletCoinItem
 
 	for coinCode, walletBalance := range *walletBalances {
-		free, err := strconv.ParseFloat(walletBalance.Free, 64)
+		var free float64
+		free, err = strconv.ParseFloat(walletBalance.Free, 64)
 		if err != nil {
-			return nil, err
+			return
 		}
-		locked, err := strconv.ParseFloat(walletBalance.Locked, 64)
+		var locked float64
+		locked, err = strconv.ParseFloat(walletBalance.Locked, 64)
 		if err != nil {
-			return nil, err
+			return
 		}
 		availableCoins = append(availableCoins, structs.DomainWalletCoinItem{
 			Coin:   coinCode,
@@ -95,12 +98,11 @@ func (d *DomainBybitSpot) GetWallet() (*structs.DomainWallet, error) {
 		})
 	}
 
-	result := structs.DomainWallet{
+	wallet = structs.DomainWallet{
 		Available: availableCoins,
 		Reserved:  reservedCoins,
 	}
-
-	return &result, nil
+	return
 }
 
 func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {

@@ -18,7 +18,7 @@ func (d *DomainBinanceSpot) SetConfig(config map[interface{}]interface{}) (err e
 	return
 }
 
-func (d *DomainBinanceSpot) GetWallet() (wallet *structs.DomainWallet, err error) {
+func (d *DomainBinanceSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 	panic("Not implemented")
 	return
 }

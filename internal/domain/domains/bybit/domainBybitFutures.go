@@ -99,10 +99,11 @@ func (d *DomainBybitFutures) SetConfig(config map[interface{}]interface{}) error
 	return nil
 }
 
-func (d *DomainBybitFutures) GetWallet() (*structs.DomainWallet, error) {
-	walletBalance, er := request.GetFuturesWalletBalance(d.secrets)
-	if er != nil {
-		return nil, er
+func (d *DomainBybitFutures) GetWallet() (wallet structs.DomainWallet, err error) {
+	var walletBalance request.MarginWalletBalance
+	walletBalance, err = request.GetFuturesWalletBalance(d.secrets)
+	if err != nil {
+		return
 	}
 
 	var availableCoins []structs.DomainWalletCoinItem
@@ -122,13 +123,12 @@ func (d *DomainBybitFutures) GetWallet() (*structs.DomainWallet, error) {
 		logger.Info(fmt.Sprintf("GetWallet Reserved: %s (%g)", reservedCoins[0].Coin, reservedCoins[0].Amount))
 	}
 
-	result := structs.DomainWallet{
+	wallet = structs.DomainWallet{
 		DomainCode: d.code,
 		Available:  availableCoins,
 		Reserved:   reservedCoins,
 	}
-
-	return &result, nil
+	return
 }
 
 func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {

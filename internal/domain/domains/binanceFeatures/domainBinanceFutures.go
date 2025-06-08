@@ -80,7 +80,7 @@ func (d *DomainBinanceFutures) SetConfig(config map[interface{}]interface{}) (er
 	return
 }
 
-func (d *DomainBinanceFutures) GetWallet() (wallet *providerStructs.DomainWallet, err error) {
+func (d *DomainBinanceFutures) GetWallet() (wallet providerStructs.DomainWallet, err error) {
 	panic("Not implemented")
 	return
 }

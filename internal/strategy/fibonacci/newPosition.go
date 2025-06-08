@@ -183,7 +183,7 @@ func (f *Fibonacci) valueByCoeff(minPrice float64, maxPrice float64, coeff float
 }
 
 func (f *Fibonacci) getAvailableBalance() (balance float64, err error) {
-	var wallet *domainStructs.DomainWallet
+	var wallet domainStructs.DomainWallet
 	wallet, err = f.provider.GetWallet()
 	if err != nil {
 		return
