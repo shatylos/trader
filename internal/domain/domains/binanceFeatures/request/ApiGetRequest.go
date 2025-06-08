@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -24,6 +25,8 @@ type ApiGetRequest struct {
 var httpClient *http.Client
 
 func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err error) {
+	r.ApiParams["timestamp"] = strconv.FormatInt(time.Now().UnixMilli(), 10)
+
 	if r.Secrets.Verbose {
 		var paramsJsonBytes []byte
 		paramsJsonBytes, err = json.Marshal(r.ApiParams)
@@ -56,6 +59,7 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 	}
 
 	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("X-MBX-APIKEY", r.Secrets.Key)
 
 	httpClient = &http.Client{
 		Transport: &http.Transport{
@@ -64,7 +68,8 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 		Timeout: 10 * time.Second,
 	}
 
-	resp, err := httpClient.Do(request)
+	var resp *http.Response
+	resp, err = httpClient.Do(request)
 	if err != nil {
 		msg := fmt.Sprintf("Binance Features API error do request: %s", err)
 		logger.Error(msg)
@@ -81,15 +86,6 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 		}
 	}(resp.Body)
 
-	if resp.Status != "200 OK" {
-		msg := fmt.Sprintf("Binance Features API error. http status: %s", resp.Status)
-		logger.Error(msg)
-		err = tools.AppError{
-			Message: msg,
-		}
-		return
-	}
-
 	body := bytes.Buffer{}
 	_, err = io.Copy(&body, resp.Body)
 	if err != nil {
@@ -103,6 +99,16 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 	}
 	response = body.Bytes()
 	body.Reset()
+
+	if resp.Status != "200 OK" {
+		msg := fmt.Sprintf("Binance Features API error. http status: %s. Body: %s", resp.Status, response)
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+
 	return
 }
 
@@ -117,6 +123,8 @@ func (r *ApiGetRequest) getRequestData() (requestUrl string) {
 	builder.WriteString(r.Uri)
 	builder.WriteByte('?')
 	builder.WriteString(queryParams.Encode())
+	builder.WriteString("&signature=")
+	builder.WriteString(getSignature(r.ApiParams, r.Secrets.Pass))
 	requestUrl = builder.String()
 	return
 }

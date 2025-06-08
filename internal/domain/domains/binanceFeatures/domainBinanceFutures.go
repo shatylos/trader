@@ -95,10 +95,6 @@ func (d *DomainBinanceFutures) GetOpenOrderList(coinPare string) (orderList []pr
 	return
 }
 
-func (d *DomainBinanceFutures) GetPosition(coinPare string) (providerStructs.DomainPosition, error) {
-	panic("Not implemented")
-}
-
 func (d *DomainBinanceFutures) OpenPosition(positionRequest providerStructs.DomainPositionRequest) (string, error) {
 	panic("Not implemented")
 }

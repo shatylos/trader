@@ -2,7 +2,6 @@ package structs
 
 type DomainPositionRequest struct {
 	Leverage    int64
-	PositionId  string
 	Price       float64
 	Qty         float64
 	ReduceOnly  bool

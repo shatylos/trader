@@ -338,19 +338,20 @@ func (d *DomainBybitFutures) GetPosition(coinPare string) (resultPosition struct
 			return
 		}
 	}
+	var realizedPnl, unrealizedPnl float64
 	if providerPosition.UnrealizedPnl != "" {
-		resultPosition.UnrealizedPnl, err = _type.ToFloat64(providerPosition.UnrealizedPnl)
+		unrealizedPnl, err = _type.ToFloat64(providerPosition.UnrealizedPnl)
 		if err != nil {
 			return
 		}
 	}
 	if providerPosition.CurRealisedPnl != "" {
-		resultPosition.RealizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
+		realizedPnl, err = _type.ToFloat64(providerPosition.CurRealisedPnl)
 		if err != nil {
 			return
 		}
 	}
-	resultPosition.TotalPnl = resultPosition.RealizedPnl + resultPosition.UnrealizedPnl
+	resultPosition.TotalPnl = realizedPnl + unrealizedPnl
 
 	return
 }
@@ -378,7 +379,6 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 
 	orderRequest := request.OrderRequest{
 		CloseOnTrigger: false,
-		OrderLinkId:    positionRequest.PositionId,
 		OrderType:      positionRequest.Type,
 		Price:          positionRequest.Price,
 		Qty:            positionRequest.Qty,

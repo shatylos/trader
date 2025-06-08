@@ -18,7 +18,6 @@ type OrderRequest struct {
 	Price          float64 //			not mandatory
 	TakeProfit     float64 //			not mandatory
 	StopLoss       float64 //			not mandatory
-	OrderLinkId    string  //			not mandatory
 	SlTriggerBy    string  //			not mandatory
 	TpTriggerBy    string  //			not mandatory
 }
@@ -51,7 +50,6 @@ type OrderResponse struct {
 	OrderId        string  `json:"orderId"`        // -> 10772450-26ce-4c92-8bf6-5cf29d190a50
 	Qty            string  `json:"qty"`            // -> 0.005
 	CumExecFee     string  `json:"cumExecFee"`     // -> 0
-	OrderLinkId    string  `json:"orderLinkId"`    // -> 123qwe
 	UpdatedTime    string  `json:"updatedTime"`    // -> 2022-08-17T20:45:45Z
 }
 
@@ -76,9 +74,6 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*Orde
 	}
 	if orderRequest.StopLoss > 0 {
 		params["stopLoss"] = fmt.Sprintf("%g", orderRequest.StopLoss)
-	}
-	if orderRequest.OrderLinkId != "" {
-		params["orderLinkId"] = orderRequest.OrderLinkId
 	}
 	if orderRequest.TpTriggerBy != "" {
 		params["tpTriggerBy"] = orderRequest.TpTriggerBy

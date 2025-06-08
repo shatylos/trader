@@ -270,7 +270,6 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 	var orderId string
 	orderId, err = f.provider.OpenPosition(domainStructs.DomainPositionRequest{
 		Leverage:    f.config.Leverage,
-		PositionId:  "",
 		Price:       0,
 		Qty:         qty,
 		ReduceOnly:  false,
@@ -416,7 +415,7 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 		err = tools.AppError{Message: "Internal position was not closed"}
 		return
 	}
-	logger.Info(fmt.Sprintf("Position was closed. PositionId %s.", *internalPosition.Id))
+	logger.Info(fmt.Sprintf("Position was closed. Position ID %s.", *internalPosition.Id))
 	if f.config.TelegramNotifier {
 		tgNotifier.Notify(fmt.Sprintf("Position was closed. PNL: %g.", math.Round(internalPosition.TotalClosePnl, 2)))
 	}
