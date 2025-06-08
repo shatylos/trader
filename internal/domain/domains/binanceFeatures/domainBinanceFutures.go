@@ -80,11 +80,6 @@ func (d *DomainBinanceFutures) SetConfig(config map[interface{}]interface{}) (er
 	return
 }
 
-func (d *DomainBinanceFutures) GetWallet() (wallet providerStructs.DomainWallet, err error) {
-	panic("Not implemented")
-	return
-}
-
 func (d *DomainBinanceFutures) GetOrder(domainId string) (order providerStructs.DomainOrder, err error) {
 	panic("Not implemented")
 	return
@@ -98,6 +93,7 @@ func (d *DomainBinanceFutures) GetOpenOrderList(coinPare string) (orderList []pr
 func (d *DomainBinanceFutures) OpenPosition(positionRequest providerStructs.DomainPositionRequest) (string, error) {
 	panic("Not implemented")
 }
+
 func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest providerStructs.TpSlRequest) error {
 	panic("Not implemented")
 }
