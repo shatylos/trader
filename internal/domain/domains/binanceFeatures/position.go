@@ -126,7 +126,7 @@ func (d *DomainBinanceFutures) GetPosition(coinPare string) (position domainStru
 	}
 
 	for _, providerOrder := range providerOrders {
-		if providerOrder.Symbol == coinPare && providerOrder.Status == orderStatusNew && providerOrder.Type == orderTypeTP {
+		if providerOrder.Symbol == coinPare && providerOrder.Status == orderStatuses.New && providerOrder.Type == orderTypeTP {
 			if position.TakeProfit > 0 {
 				msg := fmt.Sprintf("Second take profit value got from provider order list")
 				logger.Error(msg)
@@ -142,7 +142,7 @@ func (d *DomainBinanceFutures) GetPosition(coinPare string) (position domainStru
 			}
 			position.TakeProfit = stopPrice
 		}
-		if providerOrder.Symbol == coinPare && providerOrder.Status == orderStatusNew && providerOrder.Type == orderTypeSL {
+		if providerOrder.Symbol == coinPare && providerOrder.Status == orderStatuses.New && providerOrder.Type == orderTypeSL {
 			if position.StopLoss > 0 {
 				msg := fmt.Sprintf("Second stop loss value got from provider order list")
 				logger.Error(msg)

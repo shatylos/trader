@@ -101,8 +101,10 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 		switch asset.TransactionType {
 		case "deposit":
 			depoAmount += asset.Amount
+			break
 		case "withdraw":
 			withdrawAmount += asset.Amount
+			break
 		}
 	}
 

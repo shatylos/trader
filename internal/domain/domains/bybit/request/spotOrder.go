@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"strconv"
 	"strings"
 )
@@ -42,7 +44,7 @@ type SpotOrderResponseTimeStr struct {
 	UpdateTime  string `json:"updatedTime"` //	Last time order was updated
 }
 
-func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (*SpotOrderResponseTimeStr, error) {
+func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (orderResponse SpotOrderResponseTimeStr, err error) {
 	params := make(ApiParams, 0)
 	params["category"] = "spot"
 	params["symbol"] = orderRequest.Symbol
@@ -53,53 +55,55 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets
 	params["price"] = orderRequest.OrderPrice
 	params["orderLinkId"] = orderRequest.OrderLinkId
 
-	queryResp, err := apiQueryPost("/v5/order/create", params, secrets)
+	var queryResp interface{}
+	queryResp, err = apiQueryPost("/v5/order/create", params, secrets)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	return mapSpotOrderResponseTimeStr(queryResp)
 }
 
-func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (*SpotOrderResponseTimeStr, error) {
+func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (orderResponse SpotOrderResponseTimeStr, err error) {
 	params := make(ApiParams, 0)
 	params["category"] = "spot"
 	params["orderId"] = domainId
-	queryResp, er := apiQueryGet("/v5/order/realtime", params, secrets)
-	if er != nil {
-		return nil, er
+	var queryResp interface{}
+	queryResp, err = apiQueryGet("/v5/order/realtime", params, secrets)
+	if err != nil {
+		return
 	}
 
 	queryRespMap, ok := queryResp.(map[string]interface{})
 	if !ok {
-		return nil, tools.AppError{Message: "Can not parse order list query response"}
+		msg := "Can not parse order list query response"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
 	}
 	if queryRespMap["list"] == nil || len(queryRespMap["list"].([]interface{})) == 0 {
-		return &SpotOrderResponseTimeStr{
-			OrderId:    domainId,
-			Status:     "CANCELED",
-			AvgPrice:   "0",
-			ExecQty:    "0",
-			CreateTime: "0",
-			UpdateTime: "0",
-		}, nil
+		orderResponse.OrderId = domainId
+		orderResponse.Status = domainStructs.OrderStatuses.Canceled
+		return
 	}
 
 	queryResponseOrder := queryRespMap["list"].([]interface{})[0]
 
-	order, err := mapSpotOrderResponseTimeStr(queryResponseOrder)
+	orderResponse, err = mapSpotOrderResponseTimeStr(queryResponseOrder)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return order, nil
+	return
 }
 
-func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]*SpotOrderResponseTimeStr, error) {
+func GetSpotOpenOrderList(coinPare string, secrets bybitStructs.Secrets) ([]SpotOrderResponseTimeStr, error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = coinPare
 	params["category"] = "spot"
 	params["openOnly"] = "0"
-	orders := make([]*SpotOrderResponseTimeStr, 0)
+	orders := make([]SpotOrderResponseTimeStr, 0)
 
 	queryResp, er := apiQueryGet("/v5/order/realtime", params, secrets)
 	if er != nil {
@@ -144,14 +148,14 @@ func CancelSpotOrder(orderId string, secrets bybitStructs.Secrets, coinPare stri
 	return nil
 }
 
-func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets, coinPare string) ([]*SpotOrderResponseTimeStr, error) {
+func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets, coinPare string) ([]SpotOrderResponseTimeStr, error) {
 	params := make(ApiParams, 0)
 	params["limit"] = strconv.FormatInt(limit, 10)
 	params["symbol"] = coinPare
 	params["category"] = "spot"
 	params["orderStatus"] = "Filled"
 
-	orders := make([]*SpotOrderResponseTimeStr, 0)
+	orders := make([]SpotOrderResponseTimeStr, 0)
 
 	queryResp, er := apiQueryGet("/v5/order/history", params, secrets)
 	if er != nil {
@@ -183,32 +187,57 @@ func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets, coinPare str
 	return orders, nil
 }
 
-func mapSpotOrderResponseTimeStr(queryResp interface{}) (*SpotOrderResponseTimeStr, error) {
+func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrderResponseTimeStr, err error) {
 
-	orderResponseBytes, err := json.Marshal(queryResp)
+	var orderResponseBytes []byte
+	orderResponseBytes, err = json.Marshal(queryResp)
 	if err != nil {
-		return nil, tools.AppError{
-			Message: "Can not Marshal order response for ByBit",
+		msg := "Can not Marshal order response for ByBit"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
 		}
+		return
 	}
 
-	orderResponse := SpotOrderResponseTimeStr{}
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
-		return nil, tools.AppError{
-			Message: fmt.Sprintf("[mapSpotOrderResponseTimeStr] Can not Unmarshal order response for ByBit: %s", err.Error()),
+		msg := fmt.Sprintf("[mapSpotOrderResponseTimeStr] Can not Unmarshal order response for ByBit: %s", err.Error())
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
 		}
+		return
 	}
 
-	orderResponse.Status = strings.ToUpper(orderResponse.Status)
+	switch strings.ToUpper(orderResponse.Status) {
+	case "NEW":
+		orderResponse.Status = domainStructs.OrderStatuses.New
+		break
+	case "OPEN":
+		orderResponse.Status = domainStructs.OrderStatuses.Open
+		break
+	case "FILLED":
+		orderResponse.Status = domainStructs.OrderStatuses.Filled
+		break
+	case "PARTIALLY_FILLED":
+	case "PARTIALLYFILLEDCANCELED":
+		orderResponse.Status = domainStructs.OrderStatuses.PartiallyFilled
+		break
+	case "CANCELED":
+	case "CANCELLED":
+		orderResponse.Status = domainStructs.OrderStatuses.Canceled
+		break
+	default:
+		msg := fmt.Sprintf("Bybit order status (\"%s\") can not be mapped to domain value", orderResponse.Status)
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+
 	orderResponse.Side = strings.ToUpper(orderResponse.Side)
 
-	if orderResponse.Status == "CANCELLED" {
-		orderResponse.Status = "CANCELED"
-	}
-	if orderResponse.Status == "PARTIALLYFILLEDCANCELED" {
-		orderResponse.Status = "PARTIALLY_FILLED"
-	}
-
-	return &orderResponse, nil
+	return
 }

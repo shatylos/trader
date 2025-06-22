@@ -124,7 +124,7 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 				return err
 			}
 
-			if order.OrderStatus == "FILLED" || order.OrderStatus == "PARTIALLY_FILLED" {
+			if order.OrderStatus == structs.OrderStatuses.Filled || order.OrderStatus == structs.OrderStatuses.PartiallyFilled {
 				historyOrder.FilledPrice = order.Price
 				historyOrder.FilledQty = order.Qty
 				historyOrder.Side = order.Side
@@ -136,7 +136,7 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 				}
 				logger.Info(fmt.Sprintf("Filled price for the order %s", order.OrderId))
 				countFilled++
-			} else if order.OrderStatus == "CANCELED" {
+			} else if order.OrderStatus == structs.OrderStatuses.Canceled {
 				err := storage.RemoveOrder(historyOrder.DomainOrderId)
 				if err != nil {
 					logger.Error(fmt.Sprintf("Error removing canceled order %s", order.OrderId))
@@ -144,7 +144,7 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 				}
 				logger.Info(fmt.Sprintf("Removed canceled order %s", order.OrderId))
 				countRemoved++
-			} else if order.OrderStatus != "NEW" {
+			} else if order.OrderStatus != structs.OrderStatuses.New {
 				logger.Warning(fmt.Sprintf("Unexpected order status: %s, for order %s", order.OrderStatus, order.OrderId))
 			}
 		}

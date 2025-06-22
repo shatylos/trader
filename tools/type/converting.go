@@ -63,8 +63,10 @@ func ToString(value interface{}) (string, error) {
 		return strconv.FormatFloat(value.(float64), 'f', -1, 64), nil
 	}
 
+	msg := "The value can not be converted to string"
+	logger.Error(msg)
 	return "", tools.AppError{
-		Message: "The value can not be converted to string",
+		Message: msg,
 	}
 }
 

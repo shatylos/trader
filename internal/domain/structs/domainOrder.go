@@ -13,11 +13,34 @@ type DomainOrder struct {
 	Symbol       string  `bson:"Symbol"`
 	TimeInForce  string  `bson:"TimeInForce"`
 	UpdatedTime  int64   `bson:"UpdatedTime"`
-	TakeProfit   float64 `bson:"TakeProfit"`
 	TpModifyTime int64   `bson:"TpModifyTime"`
-	StopLoss     float64 `bson:"StopLoss"`
 }
 
-const OrderStatusOpen = "Open"
-const OrderStatusFilled = "Filled"
-const OrderStatusCancelled = "Cancelled"
+type OrderStatusesStruct struct {
+	New             string
+	Open            string
+	Filled          string
+	PartiallyFilled string
+	Canceled        string
+}
+
+var OrderStatuses = OrderStatusesStruct{
+	New:             "NEW",
+	Open:            "OPEN",
+	Filled:          "FILLED",
+	PartiallyFilled: "PARTIALLY_FILLED",
+	Canceled:        "CANCELED",
+}
+
+type OrderTypesStruct struct {
+	Limit  string
+	Market string
+}
+
+var OrderTypes = OrderTypesStruct{
+	Limit:  "LIMIT",
+	Market: "MARKET",
+}
+
+const OrderSideBuy = "BUY"
+const OrderSideSell = "SELL"

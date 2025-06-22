@@ -62,8 +62,7 @@ func (s *BuyCheapSellHigh) getLastOrdersInfo(historyOrders []structs.DomainOrder
 	lastOrderPrice := float64(0)
 
 	for _, historyOrder := range historyOrders {
-		// @TODO: move to constant and map values
-		if historyOrder.OrderStatus != "FILLED" && historyOrder.OrderStatus != "PARTIALLY_FILLED" {
+		if historyOrder.OrderStatus != structs.OrderStatuses.Filled && historyOrder.OrderStatus != structs.OrderStatuses.PartiallyFilled {
 			continue
 		}
 		if lastDirection == "" {

@@ -294,7 +294,7 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		return
 	}
 	var newOrder domainStructs.DomainOrder
-	newOrder, err = f.provider.GetOrder(orderId)
+	newOrder, err = f.provider.GetOrder(orderId, f.config.CoinPare)
 	if err != nil {
 		return
 	}
@@ -325,14 +325,12 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 		err = tools.AppError{Message: "Internal position was not saved"}
 		return
 	}
-	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %g. Price: %g. Side: %s. TakeProfit: %g. StopLoss %g. SourceMinPrice: %g. SourceMaxPrice: %g.",
+	logger.Success(fmt.Sprintf("Created new order. PositionId %s. Order number: %d. Qty: %g. Price: %g. Side: %s. SourceMinPrice: %g. SourceMaxPrice: %g.",
 		*internalPosition.Id,
 		orderNum,
 		newOrder.Qty,
 		newOrder.Price,
 		newOrder.Side,
-		newOrder.TakeProfit,
-		newOrder.StopLoss,
 		internalPosition.FibonacciChart.SourceMinPrice,
 		internalPosition.FibonacciChart.SourceMaxPrice,
 	))
@@ -348,12 +346,12 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 
 func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (err error) {
 	var order domainStructs.DomainOrder
-	if internalPosition.Orders.Order1.OrderStatus == domainStructs.OrderStatusOpen {
-		order, err = f.provider.GetOrder(internalPosition.Orders.Order1.OrderId)
+	if internalPosition.Orders.Order1.OrderStatus == domainStructs.OrderStatuses.Open {
+		order, err = f.provider.GetOrder(internalPosition.Orders.Order1.OrderId, f.config.CoinPare)
 		if err != nil {
 			return
 		}
-		if order.OrderStatus != domainStructs.OrderStatusCancelled && order.OrderStatus != domainStructs.OrderStatusFilled {
+		if order.OrderStatus != domainStructs.OrderStatuses.Canceled && order.OrderStatus != domainStructs.OrderStatuses.Filled {
 			logger.Warning(fmt.Sprintf(
 				"Expected order must be cancelled or filled when close the internal position. OrderId: %s, OrderStatus: %s",
 				order.OrderId,
@@ -362,12 +360,12 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 		}
 		internalPosition.Orders.Order1 = order
 	}
-	if internalPosition.Orders.Order2.OrderStatus == domainStructs.OrderStatusOpen {
-		order, err = f.provider.GetOrder(internalPosition.Orders.Order2.OrderId)
+	if internalPosition.Orders.Order2.OrderStatus == domainStructs.OrderStatuses.Open {
+		order, err = f.provider.GetOrder(internalPosition.Orders.Order2.OrderId, f.config.CoinPare)
 		if err != nil {
 			return
 		}
-		if order.OrderStatus != domainStructs.OrderStatusCancelled && order.OrderStatus != domainStructs.OrderStatusFilled {
+		if order.OrderStatus != domainStructs.OrderStatuses.Canceled && order.OrderStatus != domainStructs.OrderStatuses.Filled {
 			logger.Warning(fmt.Sprintf(
 				"Expected order must be cancelled or filled when close the internal position. OrderId: %s, OrderStatus: %s",
 				order.OrderId,
@@ -376,12 +374,12 @@ func (f *Fibonacci) closeInternalPosition(internalPosition structs.Position) (er
 		}
 		internalPosition.Orders.Order2 = order
 	}
-	if internalPosition.Orders.Order3.OrderStatus == domainStructs.OrderStatusOpen {
-		order, err = f.provider.GetOrder(internalPosition.Orders.Order3.OrderId)
+	if internalPosition.Orders.Order3.OrderStatus == domainStructs.OrderStatuses.Open {
+		order, err = f.provider.GetOrder(internalPosition.Orders.Order3.OrderId, f.config.CoinPare)
 		if err != nil {
 			return
 		}
-		if order.OrderStatus != domainStructs.OrderStatusCancelled && order.OrderStatus != domainStructs.OrderStatusFilled {
+		if order.OrderStatus != domainStructs.OrderStatuses.Canceled && order.OrderStatus != domainStructs.OrderStatuses.Filled {
 			logger.Warning(fmt.Sprintf(
 				"Expected order must be cancelled or filled when close the internal position. OrderId: %s, OrderStatus: %s",
 				order.OrderId,

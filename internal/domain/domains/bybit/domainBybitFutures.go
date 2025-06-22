@@ -179,7 +179,7 @@ func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string,
 	return candlesResult, nil
 }
 
-func (d *DomainBybitFutures) GetOrder(orderId string) (order structs.DomainOrder, err error) {
+func (d *DomainBybitFutures) GetOrder(orderId string, coinPare string) (order structs.DomainOrder, err error) {
 	var orders []*request.OrderResponse
 	orders, err = request.GetOrderList("", orderId, d.secrets)
 	if err != nil {
@@ -237,16 +237,6 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 		err = er
 		return
 	}
-	takeProfit, er := _type.ToFloat64(order.TakeProfit)
-	if er != nil {
-		err = er
-		return
-	}
-	stopLoss, er := _type.ToFloat64(order.StopLoss)
-	if er != nil {
-		err = er
-		return
-	}
 	status := d.mapStatus(order.OrderStatus)
 	domainOrder = structs.DomainOrder{
 		CreatedTime: createdTime,
@@ -260,8 +250,6 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 		Symbol:      order.Symbol,
 		TimeInForce: order.TimeInForce,
 		UpdatedTime: updatedTime,
-		TakeProfit:  takeProfit,
-		StopLoss:    stopLoss,
 	}
 	return
 }
@@ -269,23 +257,23 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 func (d *DomainBybitFutures) mapStatus(providerStatus string) string {
 	switch providerStatus {
 	case orderStatusOpenNew:
-		return structs.OrderStatusOpen
+		return structs.OrderStatuses.Open
 	case orderStatusOpenPartiallyFilled:
-		return structs.OrderStatusOpen
+		return structs.OrderStatuses.Open
 	case orderStatusOpenUntriggered:
-		return structs.OrderStatusOpen
+		return structs.OrderStatuses.Open
 	case orderStatusClosedRejected:
-		return structs.OrderStatusCancelled
+		return structs.OrderStatuses.Canceled
 	case orderStatusClosedPartiallyFilledCanceled:
-		return structs.OrderStatusFilled
+		return structs.OrderStatuses.Filled
 	case orderStatusClosedFilled:
-		return structs.OrderStatusFilled
+		return structs.OrderStatuses.Filled
 	case orderStatusClosedCancelled:
-		return structs.OrderStatusCancelled
+		return structs.OrderStatuses.Canceled
 	case orderStatusClosedTriggered:
-		return structs.OrderStatusCancelled
+		return structs.OrderStatuses.Canceled
 	case orderStatusClosedDeactivated:
-		return structs.OrderStatusCancelled
+		return structs.OrderStatuses.Canceled
 	}
 	return ""
 }

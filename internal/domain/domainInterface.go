@@ -17,7 +17,7 @@ type SpotDomainInterface interface {
 }
 
 type FuturesDomainInterface interface {
-	GetOrder(domainId string) (structs.DomainOrder, error)
+	GetOrder(domainId string, coinPare string) (structs.DomainOrder, error)
 	GetPosition(coinPare string) (structs.DomainPosition, error)
 	GetWallet() (structs.DomainWallet, error)
 	LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error)

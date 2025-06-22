@@ -80,35 +80,10 @@ func (d *DomainBinanceFutures) SetConfig(config map[interface{}]interface{}) (er
 	return
 }
 
-func (d *DomainBinanceFutures) GetOrder(domainId string) (order providerStructs.DomainOrder, err error) {
-	panic("Not implemented")
-	return
-}
-
-func (d *DomainBinanceFutures) GetOpenOrderList(coinPare string) (orderList []providerStructs.DomainOrder, err error) {
-	panic("Not implemented")
-	return
-}
-
 func (d *DomainBinanceFutures) OpenPosition(positionRequest providerStructs.DomainPositionRequest) (string, error) {
 	panic("Not implemented")
 }
 
 func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest providerStructs.TpSlRequest) error {
 	panic("Not implemented")
-}
-
-func (d *DomainBinanceFutures) OpenOrder(orderRequest providerStructs.DomainOrderRequest) (orderID string, err error) {
-	panic("Not implemented")
-	return
-}
-
-func (d *DomainBinanceFutures) CancelOrder(orderId string, coinPare string) (err error) {
-	panic("Not implemented")
-	return
-}
-
-func (d *DomainBinanceFutures) GetHistoryOrders(limit int64, coinPare string) (domainOrders []providerStructs.DomainOrder, err error) {
-	panic("Not implemented")
-	return
 }
