@@ -91,26 +91,36 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 			filteredPositions = append(filteredPositions, position)
 		}
 	}
+	var firstPositionCreatedTime int64
 	if len(filteredPositions) > 0 {
+		firstPositionCreatedTime = filteredPositions[len(filteredPositions)-1].CreatedTime
 		balanceBefore = filteredPositions[len(filteredPositions)-1].BalanceBefore
 		balanceAfter = filteredPositions[0].BalanceAfter
 	}
 	totalPnl = balanceAfter - balanceBefore
 
+	var depoAmountBeforeStartTrade float64
+	var withdrawAmountBeforeStartTrade float64
 	for _, asset := range assets {
 		switch asset.TransactionType {
 		case "deposit":
 			depoAmount += asset.Amount
+			if asset.CreatedTime < firstPositionCreatedTime {
+				depoAmountBeforeStartTrade += asset.Amount
+			}
 			break
 		case "withdraw":
 			withdrawAmount += asset.Amount
+			if asset.CreatedTime < firstPositionCreatedTime {
+				withdrawAmountBeforeStartTrade += asset.Amount
+			}
 			break
 		}
 	}
 
 	if totalPnl > 0 {
-		totalPnl += withdrawAmount
-		totalPnl -= depoAmount
+		totalPnl += withdrawAmountBeforeStartTrade
+		totalPnl -= depoAmountBeforeStartTrade
 	}
 
 	if balanceBefore > 0 {
