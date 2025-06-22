@@ -130,7 +130,7 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 	}
 
 	if balanceBefore > 0 {
-		onePercent := math.Div(balanceBefore+withdrawAmountBeforeStartTrade-depoAmountBeforeStartTrade, 100)
+		onePercent := math.Div(balanceBefore-withdrawAmountBeforeStartTrade+depoAmountBeforeStartTrade, 100)
 		if totalPnl != 0.0 {
 			totalPnlPercent = math.Div(totalPnl, onePercent)
 		}
