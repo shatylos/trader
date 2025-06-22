@@ -123,8 +123,10 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 	totalPnl = balanceAfter - balanceBefore
 
 	if totalPnl > 0 {
-		totalPnl += withdrawAmountBeforeStartTrade
-		totalPnl -= depoAmountBeforeStartTrade
+		//totalPnl += withdrawAmountBeforeStartTrade
+		//totalPnl -= depoAmountBeforeStartTrade
+		totalPnl += withdrawAmount
+		totalPnl -= depoAmount
 	}
 
 	if balanceBefore > 0 {
