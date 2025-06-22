@@ -6,7 +6,6 @@ import (
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
-	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
@@ -104,7 +103,6 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 	for _, asset := range assets {
 		switch asset.TransactionType {
 		case "deposit":
-			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			depoAmount += asset.Amount
 			if firstPositionCreatedTime > asset.CreatedTime {
 				depoAmountBeforeStartTrade += asset.Amount
@@ -112,7 +110,6 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 			}
 			break
 		case "withdraw":
-			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			withdrawAmount += asset.Amount
 			if firstPositionCreatedTime > asset.CreatedTime {
 				withdrawAmountBeforeStartTrade += asset.Amount
@@ -124,15 +121,11 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 	totalPnl = balanceAfter - balanceBefore
 
 	if totalPnl > 0 {
-		//totalPnl += withdrawAmountBeforeStartTrade
-		//totalPnl -= depoAmountBeforeStartTrade
 		totalPnl += withdrawAmount
 		totalPnl -= depoAmount
 	}
 
 	startTradeBalance := balanceBefore - withdrawAmountBeforeStartTrade + depoAmountBeforeStartTrade
-	//startTradeBalance := balanceBefore
-	logger.Info(fmt.Sprintf("startTradeBalance: %f", startTradeBalance))
 	if startTradeBalance > 0 {
 		onePercent := math.Div(startTradeBalance, 100)
 		if totalPnl != 0.0 {
