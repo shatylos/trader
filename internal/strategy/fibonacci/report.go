@@ -106,18 +106,16 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 		case "deposit":
 			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			depoAmount += asset.Amount
-			if firstPositionCreatedTime < asset.CreatedTime {
+			if firstPositionCreatedTime > asset.CreatedTime {
 				depoAmountBeforeStartTrade += asset.Amount
-			} else {
 				balanceBefore -= asset.Amount
 			}
 			break
 		case "withdraw":
 			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			withdrawAmount += asset.Amount
-			if firstPositionCreatedTime < asset.CreatedTime {
+			if firstPositionCreatedTime > asset.CreatedTime {
 				withdrawAmountBeforeStartTrade += asset.Amount
-			} else {
 				balanceBefore += asset.Amount
 			}
 			break
@@ -132,7 +130,8 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 		totalPnl -= depoAmount
 	}
 
-	startTradeBalance := balanceBefore - withdrawAmountBeforeStartTrade + depoAmountBeforeStartTrade
+	//startTradeBalance := balanceBefore - withdrawAmountBeforeStartTrade + depoAmountBeforeStartTrade
+	startTradeBalance := balanceBefore
 	if startTradeBalance > 0 {
 		onePercent := math.Div(startTradeBalance, 100)
 		if totalPnl != 0.0 {
