@@ -95,8 +95,6 @@
                     <div class="col-1">Order #1</div>
                     <div class="col-1">Qty: {{ .Orders.Order1.Qty }}</div>
                     <div class="col-1">Price: {{ .Orders.Order1.Price }}</div>
-                    <div class="col-1">TakeProfit: {{ .Orders.Order1.TakeProfit }}</div>
-                    <div class="col-1">StopLoss: {{ .Orders.Order1.StopLoss }}</div>
                     <div class="col-2">Created Time:<br/>{{ .Orders.Order1.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
                     {{ if gt .Orders.Order1.TpModifyTime 0 }}
                     <div class="col-2">TP Reduced Time:<br/>{{ .Orders.Order1.TpModifyTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
@@ -114,8 +112,6 @@
                     <div class="col-1">Order #2</div>
                     <div class="col-1">Qty: {{ .Orders.Order2.Qty }}</div>
                     <div class="col-1">Price: {{ .Orders.Order2.Price }}</div>
-                    <div class="col-1">TakeProfit: {{ .Orders.Order2.TakeProfit }}</div>
-                    <div class="col-1">StopLoss: {{ .Orders.Order2.StopLoss }}</div>
                     <div class="col-2">Created Time:<br/>{{ .Orders.Order2.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
                     {{ if gt .Orders.Order2.TpModifyTime 0 }}
                     <div class="col-2">TP Reduced Time:<br/>{{ .Orders.Order2.TpModifyTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
@@ -133,8 +129,6 @@
                     <div class="col-1">Order #3</div>
                     <div class="col-1">Qty: {{ .Orders.Order3.Qty }}</div>
                     <div class="col-1">Price: {{ .Orders.Order3.Price }}</div>
-                    <div class="col-1">TakeProfit: {{ .Orders.Order3.TakeProfit }}</div>
-                    <div class="col-1">StopLoss: {{ .Orders.Order3.StopLoss }}</div>
                     <div class="col-2">Created Time:<br/>{{ .Orders.Order3.CreatedTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
                     {{ if gt .Orders.Order3.TpModifyTime 0 }}
                     <div class="col-2">TP Reduced Time:<br/>{{ .Orders.Order3.TpModifyTime | dateFormatFromUnix "2006-01-02 15:04:05" }}</div>
