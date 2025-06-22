@@ -107,14 +107,14 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 		case "deposit":
 			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			depoAmount += asset.Amount
-			if asset.CreatedTime < firstPositionCreatedTime {
+			if firstPositionCreatedTime < asset.CreatedTime {
 				depoAmountBeforeStartTrade += asset.Amount
 			}
 			break
 		case "withdraw":
 			logger.Info(fmt.Sprintf("Asset created time: %s. firstPositionCreatedTime: %s", time.Unix(asset.CreatedTime, 0).Format("2006-01-02T15:04"), time.Unix(firstPositionCreatedTime, 0).Format("2006-01-02T15:04")))
 			withdrawAmount += asset.Amount
-			if asset.CreatedTime < firstPositionCreatedTime {
+			if firstPositionCreatedTime < asset.CreatedTime {
 				withdrawAmountBeforeStartTrade += asset.Amount
 			}
 			break
