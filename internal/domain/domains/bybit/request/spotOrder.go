@@ -210,6 +210,10 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 		return
 	}
 
+	fmt.Println("orderResponse start ===========================")
+	fmt.Println(orderResponse)
+	fmt.Println("orderResponse end ===========================")
+
 	switch strings.ToUpper(orderResponse.Status) {
 	case "NEW":
 		orderResponse.Status = domainStructs.OrderStatuses.New
