@@ -48,9 +48,11 @@ func Warning(msg string) {
 	if ok {
 		funcName = runtime.FuncForPC(pc).Name()
 	}
-	stackTrace := string(debug.Stack())
-	log.Printf("%sWarning%s %s [%s:%d %s]\nStack Trace:\n%s",
-		colorYellow, colorReset, msg, file, line, funcName, stackTrace)
+	//stackTrace := string(debug.Stack())
+	//log.Printf("%sWarning%s %s [%s:%d %s]\nStack Trace:\n%s",
+	//	colorYellow, colorReset, msg, file, line, funcName, stackTrace)
+	log.Printf("%sWarning%s %s [%s:%d %s]\n",
+		colorYellow, colorReset, msg, file, line, funcName)
 }
 
 func Info(msg string) {

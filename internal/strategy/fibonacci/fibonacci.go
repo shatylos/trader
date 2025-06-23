@@ -71,6 +71,9 @@ func (f *Fibonacci) DoAction() (err error) {
 			}
 		}
 		internalPosition, err = f.calculateNewPosition()
+		if err != nil {
+			return
+		}
 		internalPosition.ProviderPosition = providerPosition
 	} else if internalPosition.Status == structs.StatusActive {
 		internalPosition.ProviderPosition = providerPosition
