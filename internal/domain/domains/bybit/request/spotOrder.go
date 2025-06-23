@@ -210,10 +210,6 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 		return
 	}
 
-	fmt.Println("orderResponse start ===========================")
-	fmt.Println(orderResponse)
-	fmt.Println("orderResponse end ===========================")
-
 	switch strings.ToUpper(orderResponse.Status) {
 	case "NEW":
 		orderResponse.Status = domainStructs.OrderStatuses.New
@@ -231,6 +227,10 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 	case "CANCELED":
 	case "CANCELLED":
 		orderResponse.Status = domainStructs.OrderStatuses.Canceled
+		break
+	case "":
+		logger.Warning("Bybit order response status is empty")
+		orderResponse.Status = ""
 		break
 	default:
 		msg := fmt.Sprintf("Bybit order status (\"%s\") can not be mapped to domain value", orderResponse.Status)
