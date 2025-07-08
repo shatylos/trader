@@ -240,7 +240,7 @@ func (f *Fibonacci) calculateLoss(qty float64, entryPoint float64, stopLoss floa
 }
 
 func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float64, orderNum int, side string) (isCreated bool, err error) {
-	if side != "Sell" && side != "Buy" {
+	if side != domainStructs.PositionSideShort && side != domainStructs.PositionSideLong {
 		err = tools.AppError{
 			Message: fmt.Sprintf("Unexpected side value: %s", side),
 		}
@@ -269,16 +269,15 @@ func (f *Fibonacci) openNewPosition(internalPosition structs.Position, qty float
 
 	var orderId string
 	orderId, err = f.provider.OpenPosition(domainStructs.DomainPositionRequest{
-		Leverage:    f.config.Leverage,
-		Price:       0,
-		Qty:         qty,
-		ReduceOnly:  false,
-		Side:        side,
-		StopLoss:    stopLoss,
-		Symbol:      f.config.CoinPare,
-		TakeProfit:  takeProfit,
-		TimeInForce: "",
-		Type:        "Market",
+		Leverage:   f.config.Leverage,
+		Price:      0,
+		Qty:        qty,
+		ReduceOnly: false,
+		Side:       side,
+		StopLoss:   stopLoss,
+		Symbol:     f.config.CoinPare,
+		TakeProfit: takeProfit,
+		Type:       domainStructs.PositionTypes.Market,
 	})
 	if err != nil {
 		err = tools.AppError{

@@ -55,7 +55,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 1, "Buy")
+			_, err = f.openNewPosition(internalPosition, epQty, 1, domainStructs.PositionSideLong)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 1 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
@@ -83,7 +83,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 2, "Buy")
+			_, err = f.openNewPosition(internalPosition, epQty, 2, domainStructs.PositionSideLong)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 2 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
@@ -111,7 +111,7 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 3, "Buy")
+			_, err = f.openNewPosition(internalPosition, epQty, 3, domainStructs.PositionSideLong)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 3 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
@@ -150,7 +150,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 1, "Sell")
+			_, err = f.openNewPosition(internalPosition, epQty, 1, domainStructs.PositionSideShort)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 1 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
@@ -178,7 +178,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP2ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 2, "Sell")
+			_, err = f.openNewPosition(internalPosition, epQty, 2, domainStructs.PositionSideShort)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 2 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))
@@ -206,7 +206,7 @@ func (f *Fibonacci) actionByPositionBearish(internalPosition structs.Position, c
 
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP3ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
-			_, err = f.openNewPosition(internalPosition, epQty, 3, "Sell")
+			_, err = f.openNewPosition(internalPosition, epQty, 3, domainStructs.PositionSideShort)
 			return
 		} else if epQty > 0 && epQty < f.config.MinQty {
 			logger.Warning(fmt.Sprintf("Order 3 was not created. QTY (%f) less then min qty (%f)", epQty, f.config.MinQty))

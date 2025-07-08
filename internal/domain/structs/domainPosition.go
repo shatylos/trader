@@ -11,3 +11,18 @@ type DomainPosition struct {
 	Symbol     string
 	TakeProfit float64
 }
+
+type PositionTypesStruct struct {
+	Limit  string
+	Market string
+}
+
+var PositionTypes = PositionTypesStruct{
+	Limit:  "Limit",
+	Market: "Market",
+}
+
+const (
+	PositionSideLong  = "Long"
+	PositionSideShort = "Short"
+)

@@ -2,15 +2,16 @@ package binanceFeatures
 
 import (
 	binanceStructs "github.com/shatylos/trader/internal/domain/domains/binanceFeatures/structs"
-	providerStructs "github.com/shatylos/trader/internal/domain/structs"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
 )
 
 type DomainBinanceFutures struct {
-	code    string
-	secrets binanceStructs.Secrets
+	code         string
+	secrets      binanceStructs.Secrets
+	positionMode string
 }
 
 func (d *DomainBinanceFutures) GetCode() string {
@@ -80,10 +81,6 @@ func (d *DomainBinanceFutures) SetConfig(config map[interface{}]interface{}) (er
 	return
 }
 
-func (d *DomainBinanceFutures) OpenPosition(positionRequest providerStructs.DomainPositionRequest) (string, error) {
-	panic("Not implemented")
-}
-
-func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest providerStructs.TpSlRequest) error {
+func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest domainStructs.TpSlRequest) error {
 	panic("Not implemented")
 }

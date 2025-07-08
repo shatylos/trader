@@ -375,9 +375,9 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 		StopLoss:       positionRequest.StopLoss,
 		Symbol:         positionRequest.Symbol,
 		TakeProfit:     positionRequest.TakeProfit,
-		TimeInForce:    positionRequest.TimeInForce, // "FillOrKill", // FillOrKill GoodTillCancel ImmediateOrCancel PostOnly
-		SlTriggerBy:    "LastPrice",                 // LastPrice IndexPrice MarkPrice
-		TpTriggerBy:    "LastPrice",
+		//TimeInForce:    positionRequest.TimeInForce, // "FillOrKill", // FillOrKill GoodTillCancel ImmediateOrCancel PostOnly
+		SlTriggerBy: "LastPrice", // LastPrice IndexPrice MarkPrice
+		TpTriggerBy: "LastPrice",
 	}
 
 	var order *request.OrderResponse

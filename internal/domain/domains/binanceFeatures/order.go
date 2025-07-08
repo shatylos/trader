@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
+	"strconv"
 )
 
 type OrderResponse struct {
@@ -36,6 +37,8 @@ type OrderResponse struct {
 	GoodTillDate            int    `json:"goodTillDate"`
 	Time                    int64  `json:"time"`
 	UpdateTime              int64  `json:"updateTime"`
+	ErrorCode               int    `json:"code"`
+	ErrorMessage            string `json:"msg"`
 }
 
 type orderStatusesStruct struct {
@@ -173,6 +176,35 @@ func (d *DomainBinanceFutures) GetOrder(orderId string, coinPare string) (order 
 	return
 }
 
+func (d *DomainBinanceFutures) DeleteOrder(orderId int64, coinPare string) (err error) {
+	delApiRequest := request.ApiDeleteRequest{
+		Uri: "/fapi/v1/order",
+		ApiParams: binanceStructs.ApiParams{
+			"symbol":  coinPare,
+			"orderId": strconv.FormatInt(orderId, 10),
+		},
+		Secrets: d.secrets,
+	}
+	var apiResponse binanceStructs.ApiResponse
+	apiResponse, err = delApiRequest.DoRequest()
+	if err != nil {
+		return
+	}
+
+	providerOrder := OrderResponse{}
+	err = json.Unmarshal(apiResponse, &providerOrder)
+	if err != nil {
+		return
+	}
+	if providerOrder.Status != orderStatuses.Canceled {
+		msg := fmt.Sprintf("Order status is \"%s\". Expected status %s", providerOrder.Status, orderStatuses.Canceled)
+		logger.Error(msg)
+		err = tools.AppError{Message: msg}
+		return
+	}
+	return
+}
+
 func (d *DomainBinanceFutures) orderStatusPtoD(providerStatus string) (domainStatus string, err error) {
 	switch providerStatus {
 	case orderStatuses.New:
@@ -240,5 +272,23 @@ func (d *DomainBinanceFutures) orderSidePtoD(providerSide string) (domainSide st
 		}
 	}
 
+	return
+}
+
+func (d *DomainBinanceFutures) reverseOrderSide(orderSide string) (reverseSide string, err error) {
+	switch orderSide {
+	case domainStructs.OrderSideBuy:
+		reverseSide = domainStructs.OrderSideSell
+		break
+	case domainStructs.OrderSideSell:
+		reverseSide = domainStructs.OrderSideBuy
+		break
+	default:
+		msg := fmt.Sprintf("Unexpected Binance order side value: \"%s\"", orderSide)
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+	}
 	return
 }

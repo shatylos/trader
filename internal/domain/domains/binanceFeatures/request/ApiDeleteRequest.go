@@ -16,13 +16,13 @@ import (
 	"time"
 )
 
-type ApiGetRequest struct {
+type ApiDeleteRequest struct {
 	Uri       string
 	ApiParams binanceStructs.ApiParams
 	Secrets   binanceStructs.Secrets
 }
 
-func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err error) {
+func (r *ApiDeleteRequest) DoRequest() (response binanceStructs.ApiResponse, err error) {
 	r.ApiParams["timestamp"] = strconv.FormatInt(time.Now().UnixMilli(), 10)
 
 	if r.Secrets.Verbose {
@@ -37,7 +37,7 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 			}
 			return
 		}
-		logger.Info(fmt.Sprintf("Send GET request to: URI: %s. Params: %s", r.Uri, paramsJsonBytes))
+		logger.Info(fmt.Sprintf("Send DELETE request to: URI: %s. Params: %s", r.Uri, paramsJsonBytes))
 	}
 
 	var requestUrl string
@@ -45,7 +45,7 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 	requestBody := bytes.NewBuffer(nil)
 
 	var request *http.Request
-	request, err = http.NewRequest("GET", requestUrl, requestBody)
+	request, err = http.NewRequest("DELETE", requestUrl, requestBody)
 	if err != nil {
 		msg := fmt.Sprintf("Error creating newRequest: %s", err)
 		logger.Error(msg)
@@ -81,8 +81,8 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 		return
 	}
 	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
+		errDef := Body.Close()
+		if errDef != nil {
 			logger.Error(fmt.Sprintf("Binance Features API error closing response body: %s", err))
 		}
 	}(resp.Body)
@@ -113,7 +113,7 @@ func (r *ApiGetRequest) DoRequest() (response binanceStructs.ApiResponse, err er
 	return
 }
 
-func (r *ApiGetRequest) getRequestData() (requestUrl string) {
+func (r *ApiDeleteRequest) getRequestData() (requestUrl string) {
 	queryParams := url.Values{}
 	for key, value := range r.ApiParams {
 		valueStr, ok := value.(string)

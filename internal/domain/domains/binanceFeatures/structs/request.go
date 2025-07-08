@@ -1,4 +1,4 @@
 package structs
 
-type ApiParams map[string]string
+type ApiParams map[string]interface{}
 type ApiResponse []byte
