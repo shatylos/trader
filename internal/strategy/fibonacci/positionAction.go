@@ -53,8 +53,6 @@ func (f *Fibonacci) actionByPositionBullish(internalPosition structs.Position, c
 		currentPrice < internalPosition.FibonacciChart.EntryPoint1 &&
 		currentPrice > internalPosition.FibonacciChart.EntryPoint2 {
 
-		logger.Info(fmt.Sprintf("Full QTY: %f", internalPosition.FibonacciChart.FullQty))
-
 		epQty := math.Round(math.Mul(math.Div(internalPosition.FibonacciChart.FullQty, 100), f.config.EP1ToFullQtyPercent), f.config.QtyPrecision)
 		if epQty >= f.config.MinQty {
 			_, err = f.openNewPosition(internalPosition, epQty, 1, domainStructs.PositionSideLong)
