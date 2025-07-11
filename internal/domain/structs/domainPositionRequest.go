@@ -16,4 +16,5 @@ type TpSlRequest struct {
 	CoinPare   string
 	TakeProfit float64
 	StopLoss   float64
+	Side       string
 }

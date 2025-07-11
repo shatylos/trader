@@ -2,7 +2,6 @@ package binanceFeatures
 
 import (
 	binanceStructs "github.com/shatylos/trader/internal/domain/domains/binanceFeatures/structs"
-	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
@@ -79,8 +78,4 @@ func (d *DomainBinanceFutures) SetConfig(config map[interface{}]interface{}) (er
 	d.secrets = secrets
 
 	return
-}
-
-func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest domainStructs.TpSlRequest) error {
-	panic("Not implemented")
 }

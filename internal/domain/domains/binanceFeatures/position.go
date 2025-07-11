@@ -164,7 +164,6 @@ func (d *DomainBinanceFutures) OpenPosition(positionRequest domainStructs.Domain
 	if err != nil {
 		return
 	}
-	logger.Info(fmt.Sprintf("%s", apiResponse))
 
 	var providerOrders []OrderResponse
 	err = json.Unmarshal(apiResponse, &providerOrders)
@@ -177,7 +176,6 @@ func (d *DomainBinanceFutures) OpenPosition(positionRequest domainStructs.Domain
 		return
 	}
 
-	var tpSlCreatedIds []int64
 	for _, providerOrder := range providerOrders {
 		if providerOrder.ErrorCode != 0 {
 			msg := fmt.Sprintf("Error creating order for position. Code: %d, Message: %s", providerOrder.ErrorCode, providerOrder.ErrorMessage)
@@ -189,8 +187,6 @@ func (d *DomainBinanceFutures) OpenPosition(positionRequest domainStructs.Domain
 		} else {
 			if providerOrder.Type == orderTypes.Market || providerOrder.Type == orderTypes.Limit {
 				positionId = strconv.FormatInt(providerOrder.OrderId, 10)
-			} else {
-				tpSlCreatedIds = append(tpSlCreatedIds, providerOrder.OrderId)
 			}
 		}
 	}
@@ -254,7 +250,8 @@ func (d *DomainBinanceFutures) GetPosition(coinPare string) (position domainStru
 				return
 			}
 			position = domainStructs.DomainPosition{
-				Leverage:  0, // check to remove
+				// TODO: check to remove
+				Leverage:  0,
 				AvgPrice:  entryPrice,
 				MarkPrice: markPrice,
 				Size:      size,
@@ -266,27 +263,9 @@ func (d *DomainBinanceFutures) GetPosition(coinPare string) (position domainStru
 		}
 	}
 
-	orderApiRequest := request.ApiGetRequest{
-		Uri: "/fapi/v1/openOrders",
-		ApiParams: binanceStructs.ApiParams{
-			"symbol": coinPare,
-		},
-		Secrets: d.secrets,
-	}
-	var orderResponse binanceStructs.ApiResponse
-	orderResponse, err = orderApiRequest.DoRequest()
+	var providerOrders []OrderResponse
+	providerOrders, err = d.GetOrders(coinPare)
 	if err != nil {
-		return
-	}
-
-	providerOrders := make([]OrderResponse, 0)
-	err = json.Unmarshal(orderResponse, &providerOrders)
-	if err != nil {
-		msg := fmt.Sprintf("Can not unmarshal Binance order response data: %s", orderResponse)
-		logger.Error(msg)
-		err = tools.AppError{
-			Message: msg,
-		}
 		return
 	}
 
@@ -325,6 +304,120 @@ func (d *DomainBinanceFutures) GetPosition(coinPare string) (position domainStru
 		}
 	}
 
+	return
+}
+
+func (d *DomainBinanceFutures) ModifyTpSl(tpSlRequest domainStructs.TpSlRequest) (err error) {
+	var providerOrders []OrderResponse
+	providerOrders, err = d.GetOrders(tpSlRequest.CoinPare)
+	if err != nil {
+		return
+	}
+
+	for _, providerOrder := range providerOrders {
+		if providerOrder.Symbol != tpSlRequest.CoinPare {
+			continue
+		}
+		if tpSlRequest.TakeProfit > 0 &&
+			(providerOrder.Type == orderTypes.TakeProfit || providerOrder.Type == orderTypes.TakeProfitLimit) {
+			err = d.DeleteOrder(providerOrder.OrderId, providerOrder.Symbol)
+			if err != nil {
+				return
+			}
+		}
+		if tpSlRequest.StopLoss > 0 &&
+			(providerOrder.Type == orderTypes.StopLoss || providerOrder.Type == orderTypes.StopLossLimit) {
+			err = d.DeleteOrder(providerOrder.OrderId, providerOrder.Symbol)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	batchOrders := make([]binanceStructs.ApiParams, 0)
+	var orderSide, positionSide, orderSideReverse string
+	orderSide, positionSide, err = d.positionSideDtoP(tpSlRequest.Side)
+	if err != nil {
+		return
+	}
+	orderSideReverse, err = d.reverseOrderSide(orderSide)
+	if err != nil {
+		return
+	}
+
+	if tpSlRequest.TakeProfit > 0 {
+		var tp string
+		tp, err = _type.ToString(tpSlRequest.TakeProfit)
+		if err != nil {
+			return
+		}
+		tpOrderParams := binanceStructs.ApiParams{
+			"symbol":        tpSlRequest.CoinPare,
+			"side":          orderSideReverse,
+			"positionSide":  positionSide, // Default BOTH for One-way Mode ; LONG or SHORT for Hedge Mode. It must be sent in Hedge Mode.
+			"type":          PositionTypes.TakeProfitMarket,
+			"stopPrice":     tp,     // Used with STOP/STOP_MARKET or TAKE_PROFIT/TAKE_PROFIT_MARKET orders.
+			"closePosition": "true", // true, false；Close-All，used with STOP_MARKET or TAKE_PROFIT_MARKET.
+		}
+		batchOrders = append(batchOrders, tpOrderParams)
+	}
+
+	if tpSlRequest.StopLoss > 0 {
+		var sl string
+		sl, err = _type.ToString(tpSlRequest.TakeProfit)
+		if err != nil {
+			return
+		}
+		slOrderParams := binanceStructs.ApiParams{
+			"symbol":        tpSlRequest.CoinPare,
+			"side":          orderSideReverse,
+			"positionSide":  positionSide, // Default BOTH for One-way Mode ; LONG or SHORT for Hedge Mode. It must be sent in Hedge Mode.
+			"type":          PositionTypes.StopMarket,
+			"stopPrice":     sl,     // Used with STOP/STOP_MARKET or TAKE_PROFIT/TAKE_PROFIT_MARKET orders.
+			"closePosition": "true", // true, false；Close-All，used with STOP_MARKET or TAKE_PROFIT_MARKET.
+		}
+		batchOrders = append(batchOrders, slOrderParams)
+	}
+
+	params := binanceStructs.ApiParams{
+		"batchOrders": batchOrders,
+	}
+	apiRequest := request.ApiPostRequest{
+		Uri:       "/fapi/v1/batchOrders",
+		ApiParams: params,
+		Secrets:   d.secrets,
+	}
+
+	var apiResponse binanceStructs.ApiResponse
+	apiResponse, err = apiRequest.DoRequest()
+	if err != nil {
+		return
+	}
+
+	var newProviderOrders []OrderResponse
+	err = json.Unmarshal(apiResponse, &newProviderOrders)
+	if err != nil {
+		msg := fmt.Sprintf("Can not unmarhsal Binance GetOrder API response. Raw data: %s", apiResponse)
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+
+	for _, providerOrder := range newProviderOrders {
+		if providerOrder.ErrorCode != 0 {
+			msg := fmt.Sprintf("Error creating order for position. Code: %d, Message: %s", providerOrder.ErrorCode, providerOrder.ErrorMessage)
+			logger.Error(msg)
+			err = tools.AppError{
+				Message:     msg,
+				ParentError: err,
+			}
+		}
+	}
+	if err != nil {
+		return
+	}
 	return
 }
 

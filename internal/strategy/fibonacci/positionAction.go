@@ -281,6 +281,7 @@ func (f *Fibonacci) takeProfitCorrection(internalPosition structs.Position) (err
 			CoinPare:   f.config.CoinPare,
 			TakeProfit: newTakeProfit,
 			StopLoss:   internalPosition.ProviderPosition.StopLoss,
+			Side:       internalPosition.ProviderPosition.Side,
 		})
 		if err != nil {
 			return

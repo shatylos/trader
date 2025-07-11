@@ -176,6 +176,32 @@ func (d *DomainBinanceFutures) GetOrder(orderId string, coinPare string) (order 
 	return
 }
 
+func (d *DomainBinanceFutures) GetOrders(coinPare string) (orders []OrderResponse, err error) {
+	orderApiRequest := request.ApiGetRequest{
+		Uri: "/fapi/v1/openOrders",
+		ApiParams: binanceStructs.ApiParams{
+			"symbol": coinPare,
+		},
+		Secrets: d.secrets,
+	}
+	var orderResponse binanceStructs.ApiResponse
+	orderResponse, err = orderApiRequest.DoRequest()
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(orderResponse, &orders)
+	if err != nil {
+		msg := fmt.Sprintf("Can not unmarshal Binance order response data: %s", orderResponse)
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+	return
+}
+
 func (d *DomainBinanceFutures) DeleteOrder(orderId int64, coinPare string) (err error) {
 	delApiRequest := request.ApiDeleteRequest{
 		Uri: "/fapi/v1/order",
