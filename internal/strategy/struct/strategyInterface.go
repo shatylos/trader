@@ -35,6 +35,5 @@ type StrategyInterface interface {
 	GetReport(from time.Time, to time.Time) (Report, error)
 	GetStats() (Stats, error)
 	Wait()
-	ResetOrderData() error
 	AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error
 }

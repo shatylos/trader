@@ -280,17 +280,3 @@ func (s *BuyCheapSellHigh) calculateCommission(historyOrder *storageStructs.Hist
 	historyOrder.Comission = math.Mul(tradeCurrCommission, historyOrder.FilledPrice)
 	return nil
 }
-
-func (s *BuyCheapSellHigh) ResetOrderData() error {
-	storage, err := strategyStorage.GetStorage(s.Id)
-	if err != nil {
-		return err
-	}
-
-	err = storage.ResetHistoryOrderData()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

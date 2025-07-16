@@ -164,8 +164,3 @@ func (f *Fibonacci) newOrderCondition(internalPosition structs.Position) (condit
 
 	return
 }
-
-func (f *Fibonacci) ResetOrderData() error {
-	//TODO implement me
-	panic("implement me")
-}
