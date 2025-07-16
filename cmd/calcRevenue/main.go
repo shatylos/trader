@@ -14,11 +14,11 @@ func main() {
 	//Виводячи 50% з 500	44 міс (3 роки  9 міс.) до 20729
 	//Виводячи 50% з 200	60 міс (5 років 1 міс.) до 20518
 
-	totalAmount := 600.0
-	months := 120
+	totalAmount := 2500.0
+	months := 12 * 12
 	percentToWidthdraw := 0.0
-	minAmountToWidthdraw := 500.0
-	percentRevenue := 10.0
+	minAmountToWidthdraw := 0.0
+	percentRevenue := 2.5
 
 	for month := 1; month <= months; month++ {
 		revenue := math.Mul(math.Div(totalAmount, 100), percentRevenue)

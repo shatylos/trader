@@ -7,16 +7,16 @@ func main() {
 	maxPrice := 80000.0
 	qty := 0.01
 
-	qty1Percent := 10.0
-	qty2Percent := 30.0
-	qty3Percent := 60.0
-	ep1Coef := 0.75
-	ep2Coef := 0.5
-	ep3Coef := 0.25
+	qty1Percent := 20.0
+	qty2Percent := 35.0
+	qty3Percent := 45.0
+	ep1Coef := 0.5
+	ep2Coef := 0.26
+	ep3Coef := 0.05
 	tp1Coef := 1.25
-	tp2Coef := 1.0
-	tp3Coef := 0.75
-	slCoef := -0.25
+	tp2Coef := 1.1
+	tp3Coef := 0.95
+	slCoef := -0.1
 
 	qty1 := qty / 100.0 * qty1Percent
 	qty2 := qty / 100.0 * qty2Percent
