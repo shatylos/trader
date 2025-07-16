@@ -31,6 +31,7 @@ type ReportTemplateData struct {
 	BalanceAfter    float64
 	DepoAmount      float64
 	WithdrawAmount  float64
+	FibState        FibState
 }
 
 func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
@@ -67,6 +68,7 @@ func (f *Fibonacci) GetReport(from time.Time, to time.Time) (report _struct.Repo
 		BalanceAfter:    balanceAfter,
 		DepoAmount:      depoAmount,
 		WithdrawAmount:  withdrawAmount,
+		FibState:        f.state,
 	}
 
 	var resultBuilder strings.Builder

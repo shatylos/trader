@@ -49,20 +49,20 @@ func (f *Fibonacci) calculateNewPosition() (position structs.Position, err error
 		return
 	}
 
-	//shortTrend := trading.GetFullTrend(candles, f.config.Verbose)
-	shortTrend := trading.GetTrendLinearRegression(candles)
+	//stTrend := trading.GetFullTrend(candles, f.config.Verbose)
+	stTrend := trading.GetTrendLinearRegression(candles)
 	if f.config.Verbose {
-		logger.Info(fmt.Sprintf("Detected short trend: %s", shortTrend))
+		logger.Info(fmt.Sprintf("Detected short time trend: %s", stTrend))
 	}
-	longTrend := trading.GetTrendLinearRegression(ltCandles)
+	ltTrend := trading.GetTrendLinearRegression(ltCandles)
 	if f.config.Verbose {
-		logger.Info(fmt.Sprintf("Detected long trend: %s", longTrend))
+		logger.Info(fmt.Sprintf("Detected long time trend: %s", ltTrend))
 	}
 	trend := trading.TrendUnknown
-	if shortTrend == longTrend {
-		trend = shortTrend
+	if stTrend == ltTrend {
+		trend = stTrend
 	} else if f.config.Verbose {
-		logger.Info(fmt.Sprintf("Long trend (%s) and short (%s) trend are different", longTrend, shortTrend))
+		logger.Info(fmt.Sprintf("Long trend (%s) and short (%s) trend are different", ltTrend, stTrend))
 	}
 
 	var fibChart structs.FibonacciChart
@@ -102,6 +102,8 @@ func (f *Fibonacci) calculateNewPosition() (position structs.Position, err error
 		Id:             nil,
 		FibonacciChart: fibChart,
 		Trend:          trend,
+		LtTrend:        ltTrend,
+		StTrend:        stTrend,
 		Orders:         structs.PositionOrders{},
 		Status:         structs.StatusNew,
 		BalanceBefore:  availableBalance,

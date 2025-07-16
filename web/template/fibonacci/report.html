@@ -13,23 +13,66 @@
 <hr/>
 
 <div class="row align-items-start">
-    <h4>
-        Total PNL:
-        {{ .TotalPnl | longFloatShort .PricePrecision }}
-        {{ .MainCurrency }}
-        ({{ .TotalPnlPercent | longFloatShort 2 }}%)
-    </h4>
-    <div>
-        Balance before: {{ .BalanceBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    <div class="col-3">
+        <h4>
+            Total PNL:
+            {{ .TotalPnl | longFloatShort .PricePrecision }}
+            {{ .MainCurrency }}
+            ({{ .TotalPnlPercent | longFloatShort 2 }}%)
+        </h4>
+        <div>
+            Balance before: {{ .BalanceBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+        </div>
+        <div>
+            Deposit amount: {{ .DepoAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+        </div>
+        <div>
+            Withdraw amount: {{ .WithdrawAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+        </div>
+        <div>
+            Balance after: {{ .BalanceAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+        </div>
     </div>
-    <div>
-        Deposit amount: {{ .DepoAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
-    </div>
-    <div>
-        Withdraw amount: {{ .WithdrawAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
-    </div>
-    <div>
-        Balance after: {{ .BalanceAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+    <div class="col-3">
+        <h4>
+            Current State:
+        </h4>
+
+        {{ if ne .FibState.LtTrend "" }}
+        <div>
+            Long time trend: {{ .FibState.LtTrend }}
+        </div>
+        {{ end }}
+
+        {{ if ne .FibState.StTrend "" }}
+        <div>
+            Short time trend: {{ .FibState.StTrend }}
+        </div>
+        {{ end }}
+
+        {{ if gt .FibState.MinPriceReview 0.0 }}
+        <div>
+            Min Price Review: {{ .FibState.MinPriceReview }}
+        </div>
+        {{ end }}
+
+        {{ if gt .FibState.MaxPriceReview 0.0 }}
+        <div>
+            Max Price Review: {{ .FibState.MaxPriceReview }}
+        </div>
+        {{ end }}
+
+        {{ if gt .FibState.CurrentPrice 0.0 }}
+        <div>
+            Current Price: {{ .FibState.CurrentPrice }}
+        </div>
+        {{ end }}
+
+        {{ if ne .FibState.NewOrderCondition "" }}
+        <div>
+            Trigger Price: {{ .FibState.NewOrderCondition }}
+        </div>
+        {{ end }}
     </div>
 </div>
 
@@ -62,8 +105,8 @@
     <tr>
         {{ $class := "bg-success" }}
         {{ if or
-            (and (eq .Status "CLOSED") (lt .TotalClosePnl 0.0))
-            (and (eq .Status "ACTIVE") (lt .ProviderPosition.TotalPnl 0.0))
+        (and (eq .Status "CLOSED") (lt .TotalClosePnl 0.0))
+        (and (eq .Status "ACTIVE") (lt .ProviderPosition.TotalPnl 0.0))
         }}
         {{ $class = "bg-danger" }}
         {{ end }}

@@ -47,6 +47,8 @@ func (s *MongoStorage) SaveInternalPosition(position structs.Position) (savedPos
 		update := bson.D{{"$set", bson.D{
 			{"FibonacciChart", position.FibonacciChart},
 			{"Trend", position.Trend},
+			{"LtTrend", position.LtTrend},
+			{"StTrend", position.StTrend},
 			{"Orders", position.Orders},
 			{"UpdatedTime", time.Now().Unix()},
 			{"ClosedTime", position.ClosedTime},

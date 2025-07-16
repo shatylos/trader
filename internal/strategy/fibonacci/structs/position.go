@@ -9,6 +9,8 @@ type Position struct {
 	Id               *string                      `bson:"_id,omitempty"`
 	FibonacciChart   FibonacciChart               `bson:"FibonacciChart"`
 	Trend            string                       `bson:"Trend"`
+	LtTrend          string                       `bson:"LtTrend"`
+	StTrend          string                       `bson:"StTrend"`
 	Orders           PositionOrders               `bson:"Orders"`
 	CreatedTime      int64                        `bson:"CreatedTime"`
 	UpdatedTime      int64                        `bson:"UpdatedTime"`

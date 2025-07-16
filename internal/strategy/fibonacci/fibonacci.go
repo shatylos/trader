@@ -8,6 +8,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
 
@@ -15,6 +16,16 @@ type Fibonacci struct {
 	isInit   bool
 	config   Config
 	provider domain.FuturesDomainInterface
+	state    FibState
+}
+
+type FibState struct {
+	LtTrend           string
+	StTrend           string
+	MinPriceReview    float64
+	MaxPriceReview    float64
+	CurrentPrice      float64
+	NewOrderCondition string
 }
 
 func (f *Fibonacci) GetId() string {
@@ -36,7 +47,9 @@ func (f *Fibonacci) Initialise() error {
 
 func (f *Fibonacci) DoAction() (err error) {
 
+	fibState := FibState{}
 	if !f.config.Enabled {
+		f.state = fibState
 		if f.config.Verbose {
 			logger.Info("The setup is disabled. Set enabled:1 in config file to enable it.")
 		}
@@ -88,11 +101,68 @@ func (f *Fibonacci) DoAction() (err error) {
 
 	err = f.actionByPosition(internalPosition, currentPrice)
 
+	fibState.MinPriceReview = internalPosition.FibonacciChart.SourceMinPrice
+	fibState.MaxPriceReview = internalPosition.FibonacciChart.SourceMaxPrice
+	fibState.CurrentPrice = currentPrice
+	fibState.LtTrend = internalPosition.LtTrend
+	fibState.StTrend = internalPosition.StTrend
+	fibState.NewOrderCondition = f.newOrderCondition(internalPosition)
+
+	f.state = fibState
 	return
 }
 
 func (f *Fibonacci) Wait() {
 	time.Sleep(time.Second * f.config.TimeoutSeconds)
+}
+
+func (f *Fibonacci) newOrderCondition(internalPosition structs.Position) (condition string) {
+	if internalPosition.Trend == trading.TrendShort {
+		if internalPosition.Orders.Order1.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint1 > 0.0 &&
+			internalPosition.FibonacciChart.EntryPoint2 > 0.0 {
+
+			condition = fmt.Sprintf("> %g, < %g", internalPosition.FibonacciChart.EntryPoint1, internalPosition.FibonacciChart.EntryPoint2)
+			return
+		}
+		if internalPosition.Orders.Order2.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint2 > 0.0 &&
+			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
+
+			condition = fmt.Sprintf("> %g, < %g", internalPosition.FibonacciChart.EntryPoint2, internalPosition.FibonacciChart.EntryPoint3)
+			return
+		}
+		if internalPosition.Orders.Order3.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
+
+			condition = fmt.Sprintf("> %g", internalPosition.FibonacciChart.EntryPoint3)
+			return
+		}
+	}
+	if internalPosition.Trend == trading.TrendLong {
+		if internalPosition.Orders.Order1.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint1 > 0.0 &&
+			internalPosition.FibonacciChart.EntryPoint2 > 0.0 {
+
+			condition = fmt.Sprintf("< %g, > %g", internalPosition.FibonacciChart.EntryPoint1, internalPosition.FibonacciChart.EntryPoint2)
+			return
+		}
+		if internalPosition.Orders.Order2.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint2 > 0.0 &&
+			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
+
+			condition = fmt.Sprintf("< %g, > %g", internalPosition.FibonacciChart.EntryPoint2, internalPosition.FibonacciChart.EntryPoint3)
+			return
+		}
+		if internalPosition.Orders.Order3.OrderId == "" &&
+			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
+
+			condition = fmt.Sprintf("< %g", internalPosition.FibonacciChart.EntryPoint3)
+			return
+		}
+	}
+
+	return
 }
 
 func (f *Fibonacci) ResetOrderData() error {
