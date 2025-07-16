@@ -50,15 +50,15 @@
         </div>
         {{ end }}
 
-        {{ if gt .FibState.MinPriceReview 0.0 }}
-        <div>
-            Min Price Review: {{ .FibState.MinPriceReview }}
-        </div>
-        {{ end }}
-
         {{ if gt .FibState.MaxPriceReview 0.0 }}
         <div>
             Max Price Review: {{ .FibState.MaxPriceReview }}
+        </div>
+        {{ end }}
+
+        {{ if gt .FibState.MinPriceReview 0.0 }}
+        <div>
+            Min Price Review: {{ .FibState.MinPriceReview }}
         </div>
         {{ end }}
 
