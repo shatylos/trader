@@ -238,6 +238,17 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 		return
 	}
 	status := d.mapStatus(order.OrderStatus)
+
+	side := ""
+	switch order.Side {
+	case SideBuy:
+		side = trading.SideBuy
+		break
+	case SideSell:
+		side = trading.SideSell
+		break
+	}
+
 	domainOrder = structs.DomainOrder{
 		CreatedTime: createdTime,
 		OrderId:     order.OrderId,
@@ -246,7 +257,7 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 		Price:       price,
 		Qty:         qty,
 		ReduceOnly:  order.ReduceOnly,
-		Side:        order.Side,
+		Side:        side,
 		Symbol:      order.Symbol,
 		TimeInForce: order.TimeInForce,
 		UpdatedTime: updatedTime,
@@ -287,10 +298,10 @@ func (d *DomainBybitFutures) GetPosition(coinPare string) (resultPosition struct
 	resultPosition.Symbol = providerPosition.Symbol
 	switch providerPosition.Side {
 	case SideBuy:
-		resultPosition.Side = trading.SideBuy
+		resultPosition.Side = structs.PositionSideLong
 		break
 	case SideSell:
-		resultPosition.Side = trading.SideSell
+		resultPosition.Side = structs.PositionSideShort
 		break
 	}
 
@@ -365,13 +376,23 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 		d.leverage = positionRequest.Leverage
 	}
 
+	side := ""
+	switch positionRequest.Side {
+	case structs.PositionSideLong:
+		side = SideBuy
+		break
+	case structs.PositionSideShort:
+		side = SideSell
+		break
+	}
+
 	orderRequest := request.OrderRequest{
 		CloseOnTrigger: false,
 		OrderType:      positionRequest.Type,
 		Price:          positionRequest.Price,
 		Qty:            positionRequest.Qty,
 		ReduceOnly:     positionRequest.ReduceOnly, // false,
-		Side:           positionRequest.Side,
+		Side:           side,
 		StopLoss:       positionRequest.StopLoss,
 		Symbol:         positionRequest.Symbol,
 		TakeProfit:     positionRequest.TakeProfit,
@@ -399,27 +420,6 @@ func (d *DomainBybitFutures) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err er
 	}
 	err = request.ModifyTpSl(requestData, d.secrets)
 	return
-}
-
-func (d *DomainBybitFutures) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
-
-	domainOrderRequest := request.OrderRequest{
-		CloseOnTrigger: false,
-		OrderType:      orderRequest.Type,
-		Price:          orderRequest.Price,
-		Qty:            orderRequest.Qty,
-		ReduceOnly:     orderRequest.ReduceOnly,
-		Side:           orderRequest.Side,
-		Symbol:         orderRequest.Symbol,
-		TimeInForce:    orderRequest.TimeInForce,
-	}
-
-	order, err := request.CreateOrder(domainOrderRequest, d.secrets)
-	if err != nil {
-		return "", err
-	}
-
-	return order.OrderId, nil
 }
 
 func (d *DomainBybitFutures) CancelOrder(orderId string, coinPare string) error {
