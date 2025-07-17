@@ -83,6 +83,7 @@ func (s *MongoStorage) GetLastInternalPosition(skip int64) (position structs.Pos
 	).Decode(&position)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			// @TODO: log the warning for verbose mode
 			//logger.Warning(fmt.Sprintf("Not found previous positions skipping %d", skip))
 			err = nil
 		}
