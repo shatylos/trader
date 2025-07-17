@@ -28,10 +28,12 @@ type SetupItemPage struct {
 
 func SetupListController(w http.ResponseWriter, r *http.Request) {
 
-	var setupList []SetupItemPage
+	var setups []SetupItemPage
 
-	for _, setupItem := range setup.GetSetupList() {
-		setupList = append(setupList, SetupItemPage{
+	setupList := setup.GetSetupList()
+	for i := range *setupList {
+		setupItem := &(*setupList)[i]
+		setups = append(setups, SetupItemPage{
 			Title:         setupItem.Strategy.GetTitle(),
 			SetupId:       setupItem.Strategy.GetId(),
 			CurrentPeriod: time.Now().Format("2006-01"),
@@ -39,7 +41,7 @@ func SetupListController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := SetupListPage{
-		SetupItems: setupList,
+		SetupItems: setups,
 	}
 
 	template, err := helper.GetTemplate("web/template/setupList.html")
@@ -68,7 +70,8 @@ func ReportPeriodHandler(w http.ResponseWriter, r *http.Request) {
 	setupList := setup.GetSetupList()
 
 	var strategy _struct.StrategyInterface
-	for _, setupItem := range setupList {
+	for i := range *setupList {
+		setupItem := &(*setupList)[i]
 		if setupItem.Strategy.GetId() == setupId {
 			strategy = setupItem.Strategy
 		}

@@ -10,9 +10,10 @@ func StartTradingApp() {
 	logger.Info("Starting trading app")
 
 	setupList := setup.GetSetupList()
-	setupChanel := make(chan *setupStructs.Setup, len(setupList))
+	setupChanel := make(chan *setupStructs.Setup, len(*setupList))
 
-	for _, setupItem := range setupList {
+	for i := range *setupList {
+		setupItem := &(*setupList)[i]
 		setupChanel <- setupItem
 	}
 

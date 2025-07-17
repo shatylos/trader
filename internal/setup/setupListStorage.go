@@ -10,10 +10,10 @@ import (
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
-var setupList []*setupStructs.Setup
+var setupList []setupStructs.Setup
 
 func TraderInit() error {
-	setupList = make([]*setupStructs.Setup, 0)
+	setupList = make([]setupStructs.Setup, 0)
 
 	appConfig, err := config.GetConfig()
 	if err != nil {
@@ -33,9 +33,9 @@ func TraderInit() error {
 	return nil
 }
 
-func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]interface{}) ([]*setupStructs.Setup, error) {
+func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]interface{}) ([]setupStructs.Setup, error) {
 
-	setupList := make([]*setupStructs.Setup, 0)
+	setups := make([]setupStructs.Setup, 0)
 
 	for _, strategyItemConfig := range strategyItems {
 		itemMap, ok := strategyItemConfig.(map[interface{}]interface{})
@@ -64,23 +64,23 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]
 			return nil, err
 		}
 
-		setupList = append(setupList, &setupStructs.Setup{
+		setups = append(setups, setupStructs.Setup{
 			Strategy: strategyItem,
 			ID:       itemMap["id"].(string),
 		})
 	}
 
-	return setupList, nil
+	return setups, nil
 }
 
-func GetSetupList() []*setupStructs.Setup {
-	return setupList
+func GetSetupList() *[]setupStructs.Setup {
+	return &setupList
 }
 
 func GetSetupByID(id string) (*setupStructs.Setup, error) {
-	for _, setup := range setupList {
+	for i, setup := range setupList {
 		if setup.ID == id {
-			return setup, nil
+			return &setupList[i], nil
 		}
 	}
 	msg := fmt.Sprintf("Setup with ID: \"%s\" not found", id)

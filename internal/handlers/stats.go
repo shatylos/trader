@@ -16,12 +16,13 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	setupList := setup.GetSetupList()
 
-	strategyStats := make([]_struct.Stats, len(setupList))
+	strategyStats := make([]_struct.Stats, len(*setupList))
 	data := StatsPage{
 		StrategyStats: strategyStats,
 	}
 
-	for i, setupItem := range setupList {
+	for i := range *setupList {
+		setupItem := &(*setupList)[i]
 		var er error
 		data.StrategyStats[i], er = setupItem.Strategy.GetStats()
 		if er != nil {
