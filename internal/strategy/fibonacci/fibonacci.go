@@ -13,7 +13,6 @@ import (
 )
 
 type Fibonacci struct {
-	isInit   bool
 	config   Config
 	provider domain.FuturesDomainInterface
 	state    FibState
@@ -34,15 +33,6 @@ func (f *Fibonacci) GetId() string {
 
 func (f *Fibonacci) GetTitle() string {
 	return fmt.Sprintf("Fibonacci: %s (%s)", f.config.Id, f.config.CoinPare)
-}
-
-func (f *Fibonacci) IsInit() bool {
-	return f.isInit
-}
-
-func (f *Fibonacci) Initialise() error {
-	f.isInit = true
-	return nil
 }
 
 func (f *Fibonacci) DoAction() (err error) {

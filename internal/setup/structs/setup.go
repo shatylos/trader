@@ -17,21 +17,6 @@ type Setup struct {
 func (s *Setup) NextStep(setupChanel chan *Setup) {
 	strategy := s.Strategy
 
-	if !strategy.IsInit() {
-		err := strategy.Initialise()
-		if err != nil {
-			logger.Error(err.Error())
-			s.errorCount++
-			logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
-			if s.errorCount == 10 || s.errorCount%100 == 0 {
-				tgNotifier.Notify(fmt.Sprintf("Errors for setup %s. Error count: %d", s.ID, s.errorCount))
-			}
-			time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
-			setupChanel <- s
-			return
-		}
-	}
-
 	err := strategy.DoAction()
 	if err != nil {
 		errorMsg := err.Error()

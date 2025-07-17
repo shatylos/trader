@@ -10,7 +10,6 @@ import (
 )
 
 type BuyCheapSellHigh struct {
-	isInit                    bool
 	Id                        string
 	CoinPare                  string
 	Domain                    domain.SpotDomainInterface
@@ -38,22 +37,12 @@ type BuyCheapSellHigh struct {
 
 var _ _struct.StrategyInterface = (*BuyCheapSellHigh)(nil)
 
-func (s *BuyCheapSellHigh) IsInit() bool {
-	return s.isInit
-}
-
 func (s *BuyCheapSellHigh) GetId() string {
 	return s.Id
 }
 
 func (s *BuyCheapSellHigh) GetTitle() string {
 	return "Buy Cheap Sell High: " + s.Id + " (" + s.CoinPare + ")"
-}
-
-func (s *BuyCheapSellHigh) Initialise() error {
-	// @TODO: remove the method
-	s.isInit = true
-	return nil
 }
 
 func (s *BuyCheapSellHigh) DoAction() error {

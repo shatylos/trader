@@ -29,8 +29,6 @@ type StrategyInterface interface {
 	GetId() string
 	GetTitle() string
 	SetConfig(interface{}, map[string]interface{}) error
-	IsInit() bool
-	Initialise() error
 	DoAction() error
 	GetReport(from time.Time, to time.Time) (Report, error)
 	GetStats() (Stats, error)
