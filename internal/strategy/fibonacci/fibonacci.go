@@ -134,20 +134,20 @@ func (f *Fibonacci) newOrderCondition(internalPosition structs.Position) (condit
 			internalPosition.FibonacciChart.EntryPoint1 > 0.0 &&
 			internalPosition.FibonacciChart.EntryPoint2 > 0.0 {
 
-			condition = fmt.Sprintf("%g > X > %g", internalPosition.FibonacciChart.EntryPoint1, internalPosition.FibonacciChart.EntryPoint2)
+			condition = fmt.Sprintf("%g < X < %g", internalPosition.FibonacciChart.EntryPoint2, internalPosition.FibonacciChart.EntryPoint1)
 			return
 		}
 		if internalPosition.Orders.Order2.OrderId == "" &&
 			internalPosition.FibonacciChart.EntryPoint2 > 0.0 &&
 			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
 
-			condition = fmt.Sprintf("%g > X > %g", internalPosition.FibonacciChart.EntryPoint2, internalPosition.FibonacciChart.EntryPoint3)
+			condition = fmt.Sprintf("%g < X < %g", internalPosition.FibonacciChart.EntryPoint3, internalPosition.FibonacciChart.EntryPoint2)
 			return
 		}
 		if internalPosition.Orders.Order3.OrderId == "" &&
 			internalPosition.FibonacciChart.EntryPoint3 > 0.0 {
 
-			condition = fmt.Sprintf("%g > X", internalPosition.FibonacciChart.EntryPoint3)
+			condition = fmt.Sprintf("X < %g", internalPosition.FibonacciChart.EntryPoint3)
 			return
 		}
 	}
