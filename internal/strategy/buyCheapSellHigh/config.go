@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/type"
 )
 
@@ -32,6 +33,22 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 			Message:     "The field coin_pare is empty or contains not correct value type",
 			ParentError: err,
 		}
+	}
+
+	var enabled int64
+	enabled, err = _type.ToInt64(configMap["enabled"])
+	if err != nil {
+		logger.Error("The field enabled is empty or contains not correct value type. Expects 1 or 0")
+		err = tools.AppError{
+			Message:     "The field enabled is empty or contains not correct value type. Expects 1 or 0",
+			ParentError: err,
+		}
+		return err
+	}
+	if enabled == 1 {
+		s.Enabled = true
+	} else {
+		s.Enabled = false
 	}
 
 	s.MainCurrency, err = _type.ToString(configMap["main_currency"])

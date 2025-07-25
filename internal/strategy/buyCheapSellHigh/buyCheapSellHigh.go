@@ -33,6 +33,7 @@ type BuyCheapSellHigh struct {
 	AvgPriceCandleOffset      int64
 	ManualBuyPriceBeforeStart float64
 	WithdrawPercent           float64
+	Enabled                   bool
 }
 
 var _ _struct.StrategyInterface = (*BuyCheapSellHigh)(nil)
@@ -42,10 +43,16 @@ func (s *BuyCheapSellHigh) GetId() string {
 }
 
 func (s *BuyCheapSellHigh) GetTitle() string {
-	return "Buy Cheap Sell High: " + s.Id + " (" + s.CoinPare + ")"
+	if !s.Enabled {
+		return fmt.Sprintf("Buy Cheap Sell High: %s (%s) (DISABLED)", s.Id, s.CoinPare)
+	}
+	return fmt.Sprintf("Buy Cheap Sell High: %s (%s)", s.Id, s.CoinPare)
 }
 
 func (s *BuyCheapSellHigh) DoAction() error {
+	if !s.Enabled {
+		return nil
+	}
 
 	openOrders, err := s.getOpenOrders()
 	if err != nil {

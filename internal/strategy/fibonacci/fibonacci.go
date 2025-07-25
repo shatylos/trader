@@ -32,6 +32,9 @@ func (f *Fibonacci) GetId() string {
 }
 
 func (f *Fibonacci) GetTitle() string {
+	if !f.config.Enabled {
+		return fmt.Sprintf("Fibonacci: %s (%s) (DISABLED)", f.config.Id, f.config.CoinPare)
+	}
 	return fmt.Sprintf("Fibonacci: %s (%s)", f.config.Id, f.config.CoinPare)
 }
 
