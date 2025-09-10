@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh"
 	"github.com/shatylos/trader/internal/strategy/fibonacci"
+	"github.com/shatylos/trader/internal/strategy/investor"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools"
 )
@@ -14,6 +15,8 @@ func GetStrategyByCode(code string) (_struct.StrategyInterface, error) {
 		return &buyCheapSellHigh.BuyCheapSellHigh{}, nil
 	case "fibonacci":
 		return &fibonacci.Fibonacci{}, nil
+	case "investor":
+		return &investor.Investor{}, nil
 	}
 	return nil, tools.AppError{
 		Message: fmt.Sprintf("strategy with code \"%s\" not implemented", code),

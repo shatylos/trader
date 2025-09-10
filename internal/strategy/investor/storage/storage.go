@@ -1,0 +1,23 @@
+package storage
+
+import (
+	appStorage "github.com/shatylos/trader/internal/storage"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type Storage struct {
+	Id              string
+	orderCollection *mongo.Collection
+	dealCollection  *mongo.Collection
+}
+
+func (s *Storage) InitStorage() (err error) {
+	var db *mongo.Database
+	db, err = appStorage.GetDocumentDB()
+	if err != nil {
+		return
+	}
+	s.orderCollection = db.Collection("investor_" + s.Id + "_orders")
+	s.dealCollection = db.Collection("investor_" + s.Id + "_deals")
+	return
+}
