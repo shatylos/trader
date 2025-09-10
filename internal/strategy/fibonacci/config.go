@@ -3,6 +3,7 @@ package fibonacci
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
+	"github.com/shatylos/trader/internal/trading/constant"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
@@ -54,18 +55,16 @@ type Config struct {
 }
 
 var resolutions = map[string]int64{
-	"1":   1,
-	"3":   3,
-	"5":   5,
-	"15":  15,
-	"30":  30,
-	"60":  60,
-	"120": 120,
-	"240": 240,
-	"360": 360,
-	"720": 720,
-	"D":   86400,
-	"W":   604800,
+	constant.Resol1m:  1,
+	constant.Resol5m:  5,
+	constant.Resol15m: 15,
+	constant.Resol30m: 30,
+	constant.Resol1h:  60,
+	constant.Resol2h:  120,
+	constant.Resol4h:  240,
+	constant.Resol1d:  86400,
+	constant.Resol1w:  604800,
+	//constant.Resol1month: constant.Resol1month,
 }
 
 func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[string]interface{}) (err error) {
