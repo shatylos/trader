@@ -1,6 +1,7 @@
 package bybit
 
 import (
+	"github.com/shatylos/trader/internal/domain/domains/bybit/mapping"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
@@ -106,7 +107,11 @@ func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 }
 
 func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {
-	candles, err := request.GetSpotKlineList(symbol, resolution, limit, d.secrets)
+	providerResolution, err := mapping.ToBybitInterval(resolution)
+	if err != nil {
+		return nil, err
+	}
+	candles, err := request.GetSpotKlineList(symbol, providerResolution, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}

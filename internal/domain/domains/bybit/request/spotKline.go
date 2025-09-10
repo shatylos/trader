@@ -7,21 +7,6 @@ import (
 	"strconv"
 )
 
-var SpotMinToResol = map[string]string{
-	//"1":   60,
-	//"5":   300,
-	//"15":  900,
-	"30": "30",
-	//"45":  2700,
-	//"60":  3600,
-	//"120": 7200,
-	//"180": 10800,
-	//"240": 14400,
-	//"D":   86400,
-	//"W":   604800,
-	//"M":   2592000,
-}
-
 type SpotCandle struct {
 	Timestamp int64  `json:"t"` //	Timestamp(ms)
 	Close     string `json:"c"` //	Close price
@@ -35,7 +20,7 @@ func GetSpotKlineList(symbol string, resolution string, limit int64, secrets byb
 	params := make(ApiParams, 0)
 	params["category"] = "spot"
 	params["symbol"] = symbol
-	params["interval"] = SpotMinToResol[resolution]
+	params["interval"] = resolution
 	params["limit"] = strconv.FormatInt(limit, 10)
 
 	queryResp, er := apiQueryGet("/v5/market/kline", params, secrets)
