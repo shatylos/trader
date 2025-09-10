@@ -137,9 +137,9 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 				}
 				logger.Info(fmt.Sprintf("Filled price for the order %s", order.OrderId))
 				if order.Side == structs.OrderSideBuy {
-					logger.Success(fmt.Sprintf("Bought %g %s for the %g %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
+					logger.Success(fmt.Sprintf("Bought %g %s for the %s %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
 				} else if order.Side == structs.OrderSideSell {
-					logger.Success(fmt.Sprintf("Sold %g %s for the %g %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
+					logger.Success(fmt.Sprintf("Sold %g %s for the %s %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
 				}
 				countFilled++
 			} else if order.OrderStatus == structs.OrderStatuses.Canceled {
