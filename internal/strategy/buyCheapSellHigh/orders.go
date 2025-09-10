@@ -2,6 +2,7 @@ package buyCheapSellHigh
 
 import (
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	storageStructs "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/structs"
@@ -135,6 +136,11 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 					return err
 				}
 				logger.Info(fmt.Sprintf("Filled price for the order %s", order.OrderId))
+				if order.Side == structs.OrderSideBuy {
+					logger.Success(fmt.Sprintf("Bought %g %s for the %g %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
+				} else if order.Side == structs.OrderSideSell {
+					logger.Success(fmt.Sprintf("Sold %g %s for the %g %s", order.Qty, s.TradeCurrency, humanize.CommafWithDigits(order.Price, 2), s.MainCurrency))
+				}
 				countFilled++
 			} else if order.OrderStatus == structs.OrderStatuses.Canceled {
 				err := storage.RemoveOrder(historyOrder.DomainOrderId)
