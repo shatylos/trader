@@ -1,6 +1,7 @@
 package fibonacci
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
@@ -198,7 +199,7 @@ func (f *Fibonacci) SetConfig(strategyConfig interface{}, domainConfig map[strin
 	f.config.ResolutionMins, ok = resolutions[f.config.Resolution]
 	if !ok {
 		return tools.AppError{
-			Message: "The field contains not correct value",
+			Message: fmt.Sprintf("The field resolution contains not correct value: %s", configMap["resolution"]),
 		}
 	}
 
