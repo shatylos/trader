@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 	"strconv"
 	"time"
 )
@@ -69,7 +70,7 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 		Side:        direction,
 		Symbol:      s.CoinPare,
 		TimeInForce: "GTC",
-		Type:        "LIMIT",
+		Type:        trading.TypeLimit,
 	}
 
 	orderId, err := s.Domain.OpenOrder(request)

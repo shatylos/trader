@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/internal/strategy/struct"
-	tradeConst "github.com/shatylos/trader/internal/trading/constant"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
 
@@ -98,7 +98,7 @@ func (s *BuyCheapSellHigh) DoAction() error {
 	}
 
 	if buyPrice > 0 && buyQty > 0 {
-		orderId, err := s.setLimitOrder(buyPrice, buyQty, tradeConst.SideBuy)
+		orderId, err := s.setLimitOrder(buyPrice, buyQty, trading.SideBuy)
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func (s *BuyCheapSellHigh) DoAction() error {
 		logger.Info(fmt.Sprintf("[Buy Cheap Sell High] unexpected values for buy orders: buyPrice: %f, buyQty: %f", buyPrice, buyQty))
 	}
 	if sellPrice > 0 && sellQty > 0 {
-		orderId, err := s.setLimitOrder(sellPrice, sellQty, tradeConst.SideSell)
+		orderId, err := s.setLimitOrder(sellPrice, sellQty, trading.SideSell)
 		if err != nil {
 			return err
 		}

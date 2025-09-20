@@ -1,11 +1,13 @@
 package bybit
 
 import (
+	"fmt"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/mapping"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/type"
 	"sort"
 	"strconv"
@@ -163,6 +165,13 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error)
 		return structs.DomainOrder{}, err
 	}
 
+	if order.Symbol == "" {
+		msg := fmt.Sprintf("Order with ID (%s) not found", domainId)
+		err = tools.AppError{Message: msg}
+		logger.Warning(msg)
+		return structs.DomainOrder{}, err
+	}
+
 	filledPrice, err := strconv.ParseFloat(order.AvgPrice, 64)
 	if err != nil {
 		return structs.DomainOrder{}, err
@@ -246,25 +255,35 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 	return domainOrders, nil
 }
 
-func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (string, error) {
+func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (orderId string, err error) {
+	var orderType string
+	orderType, err = mapping.ToBybitOrderType(orderRequest.Type)
+	if err != nil {
+		return
+	}
+
+	orderPriceStr := ""
+	if orderRequest.Price > 0 {
+		strconv.FormatFloat(orderRequest.Price, 'f', -1, 64)
+	}
 
 	domainOrderRequest := request.SpotOrderRequest{
 		Symbol:      orderRequest.Symbol,
 		OrderQty:    strconv.FormatFloat(orderRequest.Qty, 'f', -1, 64),
 		Side:        strings.ToUpper(orderRequest.Side),
-		OrderType:   orderRequest.Type,
+		OrderType:   orderType,
 		TimeInForce: orderRequest.TimeInForce,
-		OrderPrice:  strconv.FormatFloat(orderRequest.Price, 'f', -1, 64),
+		OrderPrice:  orderPriceStr,
 		OrderLinkId: orderRequest.OrderId,
 	}
 
-	order, err := request.CreateSpotOrder(domainOrderRequest, d.secrets)
+	var order request.SpotOrderResponseTimeStr
+	order, err = request.CreateSpotOrder(domainOrderRequest, d.secrets)
 	if err != nil {
-		return "", err
+		return
 	}
-
-	return order.OrderId, nil
-
+	orderId = order.OrderId
+	return
 }
 
 func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
