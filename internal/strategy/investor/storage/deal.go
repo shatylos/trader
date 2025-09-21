@@ -118,3 +118,44 @@ func (s *Storage) GetLastDealByTimeframe(timeframe string, deal *Deal) (err erro
 
 	return
 }
+
+func (s *Storage) GetDealsByPeriod(from time.Time, to time.Time) (dealPointerss []*Deal, err error) {
+	ctx := context.Background()
+	var cursor *mongo.Cursor
+
+	cursor, err = s.dealCollection.Find(ctx, bson.D{{
+		"$and", bson.A{
+			bson.D{{"CreatedTime", bson.D{{"$gt", from}}}},
+			bson.D{{"CreatedTime", bson.D{{"$lt", to}}}},
+		},
+	}}, options.Find().SetSort(
+		bson.D{{"CreatedTime", -1}},
+	))
+	if err != nil {
+		msg := "Error getting cursor deals by period"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var deals []Deal
+	err = cursor.All(ctx, &deals)
+	if err != nil {
+		msg := "Error getting all deals by period"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	for _, deal := range deals {
+		dealPointerss = append(dealPointerss, &deal)
+	}
+
+	return
+}
