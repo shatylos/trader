@@ -65,6 +65,22 @@ func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) error {
 		}
 	}
 	secrets.Pass = pass
+
+	var verbose int64
+	verbose, err = _type.ToInt64(secretMap["verbose"])
+	if err != nil {
+		logger.Error("The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0")
+		err = tools.AppError{
+			Message:     "The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0",
+			ParentError: err,
+		}
+		return err
+	}
+	if verbose == 1 {
+		secrets.Verbose = true
+	} else {
+		secrets.Verbose = false
+	}
 	d.secrets = secrets
 
 	return nil
