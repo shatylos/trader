@@ -280,7 +280,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 
 	orderPriceStr := ""
 	if orderRequest.Price > 0 {
-		strconv.FormatFloat(orderRequest.Price, 'f', -1, 64)
+		orderPriceStr = strconv.FormatFloat(orderRequest.Price, 'f', -1, 64)
 	}
 
 	domainOrderRequest := request.SpotOrderRequest{
