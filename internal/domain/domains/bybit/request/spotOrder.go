@@ -56,7 +56,7 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets
 		params["price"] = orderRequest.OrderPrice
 	}
 	params["orderLinkId"] = orderRequest.OrderLinkId
-	//params["marketUnit"] = "baseCoin"
+	params["marketUnit"] = "baseCoin"
 	var queryResp interface{}
 	queryResp, err = apiQueryPost("/v5/order/create", params, secrets)
 	if err != nil {
