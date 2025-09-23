@@ -76,7 +76,11 @@
             <div class="container">
                 <div class="row">
                     <div class="col-1">#{{ add $i 1 }}</div>
-                    <div class="col-1">{{ $order.Side }}</div>
+                    {{ if eq $order.Side "BUY" }}
+                    <div class="col-1 bg-success">{{ $order.Side }}</div>
+                    {{ else }}
+                    <div class="col-1 bg-danger">{{ $order.Side }}</div>
+                    {{ end }}
                     <div class="col-1">{{ $order.Qty }}</div>
                     <div class="col-1">{{ $order.Price }}</div>
                     <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
