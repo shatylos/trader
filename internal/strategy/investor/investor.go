@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
 	"time"
@@ -15,6 +16,7 @@ type Investor struct {
 	Timeframes []Timeframe
 	State      State
 	Storage    storage.Storage
+	Wallet     *domainStructs.DomainWallet
 }
 
 type State struct {
@@ -43,6 +45,13 @@ func (i *Investor) DoAction() (err error) {
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, CtxSetupKey, i)
+
+	if i.Wallet == nil {
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+	}
 
 	for key := range i.Timeframes {
 		err = i.handleTimeframe(ctx, &(i.Timeframes[key]))

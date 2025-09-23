@@ -103,9 +103,8 @@ func (d *DomainBinanceFutures) GetWallet() (wallet providerStructs.DomainWallet,
 	}
 
 	wallet = providerStructs.DomainWallet{
-		DomainCode: d.code,
-		Available:  available,
-		Reserved:   reserved,
+		Available: available,
+		Reserved:  reserved,
 	}
 	return
 }

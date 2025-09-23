@@ -124,9 +124,8 @@ func (d *DomainBybitFutures) GetWallet() (wallet structs.DomainWallet, err error
 	}
 
 	wallet = structs.DomainWallet{
-		DomainCode: d.code,
-		Available:  availableCoins,
-		Reserved:   reservedCoins,
+		Available: availableCoins,
+		Reserved:  reservedCoins,
 	}
 	return
 }

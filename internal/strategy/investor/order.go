@@ -21,6 +21,14 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+
+	var walletBefore, walletAfter domainStructs.DomainWallet
+	walletBefore = *i.Wallet
+
 	var qty float64
 	qty, err = i.calculateQtyToBuy(timeFrameItem)
 	if err != nil {
@@ -46,10 +54,18 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+	walletAfter = *i.Wallet
+
 	storageOrder := storage.Order{
-		DealId:      *deal.Id,
-		Timeframe:   timeFrameItem.Config.Resolution,
-		DomainOrder: domainOrder,
+		DealId:       *deal.Id,
+		Timeframe:    timeFrameItem.Config.Resolution,
+		DomainOrder:  domainOrder,
+		WalletBefore: walletBefore,
+		WalletAfter:  walletAfter,
 	}
 	err = i.Storage.SaveOrder(ctx, &storageOrder)
 	if err != nil {
@@ -67,17 +83,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 }
 
 func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, err error) {
-	var mainCurrencyAvailable float64
-	var wallet domainStructs.DomainWallet
-	wallet, err = i.provider.GetWallet()
-	if err != nil {
-		return
-	}
-	for _, coin := range wallet.Available {
-		if coin.Coin == i.config.MainCurrency {
-			mainCurrencyAvailable = coin.Amount
-		}
-	}
+	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {
 		return
 	}
@@ -110,6 +116,14 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+
+	var walletBefore, walletAfter domainStructs.DomainWallet
+	walletBefore = *i.Wallet
+
 	qty = math.Round(qty, i.config.QtyPrecision)
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
@@ -130,10 +144,18 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+	walletAfter = *i.Wallet
+
 	storageOrder := storage.Order{
-		DealId:      *deal.Id,
-		Timeframe:   timeFrameItem.Config.Resolution,
-		DomainOrder: domainOrder,
+		DealId:       *deal.Id,
+		Timeframe:    timeFrameItem.Config.Resolution,
+		DomainOrder:  domainOrder,
+		WalletBefore: walletBefore,
+		WalletAfter:  walletAfter,
 	}
 	err = i.Storage.SaveOrder(ctx, &storageOrder)
 	if err != nil {

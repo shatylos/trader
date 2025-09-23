@@ -14,10 +14,12 @@ import (
 
 type Order struct {
 	domainStructs.DomainOrder `bson:",inline"`
-	DealId                    string    `bson:"DealId"`
-	Timeframe                 string    `bson:"Timeframe"`
-	CreatedTime               time.Time `bson:"CreatedTime"`
-	UpdatedTime               time.Time `bson:"UpdatedTime"`
+	DealId                    string                     `bson:"DealId"`
+	Timeframe                 string                     `bson:"Timeframe"`
+	CreatedTime               time.Time                  `bson:"CreatedTime"`
+	UpdatedTime               time.Time                  `bson:"UpdatedTime"`
+	WalletBefore              domainStructs.DomainWallet `bson:"WalletBefore"`
+	WalletAfter               domainStructs.DomainWallet `bson:"WalletAfter"`
 }
 
 func (s *Storage) SaveOrder(ctx context.Context, order *Order) (err error) {

@@ -1,9 +1,8 @@
 package structs
 
 type DomainWallet struct {
-	DomainCode string
-	Available  []DomainWalletCoinItem
-	Reserved   []DomainWalletCoinItem
+	Available []DomainWalletCoinItem
+	Reserved  []DomainWalletCoinItem
 }
 
 type DomainWalletCoinItem struct {
