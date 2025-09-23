@@ -55,7 +55,7 @@
     <tr>
         <td class="">{{ .Deal.Timeframe }}</td>
         <td class="">{{ .Deal.Status }}</td>
-        <td class="">{{ .Deal.CreatedTime }}</td>
+        <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
     </tr>
     {{ range $i, $order := .Orders }}
     <tr>
@@ -66,7 +66,7 @@
                     <div class="col-1">Direction:<br/> {{ $order.Side }}</div>
                     <div class="col-1">Qty:<br/> {{ $order.Qty }}</div>
                     <div class="col-1">Price:<br/> {{ $order.Price }}</div>
-                    <div class="col-2">Created Time:<br/>{{ $order.CreatedTime }}</div>
+                    <div class="col-2">Created Time:<br/>{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
                 </div>
             </div>
         </td>
