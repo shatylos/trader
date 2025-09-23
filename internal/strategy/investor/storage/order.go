@@ -97,7 +97,7 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 	var cursor *mongo.Cursor
 	cursor, err = s.orderCollection.Find(ctx,
 		bson.D{{"DealId", dealId}},
-		options.Find().SetSort(bson.D{{"CreatedTime", -1}}),
+		options.Find().SetSort(bson.D{{"CreatedTime", 1}}),
 	)
 	if err != nil {
 		return
