@@ -1,6 +1,7 @@
 package investor
 
 import (
+	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
@@ -20,6 +21,10 @@ type State struct {
 	CurrentPrice float64
 }
 
+type ctxKey string
+
+const CtxSetupKey ctxKey = "setup"
+
 func (i *Investor) GetId() string {
 	return i.config.Id
 }
@@ -36,8 +41,11 @@ func (i *Investor) DoAction() (err error) {
 		return
 	}
 
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, CtxSetupKey, i)
+
 	for key := range i.Timeframes {
-		err = i.handleTimeframe(&(i.Timeframes[key]))
+		err = i.handleTimeframe(ctx, &(i.Timeframes[key]))
 		if err != nil {
 			return
 		}

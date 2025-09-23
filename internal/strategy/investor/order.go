@@ -1,6 +1,7 @@
 package investor
 
 import (
+	"context"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(timeFrameItem *Timeframe, deal *storage.Deal) (order *storage.Order, providerOrderId string, err error) {
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal) (order *storage.Order, providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -50,14 +51,14 @@ func (i *Investor) doBuy(timeFrameItem *Timeframe, deal *storage.Deal) (order *s
 		Timeframe:   timeFrameItem.Config.Resolution,
 		DomainOrder: domainOrder,
 	}
-	err = i.Storage.SaveOrder(&storageOrder)
+	err = i.Storage.SaveOrder(ctx, &storageOrder)
 	if err != nil {
 		return
 	}
 	order = &storageOrder
 
 	deal.Status = storage.DealStatusActive
-	err = i.Storage.SaveDeal(deal)
+	err = i.Storage.SaveDeal(ctx, deal)
 	if err != nil {
 		return
 	}
@@ -101,7 +102,7 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, err
 	return
 }
 
-func (i *Investor) doSell(timeFrameItem *Timeframe, deal *storage.Deal, qty float64) (order *storage.Order, providerOrderId string, err error) {
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty float64) (order *storage.Order, providerOrderId string, err error) {
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do sell"
 		logger.Error(msg)
@@ -134,14 +135,14 @@ func (i *Investor) doSell(timeFrameItem *Timeframe, deal *storage.Deal, qty floa
 		Timeframe:   timeFrameItem.Config.Resolution,
 		DomainOrder: domainOrder,
 	}
-	err = i.Storage.SaveOrder(&storageOrder)
+	err = i.Storage.SaveOrder(ctx, &storageOrder)
 	if err != nil {
 		return
 	}
 	order = &storageOrder
 
 	deal.Status = storage.DealStatusClosed
-	err = i.Storage.SaveDeal(deal)
+	err = i.Storage.SaveDeal(ctx, deal)
 	if err != nil {
 		return
 	}

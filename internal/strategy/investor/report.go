@@ -1,6 +1,7 @@
 package investor
 
 import (
+	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
@@ -28,6 +29,10 @@ type ReportTemplateData struct {
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, CtxSetupKey, i)
+
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
 	if err != nil {
@@ -35,7 +40,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	}
 
 	var deals []*storage.Deal
-	deals, err = i.Storage.GetDealsByPeriod(from, to)
+	deals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
 	if err != nil {
 		return
 	}

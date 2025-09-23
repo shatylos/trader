@@ -26,9 +26,8 @@ const DealStatusNew = "NEW"
 const DealStatusActive = "ACTIVE"
 const DealStatusClosed = "CLOSED"
 
-func (s *Storage) SaveDeal(deal *Deal) (err error) {
+func (s *Storage) SaveDeal(ctx context.Context, deal *Deal) (err error) {
 
-	ctx := context.Background()
 	var primObjectID primitive.ObjectID
 	var ok bool
 
@@ -101,9 +100,7 @@ func (s *Storage) SaveDeal(deal *Deal) (err error) {
 	return
 }
 
-func (s *Storage) GetLastDealByTimeframe(timeframe string, deal *Deal) (err error) {
-	ctx := context.Background()
-
+func (s *Storage) GetLastDealByTimeframe(ctx context.Context, timeframe string, deal *Deal) (err error) {
 	err = s.dealCollection.FindOne(ctx,
 		bson.D{{"Timeframe", timeframe}},
 		options.FindOne().
@@ -119,8 +116,7 @@ func (s *Storage) GetLastDealByTimeframe(timeframe string, deal *Deal) (err erro
 	return
 }
 
-func (s *Storage) GetDealsByPeriod(from time.Time, to time.Time) (dealPointerss []*Deal, err error) {
-	ctx := context.Background()
+func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.Time) (dealPointers []*Deal, err error) {
 	var cursor *mongo.Cursor
 
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
@@ -154,7 +150,7 @@ func (s *Storage) GetDealsByPeriod(from time.Time, to time.Time) (dealPointerss 
 		return
 	}
 	for _, deal := range deals {
-		dealPointerss = append(dealPointerss, &deal)
+		dealPointers = append(dealPointers, &deal)
 	}
 
 	return

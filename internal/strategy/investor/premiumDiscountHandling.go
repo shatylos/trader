@@ -1,16 +1,17 @@
 package investor
 
 import (
+	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
-func (i *Investor) handlePremium(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handlePremium(ctx context.Context, timeFrameItem *Timeframe) (err error) {
 
 	deal := storage.Deal{}
-	err = i.Storage.GetLastDealByTimeframe(timeFrameItem.Config.Resolution, &deal)
+	err = i.Storage.GetLastDealByTimeframe(ctx, timeFrameItem.Config.Resolution, &deal)
 	if err != nil {
 		return
 	}
@@ -20,7 +21,7 @@ func (i *Investor) handlePremium(timeFrameItem *Timeframe) (err error) {
 
 	dealOrders := make([]storage.Order, 0)
 	if deal.Id != nil {
-		err = i.Storage.GetOrdersByDealId(*deal.Id, &dealOrders)
+		err = i.Storage.GetOrdersByDealId(ctx, *deal.Id, &dealOrders)
 		if err != nil {
 			return
 		}
@@ -34,7 +35,7 @@ func (i *Investor) handlePremium(timeFrameItem *Timeframe) (err error) {
 	if qty > 0 {
 		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doSell(timeFrameItem, &deal, qty)
+		order, providerOrderId, err = i.doSell(ctx, timeFrameItem, &deal, qty)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -54,9 +55,9 @@ func (i *Investor) handlePremium(timeFrameItem *Timeframe) (err error) {
 	return
 }
 
-func (i *Investor) handleDiscount(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleDiscount(ctx context.Context, timeFrameItem *Timeframe) (err error) {
 	deal := storage.Deal{}
-	err = i.Storage.GetLastDealByTimeframe(timeFrameItem.Config.Resolution, &deal)
+	err = i.Storage.GetLastDealByTimeframe(ctx, timeFrameItem.Config.Resolution, &deal)
 	if err != nil {
 		return
 	}
@@ -67,7 +68,7 @@ func (i *Investor) handleDiscount(timeFrameItem *Timeframe) (err error) {
 	if deal.Id == nil {
 		deal.Timeframe = timeFrameItem.Config.Resolution
 		deal.Status = storage.DealStatusNew
-		err = i.Storage.SaveDeal(&deal)
+		err = i.Storage.SaveDeal(ctx, &deal)
 		if err != nil {
 			return
 		}
@@ -75,7 +76,7 @@ func (i *Investor) handleDiscount(timeFrameItem *Timeframe) (err error) {
 
 	dealOrders := make([]storage.Order, 0)
 	if deal.Id != nil {
-		err = i.Storage.GetOrdersByDealId(*deal.Id, &dealOrders)
+		err = i.Storage.GetOrdersByDealId(ctx, *deal.Id, &dealOrders)
 		if err != nil {
 			return
 		}
@@ -84,7 +85,7 @@ func (i *Investor) handleDiscount(timeFrameItem *Timeframe) (err error) {
 	if len(dealOrders) == 0 {
 		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doBuy(timeFrameItem, &deal)
+		order, providerOrderId, err = i.doBuy(ctx, timeFrameItem, &deal)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -106,10 +107,10 @@ func (i *Investor) handleDiscount(timeFrameItem *Timeframe) (err error) {
 	return
 }
 
-func (i *Investor) handlePremiumHeap(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handlePremiumHeap(ctx context.Context, timeFrameItem *Timeframe) (err error) {
 	return
 }
 
-func (i *Investor) handleDiscountHeap(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleDiscountHeap(ctx context.Context, timeFrameItem *Timeframe) (err error) {
 	return
 }

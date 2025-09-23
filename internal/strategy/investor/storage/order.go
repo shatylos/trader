@@ -20,9 +20,7 @@ type Order struct {
 	UpdatedTime               time.Time `bson:"UpdatedTime"`
 }
 
-func (s *Storage) SaveOrder(order *Order) (err error) {
-
-	ctx := context.Background()
+func (s *Storage) SaveOrder(ctx context.Context, order *Order) (err error) {
 	var primObjectID primitive.ObjectID
 	var ok bool
 
@@ -95,9 +93,7 @@ func (s *Storage) SaveOrder(order *Order) (err error) {
 	return
 }
 
-func (s *Storage) GetOrdersByDealId(dealId string, orders *[]Order) (err error) {
-	ctx := context.Background()
-
+func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string, orders *[]Order) (err error) {
 	var cursor *mongo.Cursor
 	cursor, err = s.orderCollection.Find(ctx,
 		bson.D{{"DealId", dealId}},

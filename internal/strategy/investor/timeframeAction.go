@@ -1,6 +1,7 @@
 package investor
 
 import (
+	"context"
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/trading/constant"
@@ -15,7 +16,7 @@ type Timeframe struct {
 	Candles       []domainStructs.DomainCandle
 }
 
-func (i *Investor) handleTimeframe(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
 		return
@@ -37,12 +38,12 @@ func (i *Investor) handleTimeframe(timeFrameItem *Timeframe) (err error) {
 
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
 		if timeFrameItem.Config.IsHeap {
-			err = i.handlePremiumHeap(timeFrameItem)
+			err = i.handlePremiumHeap(ctx, timeFrameItem)
 			if err != nil {
 				return
 			}
 		} else {
-			err = i.handlePremium(timeFrameItem)
+			err = i.handlePremium(ctx, timeFrameItem)
 			if err != nil {
 				return
 			}
@@ -50,12 +51,12 @@ func (i *Investor) handleTimeframe(timeFrameItem *Timeframe) (err error) {
 	}
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
 		if timeFrameItem.Config.IsHeap {
-			err = i.handleDiscountHeap(timeFrameItem)
+			err = i.handleDiscountHeap(ctx, timeFrameItem)
 			if err != nil {
 				return
 			}
 		} else {
-			err = i.handleDiscount(timeFrameItem)
+			err = i.handleDiscount(ctx, timeFrameItem)
 			if err != nil {
 				return
 			}
