@@ -93,7 +93,7 @@ func (s *Storage) SaveOrder(ctx context.Context, order *Order) (err error) {
 	return
 }
 
-func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string, orders *[]Order) (err error) {
+func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersResult []*Order, err error) {
 	var cursor *mongo.Cursor
 	cursor, err = s.orderCollection.Find(ctx,
 		bson.D{{"DealId", dealId}},
@@ -104,9 +104,14 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string, orders *
 	}
 	defer cursor.Close(ctx)
 
-	err = cursor.All(ctx, orders)
+	orders := make([]Order, 0)
+	err = cursor.All(ctx, &orders)
 	if err != nil {
 		return
+	}
+
+	for _, order := range orders {
+		ordersResult = append(ordersResult, &order)
 	}
 
 	return

@@ -51,12 +51,27 @@
 
     <tbody>
 
-    {{ range .Deals }}
+    {{ range .DealsRelations }}
     <tr>
-        <td class="">{{ .Timeframe }}</td>
-        <td class="">{{ .Status }}</td>
-        <td class="">{{ .CreatedTime }}</td>
+        <td class="">{{ .Deal.Timeframe }}</td>
+        <td class="">{{ .Deal.Status }}</td>
+        <td class="">{{ .Deal.CreatedTime }}</td>
     </tr>
+    {{ range $i, $order := .Orders }}
+    <tr>
+        <td colspan="100" class="bg-secondary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1">Order:<br/> #{{ add $i 1 }}</div>
+                    <div class="col-1">Direction:<br/> {{ $order.Side }}</div>
+                    <div class="col-1">Qty:<br/> {{ $order.Qty }}</div>
+                    <div class="col-1">Price:<br/> {{ $order.Price }}</div>
+                    <div class="col-2">Created Time:<br/>{{ $order.CreatedTime }}</div>
+                </div>
+            </div>
+        </td>
+    </tr>
+    {{ end }}
     {{ end }}
 
     </tbody>

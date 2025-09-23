@@ -15,6 +15,7 @@ func GetTemplate(fileName string) (*template.Template, error) {
 		"dateFormat":         dateFormat,
 		"dateFormatFromUnix": dateFormatFromUnix,
 		"longFloatShort":     longFloatShort,
+		"add":                add,
 	}).ParseFiles(
 		fileName,
 		"web/template/widget/baseMenu.html",
@@ -40,4 +41,8 @@ func dateFormatFromUnix(layout string, timeUnix int64) string {
 func longFloatShort(numsAfterDot int, value float64) string {
 	valueStr := strconv.FormatFloat(value, 'f', numsAfterDot, 64)
 	return valueStr
+}
+
+func add(x, y int) int {
+	return x + y
 }

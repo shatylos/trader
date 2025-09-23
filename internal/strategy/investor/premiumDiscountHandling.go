@@ -19,9 +19,9 @@ func (i *Investor) handlePremium(ctx context.Context, timeFrameItem *Timeframe) 
 		return
 	}
 
-	dealOrders := make([]storage.Order, 0)
+	var dealOrders []*storage.Order
 	if deal.Id != nil {
-		err = i.Storage.GetOrdersByDealId(ctx, *deal.Id, &dealOrders)
+		dealOrders, err = i.Storage.GetOrdersByDealId(ctx, *deal.Id)
 		if err != nil {
 			return
 		}
@@ -74,9 +74,9 @@ func (i *Investor) handleDiscount(ctx context.Context, timeFrameItem *Timeframe)
 		}
 	}
 
-	dealOrders := make([]storage.Order, 0)
+	var dealOrders []*storage.Order
 	if deal.Id != nil {
-		err = i.Storage.GetOrdersByDealId(ctx, *deal.Id, &dealOrders)
+		dealOrders, err = i.Storage.GetOrdersByDealId(ctx, *deal.Id)
 		if err != nil {
 			return
 		}

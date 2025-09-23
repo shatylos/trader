@@ -22,6 +22,11 @@ type Deal struct {
 	//Orders ???
 }
 
+type DealRelation struct {
+	Deal   *Deal
+	Orders []*Order
+}
+
 const DealStatusNew = "NEW"
 const DealStatusActive = "ACTIVE"
 const DealStatusClosed = "CLOSED"
@@ -153,5 +158,26 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 		dealPointers = append(dealPointers, &deal)
 	}
 
+	return
+}
+
+func (s *Storage) GetDealRelation(ctx context.Context, deal *Deal) (dealRelation *DealRelation, err error) {
+	if deal.Id == nil {
+		msg := "Deal ID is empty. Can not get deal relations"
+		logger.Error(msg)
+		err = tools.AppError{Message: msg}
+		return
+	}
+
+	var dealOrders []*Order
+	dealOrders, err = s.GetOrdersByDealId(ctx, *deal.Id)
+	if err != nil {
+		return
+	}
+
+	dealRelation = &DealRelation{
+		Deal:   deal,
+		Orders: dealOrders,
+	}
 	return
 }

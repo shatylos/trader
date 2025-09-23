@@ -16,7 +16,7 @@ type ReportTemplateData struct {
 	NextPeriodLink  string
 	DateFrom        time.Time
 	DateTo          time.Time
-	Deals           []*storage.Deal
+	DealsRelations  []*storage.DealRelation
 	MainCurrency    string
 	TradeCurrency   string
 	PricePrecision  int
@@ -45,6 +45,16 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		return
 	}
 
+	var dealRelations []*storage.DealRelation
+	for _, deal := range deals {
+		var dealRelation *storage.DealRelation
+		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
+		if err != nil {
+			return
+		}
+		dealRelations = append(dealRelations, dealRelation)
+	}
+
 	//var assets []structs.AssetTransaction
 	//assets, err = storage.GetAssetTransactions(from, to)
 	//totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := f.reportAmounts(positions, assets)
@@ -54,7 +64,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		NextPeriodLink:  fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
 		DateFrom:        from,
 		DateTo:          to,
-		Deals:           deals,
+		DealsRelations:  dealRelations,
 		MainCurrency:    i.config.MainCurrency,
 		TradeCurrency:   i.config.TradeCurrency,
 		PricePrecision:  int(i.config.PricePrecision),
