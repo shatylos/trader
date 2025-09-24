@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"github.com/shatylos/trader/tools/math"
 	"html/template"
 	"path/filepath"
 	"strconv"
@@ -16,6 +17,7 @@ func GetTemplate(fileName string) (*template.Template, error) {
 		"dateFormatFromUnix": dateFormatFromUnix,
 		"longFloatShort":     longFloatShort,
 		"add":                add,
+		"mul":                mul,
 	}).ParseFiles(
 		fileName,
 		"web/template/widget/baseMenu.html",
@@ -45,4 +47,8 @@ func longFloatShort(numsAfterDot int, value float64) string {
 
 func add(x, y int) int {
 	return x + y
+}
+
+func mul(x, y float64) float64 {
+	return math.Mul(x, y)
 }

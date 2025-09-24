@@ -45,7 +45,8 @@
     <tr>
         <th>Timeframe</th>
         <th>Status</th>
-        <th>CreatedTime</th>
+        <th>Created Time</th>
+        <th>Revenue</th>
     </tr>
     </thead>
 
@@ -56,6 +57,9 @@
         <td class="">{{ .Deal.Timeframe }}</td>
         <td class="">{{ .Deal.Status }}</td>
         <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
+        <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}, {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }}
+            {{ $.TradeCurrency }}
+        </td>
     </tr>
     <tr>
         <td colspan="100" class="bg-secondary">
@@ -64,6 +68,7 @@
                     <div class="col-1">Order:</div>
                     <div class="col-1">Direction:</div>
                     <div class="col-1">Qty:</div>
+                    <div class="col-1">Amount:</div>
                     <div class="col-1">Price:</div>
                     <div class="col-2">Created Time:</div>
                 </div>
@@ -82,7 +87,8 @@
                     <div class="col-1 bg-danger">{{ $order.Side }}</div>
                     {{ end }}
                     <div class="col-1">{{ $order.Qty }}</div>
-                    <div class="col-1">{{ $order.Price }}</div>
+                    <div class="col-1">{{ mul $order.Qty $order.Price | longFloatShort $.PricePrecision}}</div>
+                    <div class="col-1">{{ $order.Price | longFloatShort $.PricePrecision }}</div>
                     <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
                 </div>
             </div>

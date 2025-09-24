@@ -16,10 +16,11 @@ type ReportTemplateData struct {
 	NextPeriodLink  string
 	DateFrom        time.Time
 	DateTo          time.Time
-	DealsRelations  []*storage.DealRelation
+	DealsRelations  []*DealRelation
 	MainCurrency    string
 	TradeCurrency   string
 	PricePrecision  int
+	QtyPrecision    int
 	TotalPnl        float64
 	TotalPnlPercent float64
 	BalanceBefore   float64
@@ -45,10 +46,10 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		return
 	}
 
-	var dealRelations []*storage.DealRelation
+	var dealRelations []*DealRelation
 	for _, deal := range deals {
-		var dealRelation *storage.DealRelation
-		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
+		var dealRelation *DealRelation
+		dealRelation, err = i.GetDealRelation(ctx, deal)
 		if err != nil {
 			return
 		}
@@ -68,6 +69,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		MainCurrency:    i.config.MainCurrency,
 		TradeCurrency:   i.config.TradeCurrency,
 		PricePrecision:  int(i.config.PricePrecision),
+		QtyPrecision:    int(i.config.QtyPrecision),
 		TotalPnl:        50,
 		TotalPnlPercent: 50,
 		BalanceBefore:   50,

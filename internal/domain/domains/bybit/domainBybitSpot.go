@@ -11,7 +11,6 @@ import (
 	"github.com/shatylos/trader/tools/type"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type DomainBybitSpot struct {
@@ -175,37 +174,44 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, li
 	return candlesResult, nil
 }
 
-func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error) {
-	order, err := request.GetSpotOrder(domainId, d.secrets)
+func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainOrder, err error) {
+	var order request.SpotOrderResponseTimeStr
+	order, err = request.GetSpotOrder(domainId, d.secrets)
 	if err != nil {
-		return structs.DomainOrder{}, err
+		return
 	}
 
 	if order.Symbol == "" {
 		msg := fmt.Sprintf("Order with ID (%s) not found", domainId)
 		err = tools.AppError{Message: msg}
 		logger.Warning(msg)
-		return structs.DomainOrder{}, err
+		return
 	}
 
 	filledPrice, err := strconv.ParseFloat(order.AvgPrice, 64)
 	if err != nil {
-		return structs.DomainOrder{}, err
+		return
 	}
 	filledQty, err := strconv.ParseFloat(order.ExecQty, 64)
 	if err != nil {
-		return structs.DomainOrder{}, err
+		return
 	}
 	createTime, err := strconv.ParseInt(order.CreateTime, 10, 64)
 	if err != nil {
-		return structs.DomainOrder{}, err
+		return
 	}
 	updateTime, err := strconv.ParseInt(order.UpdateTime, 10, 64)
 	if err != nil {
-		return structs.DomainOrder{}, err
+		return
 	}
 
-	domainOrder := structs.DomainOrder{
+	var side string
+	side, err = mapping.ToDomainOrderSide(order.Side)
+	if err != nil {
+		return
+	}
+
+	domainOrder = structs.DomainOrder{
 		CreatedTime: createTime / 1000,
 		OrderId:     order.OrderId,
 		OrderStatus: order.Status,
@@ -213,13 +219,13 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (structs.DomainOrder, error)
 		Price:       filledPrice,
 		Qty:         filledQty,
 		ReduceOnly:  false,
-		Side:        order.Side,
+		Side:        side,
 		Symbol:      order.Symbol,
 		TimeInForce: order.TimeInForce,
 		UpdatedTime: updateTime / 1000,
 	}
 
-	return domainOrder, nil
+	return
 }
 
 func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
@@ -283,10 +289,16 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 		orderPriceStr = strconv.FormatFloat(orderRequest.Price, 'f', -1, 64)
 	}
 
+	var side string
+	side, err = mapping.ToBybitOrderSide(orderRequest.Side)
+	if err != nil {
+		return
+	}
+
 	domainOrderRequest := request.SpotOrderRequest{
 		Symbol:      orderRequest.Symbol,
 		OrderQty:    strconv.FormatFloat(orderRequest.Qty, 'f', -1, 64),
-		Side:        strings.ToUpper(orderRequest.Side),
+		Side:        side,
 		OrderType:   orderType,
 		TimeInForce: orderRequest.TimeInForce,
 		OrderPrice:  orderPriceStr,
