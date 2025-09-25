@@ -48,8 +48,8 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 				tradeAmountAfter = coin.Amount
 			}
 		}
-		revenueMainCur += mainAmountBefore - mainAmountAfter
-		revenueTradeCur += tradeAmountBefore - tradeAmountAfter
+		revenueMainCur += mainAmountAfter - mainAmountBefore
+		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
 	}
 
 	dealRelation = &DealRelation{
