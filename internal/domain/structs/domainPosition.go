@@ -18,11 +18,11 @@ type PositionTypesStruct struct {
 }
 
 var PositionTypes = PositionTypesStruct{
-	Limit:  "Limit",
-	Market: "Market",
+	Limit:  "LIMIT",
+	Market: "MARKET",
 }
 
 const (
-	PositionSideLong  = "Long"
-	PositionSideShort = "Short"
+	PositionSideLong  = "LONG"
+	PositionSideShort = "SHORT"
 )
