@@ -9,7 +9,6 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
-	"github.com/shatylos/trader/tools/trading"
 	"strconv"
 	"time"
 )
@@ -32,10 +31,10 @@ func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainO
 	maxBuyPrice := 0.0
 
 	for _, order := range orders {
-		if order.Side == trading.SideSell && (order.Price < minSellPrice || minSellPrice == 0) {
+		if order.Side == structs.OrderSideSell && (order.Price < minSellPrice || minSellPrice == 0) {
 			minSellPrice = order.Price
 		}
-		if order.Side == trading.SideBuy && order.Price > maxBuyPrice {
+		if order.Side == structs.OrderSideBuy && order.Price > maxBuyPrice {
 			maxBuyPrice = order.Price
 		}
 	}
@@ -70,7 +69,7 @@ func (s *BuyCheapSellHigh) setLimitOrder(price float64, qty float64, direction s
 		Side:        direction,
 		Symbol:      s.CoinPare,
 		TimeInForce: "GTC",
-		Type:        trading.TypeLimit,
+		Type:        structs.OrderTypes.Limit,
 	}
 
 	orderId, err := s.Domain.OpenOrder(request)
@@ -237,12 +236,12 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 	}
 
 	averagePrice := float64(0)
-	if historyOrder.Side == trading.SideBuy {
+	if historyOrder.Side == structs.OrderSideBuy {
 		averagePrice = math.Div(
 			math.Mul(historyOrder.TradeCurrencyAmountBefore, prevAveragePrice)+math.Mul(historyOrder.FilledPrice, historyOrder.FilledQty),
 			historyOrder.TradeCurrencyAmountBefore+historyOrder.FilledQty,
 		)
-	} else if historyOrder.Side == trading.SideSell {
+	} else if historyOrder.Side == structs.OrderSideSell {
 		averagePrice = prevAveragePrice
 	} else {
 		return tools.AppError{
@@ -254,11 +253,11 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 }
 
 func (s *BuyCheapSellHigh) calculateRevenue(historyOrder *storageStructs.HistoryOrder) error {
-	if historyOrder.Side == trading.SideBuy {
+	if historyOrder.Side == structs.OrderSideBuy {
 		return nil
 	}
 
-	if historyOrder.Side == trading.SideSell {
+	if historyOrder.Side == structs.OrderSideSell {
 		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" || historyOrder.AveragePrice == 0 {
 			return tools.AppError{
 				Message: fmt.Sprintf("can not calculate revenue for order %s", historyOrder.DomainOrderId),

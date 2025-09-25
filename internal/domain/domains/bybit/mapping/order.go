@@ -2,9 +2,9 @@ package mapping
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
-	"github.com/shatylos/trader/tools/trading"
 )
 
 const (
@@ -18,13 +18,13 @@ const (
 )
 
 var bybitOrderTypes = map[string]string{
-	trading.TypeLimit:  bybitOrderTypeLimit,
-	trading.TypeMarket: bybitOrderTypeMarket,
+	structs.OrderTypes.Limit:  bybitOrderTypeLimit,
+	structs.OrderTypes.Market: bybitOrderTypeMarket,
 }
 
 var bybitOrderSides = map[string]string{
-	trading.SideBuy:  bybitSideBuy,
-	trading.SideSell: bybitSideSell,
+	structs.OrderSideBuy:  bybitSideBuy,
+	structs.OrderSideSell: bybitSideSell,
 }
 
 func ToBybitOrderType(domainOrderType string) (bybitOrderType string, err error) {

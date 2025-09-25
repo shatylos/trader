@@ -7,7 +7,6 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
-	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/tools/type"
 )
 
@@ -241,10 +240,10 @@ func (d *DomainBybitFutures) mapOrder(order *request.OrderResponse) (domainOrder
 	side := ""
 	switch order.Side {
 	case SideBuy:
-		side = trading.SideBuy
+		side = structs.OrderSideBuy
 		break
 	case SideSell:
-		side = trading.SideSell
+		side = structs.OrderSideSell
 		break
 	}
 

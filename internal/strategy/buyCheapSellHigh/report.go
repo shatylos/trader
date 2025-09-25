@@ -2,10 +2,10 @@ package buyCheapSellHigh
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
-	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
 	"strings"
@@ -244,11 +244,11 @@ func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (
 	var comission float64
 
 	for _, reportOrderItem := range reportOrderItems {
-		if reportOrderItem.Direction == trading.SideBuy || reportOrderItem.Direction == "BUY" {
+		if reportOrderItem.Direction == structs.OrderSideBuy {
 			buyTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
 			buyMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
 		}
-		if reportOrderItem.Direction == trading.SideSell || reportOrderItem.Direction == "SELL" {
+		if reportOrderItem.Direction == structs.OrderSideSell {
 			sellTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
 			sellMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
 		}

@@ -7,7 +7,6 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
-	"github.com/shatylos/trader/tools/trading"
 	"strconv"
 	"time"
 )
@@ -39,10 +38,10 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
 		Qty:         qty,
 		ReduceOnly:  false,
-		Side:        trading.SideBuy,
+		Side:        domainStructs.OrderSideBuy,
 		Symbol:      i.config.CoinPare,
 		TimeInForce: "GTC",
-		Type:        trading.TypeMarket,
+		Type:        domainStructs.OrderTypes.Market,
 	})
 	if err != nil {
 		return
@@ -129,10 +128,10 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
 		Qty:         qty,
 		ReduceOnly:  false,
-		Side:        trading.SideSell,
+		Side:        domainStructs.OrderSideSell,
 		Symbol:      i.config.CoinPare,
 		TimeInForce: "GTC",
-		Type:        trading.TypeMarket,
+		Type:        domainStructs.OrderTypes.Market,
 	})
 	if err != nil {
 		return
