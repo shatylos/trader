@@ -5,6 +5,7 @@ import (
 	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
 	"strings"
@@ -243,11 +244,11 @@ func (s *BuyCheapSellHigh) getRevenueLocal(reportOrderItems []ReportOrderItem) (
 	var comission float64
 
 	for _, reportOrderItem := range reportOrderItems {
-		if reportOrderItem.Direction == "BUY" {
+		if reportOrderItem.Direction == trading.SideBuy || reportOrderItem.Direction == "BUY" {
 			buyTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
 			buyMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
 		}
-		if reportOrderItem.Direction == "SELL" {
+		if reportOrderItem.Direction == trading.SideSell || reportOrderItem.Direction == "SELL" {
 			sellTradeCurrencyAmount += reportOrderItem.TradeCurrencyAmount
 			sellMainCurrencyAmount += reportOrderItem.MainCurrencyAmount
 		}

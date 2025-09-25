@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	toolsMath "github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 	"math"
 	"time"
 )
@@ -100,7 +101,7 @@ func (s *BuyCheapSellHigh) getBuyPrice(baseCurrencyAmount float64, tradeCurrency
 		priceToCalcute = lastOrderPrice
 	}
 
-	buyPriceRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
+	buyPriceRangeKey := s.getRangeKey(trading.SideBuy, lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	buyPrice = priceToCalcute - float64(s.CostRanges[buyPriceRangeKey])
 	if buyPrice > historyAvgPrice {
@@ -133,7 +134,7 @@ func (s *BuyCheapSellHigh) getSellPrice(baseCurrencyAmount float64, tradeCurrenc
 		priceToCalcute = lastOrderPrice
 	}
 
-	sellPriceRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
+	sellPriceRangeKey := s.getRangeKey(trading.SideSell, lastDirection, countLastDirection, s.CostRanges, lastOrderCreationTime)
 
 	sellPrice = priceToCalcute + float64(s.CostRanges[sellPriceRangeKey])
 	if sellPrice < historyAvgPrice {
@@ -162,7 +163,7 @@ func (s *BuyCheapSellHigh) getBuyQty(baseCurrencyAmount float64, tradeCurrencyAm
 		buyQty = (baseCurrencyAmount / currentPrice) / 100 * float64(s.PercentRanges[0])
 	}
 
-	buyPercentRangeKey := s.getRangeKey("BUY", lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
+	buyPercentRangeKey := s.getRangeKey(trading.SideBuy, lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
 
 	// @TODO: Check currency to sell
 	buyQty = (baseCurrencyAmount / currentPrice) / 100 * float64(s.PercentRanges[buyPercentRangeKey])
@@ -186,7 +187,7 @@ func (s *BuyCheapSellHigh) getSellQty(baseCurrencyAmount float64, tradeCurrencyA
 		sellQty = tradeCurrencyAmount / 100 * float64(s.PercentRanges[0])
 	}
 
-	sellPercentRangeKey := s.getRangeKey("SELL", lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
+	sellPercentRangeKey := s.getRangeKey(trading.SideSell, lastDirection, countLastDirection, s.PercentRanges, lastOrderCreationTime)
 
 	// @TODO: Check currency to sell
 	sellQty = tradeCurrencyAmount / 100 * float64(s.PercentRanges[sellPercentRangeKey])

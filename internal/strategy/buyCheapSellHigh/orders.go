@@ -32,10 +32,10 @@ func (s *BuyCheapSellHigh) cancelOldOrdersWithBigRanges(orders []structs.DomainO
 	maxBuyPrice := 0.0
 
 	for _, order := range orders {
-		if order.Side == "SELL" && (order.Price < minSellPrice || minSellPrice == 0) {
+		if order.Side == trading.SideSell && (order.Price < minSellPrice || minSellPrice == 0) {
 			minSellPrice = order.Price
 		}
-		if order.Side == "BUY" && order.Price > maxBuyPrice {
+		if order.Side == trading.SideBuy && order.Price > maxBuyPrice {
 			maxBuyPrice = order.Price
 		}
 	}
@@ -237,12 +237,12 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 	}
 
 	averagePrice := float64(0)
-	if historyOrder.Side == "BUY" {
+	if historyOrder.Side == trading.SideBuy {
 		averagePrice = math.Div(
 			math.Mul(historyOrder.TradeCurrencyAmountBefore, prevAveragePrice)+math.Mul(historyOrder.FilledPrice, historyOrder.FilledQty),
 			historyOrder.TradeCurrencyAmountBefore+historyOrder.FilledQty,
 		)
-	} else if historyOrder.Side == "SELL" {
+	} else if historyOrder.Side == trading.SideSell {
 		averagePrice = prevAveragePrice
 	} else {
 		return tools.AppError{
@@ -254,11 +254,11 @@ func (s *BuyCheapSellHigh) calculateAveragePrice(historyOrder *storageStructs.Hi
 }
 
 func (s *BuyCheapSellHigh) calculateRevenue(historyOrder *storageStructs.HistoryOrder) error {
-	if historyOrder.Side == "BUY" {
+	if historyOrder.Side == trading.SideBuy {
 		return nil
 	}
 
-	if historyOrder.Side == "SELL" {
+	if historyOrder.Side == trading.SideSell {
 		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" || historyOrder.AveragePrice == 0 {
 			return tools.AppError{
 				Message: fmt.Sprintf("can not calculate revenue for order %s", historyOrder.DomainOrderId),
