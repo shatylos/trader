@@ -81,7 +81,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-1">#{{ add $i 1 }}</div>
-                    {{ if eq $order.Side "Buy" }}
+                    {{ if eq $order.Side "BUY" }}
                     <div class="col-1 bg-success">{{ $order.Side }}</div>
                     {{ else }}
                     <div class="col-1 bg-danger">{{ $order.Side }}</div>
