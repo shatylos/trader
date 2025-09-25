@@ -163,6 +163,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	order = &storageOrder
 
 	deal.Status = storage.DealStatusClosed
+	deal.ClosedTime = time.Now()
 	err = i.Storage.SaveDeal(ctx, deal)
 	if err != nil {
 		return

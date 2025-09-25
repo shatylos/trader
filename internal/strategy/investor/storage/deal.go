@@ -18,6 +18,7 @@ type Deal struct {
 	Status      string    `bson:"Status"`
 	CreatedTime time.Time `bson:"CreatedTime"`
 	UpdatedTime time.Time `bson:"UpdatedTime"`
+	ClosedTime  time.Time `bson:"ClosedTime"`
 	//IsHeap    bool
 	//Orders ???
 }
@@ -121,11 +122,11 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
 		"$and", bson.A{
-			bson.D{{"CreatedTime", bson.D{{"$gt", from}}}},
-			bson.D{{"CreatedTime", bson.D{{"$lt", to}}}},
+			bson.D{{"ClosedTime", bson.D{{"$gt", from}}}},
+			bson.D{{"ClosedTime", bson.D{{"$lt", to}}}},
 		},
 	}}, options.Find().SetSort(
-		bson.D{{"CreatedTime", -1}},
+		bson.D{{"ClosedTime", -1}},
 	))
 	if err != nil {
 		msg := "Error getting cursor deals by period"
