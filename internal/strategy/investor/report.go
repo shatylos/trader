@@ -40,11 +40,21 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		return
 	}
 
-	var deals []*storage.Deal
-	deals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
+	var deals, closedDeals, activeDeals []*storage.Deal
+	closedDeals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
 	if err != nil {
 		return
 	}
+
+	now := time.Now()
+	if from.Year() == now.Year() && from.Month() == now.Month() {
+		activeDeals, err = i.Storage.GetActiveDeals(ctx)
+		if err != nil {
+			return
+		}
+		deals = append(deals, activeDeals...)
+	}
+	deals = append(deals, closedDeals...)
 
 	var dealRelations []*DealRelation
 	for _, deal := range deals {

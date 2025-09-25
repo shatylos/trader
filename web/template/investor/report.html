@@ -46,6 +46,7 @@
         <th>Timeframe</th>
         <th>Status</th>
         <th>Created Time</th>
+        <th>Closed Time</th>
         <th>Revenue</th>
     </tr>
     </thead>
@@ -57,6 +58,11 @@
         <td class="">{{ .Deal.Timeframe }}</td>
         <td class="">{{ .Deal.Status }}</td>
         <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
+        <td class="">
+            {{ if not (isZeroTime .Deal.ClosedTime) }}
+            {{ .Deal.ClosedTime | dateFormat "2006-01-02 15:04:05" }}
+            {{ end }}
+        </td>
         <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}, {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }}
             {{ $.TradeCurrency }}
         </td>

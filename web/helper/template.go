@@ -18,6 +18,7 @@ func GetTemplate(fileName string) (*template.Template, error) {
 		"longFloatShort":     longFloatShort,
 		"add":                add,
 		"mul":                mul,
+		"isZeroTime":         isZeroTime,
 	}).ParseFiles(
 		fileName,
 		"web/template/widget/baseMenu.html",
@@ -51,4 +52,8 @@ func add(x, y int) int {
 
 func mul(x, y float64) float64 {
 	return math.Mul(x, y)
+}
+
+func isZeroTime(t time.Time) bool {
+	return t.IsZero()
 }

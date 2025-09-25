@@ -156,3 +156,42 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 
 	return
 }
+
+func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err error) {
+	var cursor *mongo.Cursor
+
+	cursor, err = s.dealCollection.Find(ctx, bson.D{{
+		"$and", bson.A{
+			bson.D{{"ClosedTime", nil}},
+		},
+	}}, options.Find().SetSort(
+		bson.D{{"UpdatedTime", -1}},
+	))
+	if err != nil {
+		msg := "Error getting cursor active deals"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var deals []Deal
+	err = cursor.All(ctx, &deals)
+	if err != nil {
+		msg := "Error getting all active deals"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	for _, deal := range deals {
+		dealPointers = append(dealPointers, &deal)
+	}
+
+	return
+}
