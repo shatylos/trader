@@ -162,7 +162,7 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err
 
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
 		"$and", bson.A{
-			bson.D{{"ClosedTime", nil}},
+			bson.D{{"Status", DealStatusActive}},
 		},
 	}}, options.Find().SetSort(
 		bson.D{{"UpdatedTime", -1}},
