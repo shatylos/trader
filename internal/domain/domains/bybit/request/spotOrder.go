@@ -63,6 +63,20 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets
 		return
 	}
 
+	if secrets.Verbose {
+		var orderResponseBytes []byte
+		orderResponseBytes, err = json.Marshal(queryResp)
+		if err != nil {
+			msg := "Can not Marshal order response for ByBit"
+			logger.Error(msg)
+			err = tools.AppError{
+				Message: msg,
+			}
+			return
+		}
+		logger.Info(fmt.Sprintf("Order response json: %s", orderResponseBytes))
+	}
+
 	return mapSpotOrderResponseTimeStr(queryResp)
 }
 
@@ -201,8 +215,6 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 		}
 		return
 	}
-
-	logger.Info(fmt.Sprintf("Order response json: %s", orderResponseBytes))
 
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
