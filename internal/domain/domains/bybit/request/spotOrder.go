@@ -202,6 +202,8 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 		return
 	}
 
+	logger.Info(fmt.Sprintf("Order response json: %s", orderResponseBytes))
+
 	err = json.Unmarshal(orderResponseBytes, &orderResponse)
 	if err != nil {
 		msg := fmt.Sprintf("[mapSpotOrderResponseTimeStr] Can not Unmarshal order response for ByBit: %s", err.Error())
