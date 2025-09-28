@@ -2,6 +2,7 @@ package investor
 
 import (
 	"context"
+	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools"
@@ -33,6 +34,8 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 	if err != nil {
 		return
 	}
+
+	logger.Info(fmt.Sprintf("Try to buy %g%s. By market. Expected price is %g", qty, i.config.TradeCurrency, timeFrameItem.Candles[0].Close))
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
@@ -122,6 +125,8 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.Wallet
+
+	logger.Info(fmt.Sprintf("Try to sel %g%s. By market. Expected price is %g", qty, i.config.TradeCurrency, timeFrameItem.Candles[0].Close))
 
 	qty = math.Round(qty, i.config.QtyPrecision)
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
