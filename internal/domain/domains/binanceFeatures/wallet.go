@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
+	"time"
 )
 
 type ProviderAccountInfo struct {
@@ -103,8 +104,9 @@ func (d *DomainBinanceFutures) GetWallet() (wallet providerStructs.DomainWallet,
 	}
 
 	wallet = providerStructs.DomainWallet{
-		Available: available,
-		Reserved:  reserved,
+		Available:   available,
+		Reserved:    reserved,
+		UpdatedTime: time.Now(),
 	}
 	return
 }

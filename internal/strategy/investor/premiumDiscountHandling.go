@@ -8,23 +8,10 @@ import (
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
-func (i *Investor) handlePremium(ctx context.Context, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOrders []*storage.Order, timeFrameItem *Timeframe) (err error) {
 
-	deal := storage.Deal{}
-	err = i.Storage.GetLastDealByTimeframe(ctx, timeFrameItem.Config.Resolution, &deal)
-	if err != nil {
-		return
-	}
 	if deal.Status != storage.DealStatusActive {
 		return
-	}
-
-	var dealOrders []*storage.Order
-	if deal.Id != nil {
-		dealOrders, err = i.Storage.GetOrdersByDealId(ctx, *deal.Id)
-		if err != nil {
-			return
-		}
 	}
 
 	var qty float64
@@ -35,7 +22,7 @@ func (i *Investor) handlePremium(ctx context.Context, timeFrameItem *Timeframe) 
 	if qty > 0 {
 		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doSell(ctx, timeFrameItem, &deal, qty)
+		order, providerOrderId, err = i.doSell(ctx, timeFrameItem, deal, qty)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -55,28 +42,15 @@ func (i *Investor) handlePremium(ctx context.Context, timeFrameItem *Timeframe) 
 	return
 }
 
-func (i *Investor) handleDiscount(ctx context.Context, timeFrameItem *Timeframe) (err error) {
-	deal := storage.Deal{}
-	err = i.Storage.GetLastDealByTimeframe(ctx, timeFrameItem.Config.Resolution, &deal)
-	if err != nil {
-		return
-	}
+func (i *Investor) handleDiscount(ctx context.Context, deal *storage.Deal, dealOrders []*storage.Order, timeFrameItem *Timeframe) (err error) {
 
 	if deal.Status == storage.DealStatusClosed {
-		deal = storage.Deal{}
+		deal = &storage.Deal{}
 	}
 	if deal.Id == nil {
 		deal.Timeframe = timeFrameItem.Config.Resolution
 		deal.Status = storage.DealStatusNew
-		err = i.Storage.SaveDeal(ctx, &deal)
-		if err != nil {
-			return
-		}
-	}
-
-	var dealOrders []*storage.Order
-	if deal.Id != nil {
-		dealOrders, err = i.Storage.GetOrdersByDealId(ctx, *deal.Id)
+		err = i.Storage.SaveDeal(ctx, deal)
 		if err != nil {
 			return
 		}
@@ -85,7 +59,7 @@ func (i *Investor) handleDiscount(ctx context.Context, timeFrameItem *Timeframe)
 	if len(dealOrders) == 0 {
 		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doBuy(ctx, timeFrameItem, &deal)
+		order, providerOrderId, err = i.doBuy(ctx, timeFrameItem, deal)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false

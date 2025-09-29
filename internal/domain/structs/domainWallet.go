@@ -1,8 +1,11 @@
 package structs
 
+import "time"
+
 type DomainWallet struct {
-	Available []DomainWalletCoinItem
-	Reserved  []DomainWalletCoinItem
+	Available   []DomainWalletCoinItem
+	Reserved    []DomainWalletCoinItem
+	UpdatedTime time.Time
 }
 
 type DomainWalletCoinItem struct {

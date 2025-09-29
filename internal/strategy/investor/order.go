@@ -29,22 +29,25 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.Wallet
 
-	var qty float64
-	qty, err = i.calculateQtyToBuy(timeFrameItem)
+	var qty, price float64
+	qty, price, err = i.calculateQtyToBuy(timeFrameItem)
 	if err != nil {
 		return
 	}
 
-	logger.Info(fmt.Sprintf("Try to buy %g%s. By market. Expected price is %g", qty, i.config.TradeCurrency, timeFrameItem.Candles[0].Close))
+	if i.config.Verbose {
+		logger.Info(fmt.Sprintf("Try to open limit order to buy %g%s. Price is %g", qty, i.config.TradeCurrency, price))
+	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
 		Qty:         qty,
+		Price:       price,
 		ReduceOnly:  false,
 		Side:        domainStructs.OrderSideBuy,
 		Symbol:      i.config.CoinPare,
 		TimeInForce: "GTC",
-		Type:        domainStructs.OrderTypes.Market,
+		Type:        domainStructs.OrderTypes.Limit,
 	})
 	if err != nil {
 		return
@@ -56,11 +59,18 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
-	err = i.updateWalletInfo()
-	if err != nil {
-		return
+	if domainOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+		walletAfter = *i.Wallet
+		deal.Status = storage.DealStatusActive
+		err = i.Storage.SaveDeal(ctx, deal)
+		if err != nil {
+			return
+		}
 	}
-	walletAfter = *i.Wallet
 
 	storageOrder := storage.Order{
 		DealId:       *deal.Id,
@@ -75,22 +85,16 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 	}
 	order = &storageOrder
 
-	deal.Status = storage.DealStatusActive
-	err = i.Storage.SaveDeal(ctx, deal)
-	if err != nil {
-		return
-	}
-
 	return
 }
 
-func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, err error) {
+func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, currentPrice float64, err error) {
 	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {
 		return
 	}
 
-	currentPrice := timeFrameItem.Candles[0].Close
+	currentPrice = timeFrameItem.Candles[0].Close
 	qtyPercent := timeFrameItem.Config.QtyPercent
 	minQty := timeFrameItem.Config.MinQty
 	doIncreaseQtyToMinQty := timeFrameItem.Config.DoIncreaseQtyToMinQty
@@ -126,17 +130,21 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.Wallet
 
-	logger.Info(fmt.Sprintf("Try to sel %g%s. By market. Expected price is %g", qty, i.config.TradeCurrency, timeFrameItem.Candles[0].Close))
+	price := timeFrameItem.Candles[0].Close
+	if i.config.Verbose {
+		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g", qty, i.config.TradeCurrency, price))
+	}
 
 	qty = math.Round(qty, i.config.QtyPrecision)
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
 		Qty:         qty,
+		Price:       price,
 		ReduceOnly:  false,
 		Side:        domainStructs.OrderSideSell,
 		Symbol:      i.config.CoinPare,
 		TimeInForce: "GTC",
-		Type:        domainStructs.OrderTypes.Market,
+		Type:        domainStructs.OrderTypes.Limit,
 	})
 	if err != nil {
 		return
@@ -148,11 +156,19 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
-	err = i.updateWalletInfo()
-	if err != nil {
-		return
+	if domainOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+		walletAfter = *i.Wallet
+		deal.Status = storage.DealStatusClosed
+		deal.ClosedTime = time.Now()
+		err = i.Storage.SaveDeal(ctx, deal)
+		if err != nil {
+			return
+		}
 	}
-	walletAfter = *i.Wallet
 
 	storageOrder := storage.Order{
 		DealId:       *deal.Id,
@@ -167,11 +183,56 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	}
 	order = &storageOrder
 
-	deal.Status = storage.DealStatusClosed
-	deal.ClosedTime = time.Now()
-	err = i.Storage.SaveDeal(ctx, deal)
+	return
+}
+
+func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *storage.Order, timeFrameItem *Timeframe) (err error) {
+	var updatedOrder domainStructs.DomainOrder
+	updatedOrder, err = i.provider.GetOrder(order.OrderId)
 	if err != nil {
 		return
+	}
+
+	if updatedOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+
+		if updatedOrder.Side == domainStructs.OrderSideBuy {
+			deal.Status = storage.DealStatusActive
+		} else if updatedOrder.Side == domainStructs.OrderSideSell {
+			deal.Status = storage.DealStatusClosed
+			deal.ClosedTime = time.Now()
+		} else {
+			msg := fmt.Sprintf("Unexpected order side %s", updatedOrder.Side)
+			logger.Error(msg)
+			err = tools.AppError{Message: msg}
+			return
+		}
+
+		order.DomainOrder = updatedOrder
+		order.WalletAfter = *i.Wallet
+		err = i.Storage.SaveOrder(ctx, order)
+		if err != nil {
+			return
+		}
+		err = i.Storage.SaveDeal(ctx, deal)
+		if err != nil {
+			return
+		}
+	}
+
+	if i.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+		order.WalletBefore = *i.Wallet
+		err = i.Storage.SaveOrder(ctx, order)
+		if err != nil {
+			return
+		}
 	}
 
 	return

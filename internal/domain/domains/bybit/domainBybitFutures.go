@@ -8,6 +8,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/type"
+	"time"
 )
 
 const orderStatusOpenNew = "New"
@@ -123,8 +124,9 @@ func (d *DomainBybitFutures) GetWallet() (wallet structs.DomainWallet, err error
 	}
 
 	wallet = structs.DomainWallet{
-		Available: availableCoins,
-		Reserved:  reservedCoins,
+		Available:   availableCoins,
+		Reserved:    reservedCoins,
+		UpdatedTime: time.Now(),
 	}
 	return
 }

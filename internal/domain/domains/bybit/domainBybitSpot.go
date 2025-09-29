@@ -11,6 +11,7 @@ import (
 	"github.com/shatylos/trader/tools/type"
 	"sort"
 	"strconv"
+	"time"
 )
 
 type DomainBybitSpot struct {
@@ -117,8 +118,9 @@ func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 	}
 
 	wallet = structs.DomainWallet{
-		Available: availableCoins,
-		Reserved:  reservedCoins,
+		Available:   availableCoins,
+		Reserved:    reservedCoins,
+		UpdatedTime: time.Now(),
 	}
 	return
 }
