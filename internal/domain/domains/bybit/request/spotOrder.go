@@ -28,6 +28,11 @@ type SpotOrderRequest struct {
 	SmpType       string //	Smp execution type. What is SMP?
 }
 
+type CreateSpotOrderResponse struct {
+	OrderLinkId string `json:"orderLinkId"` //	User-generated order ID
+	OrderId     string `json:"orderId"`     //	Order ID
+}
+
 type SpotOrderResponseTimeStr struct {
 	Symbol      string `json:"symbol"`      //	Name of the trading pair
 	OrderLinkId string `json:"orderLinkId"` //	User-generated order ID
@@ -44,7 +49,7 @@ type SpotOrderResponseTimeStr struct {
 	UpdateTime  string `json:"updatedTime"` //	Last time order was updated
 }
 
-func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (orderResponse SpotOrderResponseTimeStr, err error) {
+func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets) (orderResponse CreateSpotOrderResponse, err error) {
 	params := make(ApiParams, 0)
 	params["category"] = "spot"
 	params["symbol"] = orderRequest.Symbol
@@ -63,21 +68,7 @@ func CreateSpotOrder(orderRequest SpotOrderRequest, secrets bybitStructs.Secrets
 		return
 	}
 
-	if secrets.Verbose {
-		var orderResponseBytes []byte
-		orderResponseBytes, err = json.Marshal(queryResp)
-		if err != nil {
-			msg := "Can not Marshal order response for ByBit"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
-			return
-		}
-		logger.Info(fmt.Sprintf("Order response json: %s", orderResponseBytes))
-	}
-
-	return mapSpotOrderResponseTimeStr(queryResp)
+	return mapCreateSpotOrderResponse(queryResp)
 }
 
 func GetSpotOrder(domainId string, secrets bybitStructs.Secrets) (orderResponse SpotOrderResponseTimeStr, err error) {
@@ -201,6 +192,30 @@ func GetSpotOrderHistory(limit int64, secrets bybitStructs.Secrets, coinPare str
 	}
 
 	return orders, nil
+}
+
+func mapCreateSpotOrderResponse(queryResp interface{}) (orderResponse CreateSpotOrderResponse, err error) {
+	var responseBytes []byte
+	responseBytes, err = json.Marshal(queryResp)
+	if err != nil {
+		msg := "Can not Marshal create order response for ByBit"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+
+	err = json.Unmarshal(responseBytes, &orderResponse)
+	if err != nil {
+		msg := fmt.Sprintf("[mapCreateSpotOrderResponse] Can not Unmarshal order response for ByBit: %s", err.Error())
+		logger.Error(msg)
+		err = tools.AppError{
+			Message: msg,
+		}
+		return
+	}
+	return
 }
 
 func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrderResponseTimeStr, err error) {

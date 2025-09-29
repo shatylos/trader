@@ -305,7 +305,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 		OrderLinkId: orderRequest.OrderId,
 	}
 
-	var order request.SpotOrderResponseTimeStr
+	var order request.CreateSpotOrderResponse
 	order, err = request.CreateSpotOrder(domainOrderRequest, d.secrets)
 	if err != nil {
 		return
