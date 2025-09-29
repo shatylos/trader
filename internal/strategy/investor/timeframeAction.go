@@ -46,6 +46,12 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 			if err != nil {
 				return
 			}
+			if dealOrder.OrderStatus != domainStructs.OrderStatuses.Filled {
+				if i.config.Verbose {
+					logger.Info(fmt.Sprintf("Wait for fill the order %s", dealOrder.OrderId))
+				}
+				return
+			}
 			break
 		}
 

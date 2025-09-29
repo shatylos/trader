@@ -3,6 +3,7 @@ package investor
 import (
 	"context"
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
@@ -16,7 +17,9 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 
 	var qty float64
 	for _, dealOrder := range dealOrders {
-		qty += dealOrder.DomainOrder.Qty
+		if dealOrder.Side == structs.OrderSideBuy {
+			qty += dealOrder.DomainOrder.Qty
+		}
 	}
 
 	if qty > 0 {

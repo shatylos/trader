@@ -38,7 +38,7 @@ func (i *Investor) GetTitle() string {
 func (i *Investor) DoAction() (err error) {
 	if !i.config.Enabled {
 		if i.config.Verbose {
-			logger.Info("Setup is disabled. Skip the action handling.")
+			logger.Info("Setup is disabled. Skip the action")
 		}
 		return
 	}

@@ -211,7 +211,9 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 			return
 		}
 
-		order.DomainOrder = updatedOrder
+		order.OrderStatus = updatedOrder.OrderStatus
+		order.Price = updatedOrder.Price
+		order.Qty = updatedOrder.Qty
 		order.WalletAfter = *i.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
