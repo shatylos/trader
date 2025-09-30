@@ -40,9 +40,9 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 
 	for _, dealOrder := range dealOrders {
 		switch dealOrder.OrderStatus {
-		case domainStructs.OrderStatuses.New:
-		case domainStructs.OrderStatuses.Open:
-		case domainStructs.OrderStatuses.PartiallyFilled:
+		case domainStructs.OrderStatuses.New,
+			domainStructs.OrderStatuses.Open,
+			domainStructs.OrderStatuses.PartiallyFilled:
 			err = i.updateOrder(ctx, &deal, dealOrder, timeFrameItem)
 			if err != nil {
 				return
@@ -60,7 +60,6 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 				// @TODO: cancel order if it's open long time
 				return
 			}
-			break
 		}
 
 	}

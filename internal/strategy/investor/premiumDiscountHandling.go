@@ -22,9 +22,9 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 		}
 		if dealOrder.Side == structs.OrderSideSell {
 			switch dealOrder.OrderStatus {
-			case structs.OrderStatuses.New:
-			case structs.OrderStatuses.Open:
-			case structs.OrderStatuses.PartiallyFilled:
+			case structs.OrderStatuses.New,
+				structs.OrderStatuses.Open,
+				structs.OrderStatuses.PartiallyFilled:
 				if i.config.Verbose {
 					logger.Info(fmt.Sprintf("Exists order to sell with status %s. Wait for fill the order.", dealOrder.Side))
 				}
@@ -46,7 +46,7 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 			}
 			return
 		}
-		msg := fmt.Sprintf("[%s] Placed the order to sell %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
+		msg := fmt.Sprintf("[%s] Placed order to sell %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
 		logger.Info(msg)
 	}
 
