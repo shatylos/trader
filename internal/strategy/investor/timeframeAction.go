@@ -7,7 +7,6 @@ import (
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/internal/trading/constant"
 	"github.com/shatylos/trader/tools/logger"
-	"github.com/shatylos/trader/tools/tgNotifier"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
@@ -47,13 +46,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 			if err != nil {
 				return
 			}
-			if dealOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
-				msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.config.Id, dealOrder.Side, dealOrder.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
-				logger.Success(msg)
-				if i.config.TelegramNotifier {
-					tgNotifier.Notify(msg)
-				}
-			} else {
+			if dealOrder.OrderStatus != domainStructs.OrderStatuses.Filled {
 				if i.config.Verbose {
 					logger.Info(fmt.Sprintf("Wait for fill the order %s", dealOrder.OrderId))
 				}

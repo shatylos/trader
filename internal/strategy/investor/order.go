@@ -8,6 +8,7 @@ import (
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/tgNotifier"
 	"strconv"
 	"time"
 )
@@ -59,19 +60,6 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
-	if domainOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateWalletInfo()
-		if err != nil {
-			return
-		}
-		walletAfter = *i.Wallet
-		deal.Status = storage.DealStatusActive
-		err = i.Storage.SaveDeal(ctx, deal)
-		if err != nil {
-			return
-		}
-	}
-
 	storageOrder := storage.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
@@ -84,6 +72,13 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 	order = &storageOrder
+
+	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateOrder(ctx, deal, order, timeFrameItem)
+		if err != nil {
+			return
+		}
+	}
 
 	return
 }
@@ -156,20 +151,6 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
-	if domainOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateWalletInfo()
-		if err != nil {
-			return
-		}
-		walletAfter = *i.Wallet
-		deal.Status = storage.DealStatusClosed
-		deal.ClosedTime = time.Now()
-		err = i.Storage.SaveDeal(ctx, deal)
-		if err != nil {
-			return
-		}
-	}
-
 	storageOrder := storage.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
@@ -182,6 +163,13 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 	order = &storageOrder
+
+	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateOrder(ctx, deal, order, timeFrameItem)
+		if err != nil {
+			return
+		}
+	}
 
 	return
 }
@@ -222,6 +210,11 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 		err = i.Storage.SaveDeal(ctx, deal)
 		if err != nil {
 			return
+		}
+		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.config.Id, order.Side, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
+		logger.Success(msg)
+		if i.config.TelegramNotifier {
+			tgNotifier.Notify(msg)
 		}
 	}
 
