@@ -20,6 +20,17 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 		if dealOrder.Side == structs.OrderSideBuy {
 			qty += dealOrder.DomainOrder.Qty
 		}
+		if dealOrder.Side == structs.OrderSideSell {
+			switch dealOrder.OrderStatus {
+			case structs.OrderStatuses.New:
+			case structs.OrderStatuses.Open:
+			case structs.OrderStatuses.PartiallyFilled:
+				if i.config.Verbose {
+					logger.Info(fmt.Sprintf("Exists order to sell with status %s. Wait for fill the order.", dealOrder.Side))
+				}
+				return
+			}
+		}
 	}
 
 	if qty > 0 {
@@ -35,11 +46,8 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 			}
 			return
 		}
-		msg := fmt.Sprintf("[%s] Sold %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
-		logger.Success(msg)
-		if i.config.TelegramNotifier {
-			tgNotifier.Notify(msg)
-		}
+		msg := fmt.Sprintf("[%s] Placed the order to sell %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
+		logger.Info(msg)
 	}
 
 	return
@@ -72,11 +80,8 @@ func (i *Investor) handleDiscount(ctx context.Context, deal *storage.Deal, dealO
 			}
 			return
 		}
-		msg := fmt.Sprintf("[%s] Bought %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
-		logger.Success(msg)
-		if i.config.TelegramNotifier {
-			tgNotifier.Notify(msg)
-		}
+		msg := fmt.Sprintf("[%s] Placed order to buy %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
+		logger.Info(msg)
 	} else if len(dealOrders) > 0 {
 		// @TODO: check and maybe do buy more
 	}
