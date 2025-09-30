@@ -3,6 +3,7 @@ package investor
 import (
 	"context"
 	"fmt"
+	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/web/helper"
@@ -66,9 +67,10 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		dealRelations = append(dealRelations, dealRelation)
 	}
 
-	//var assets []structs.AssetTransaction
-	//assets, err = storage.GetAssetTransactions(from, to)
-	//totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := f.reportAmounts(positions, assets)
+	// @TODO: Add assets
+	var assets []*structs.AssetTransaction
+	//assets, err = i.Storage.GetAssetTransactions(from, to)
+	totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
 	data := ReportTemplateData{
 		PrevPeriodLink:  fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
@@ -80,12 +82,12 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		TradeCurrency:   i.config.TradeCurrency,
 		PricePrecision:  int(i.config.PricePrecision),
 		QtyPrecision:    int(i.config.QtyPrecision),
-		TotalPnl:        50,
-		TotalPnlPercent: 50,
-		BalanceBefore:   50,
-		BalanceAfter:    50,
-		DepoAmount:      50,
-		WithdrawAmount:  50,
+		TotalPnl:        totalPnl,
+		TotalPnlPercent: totalPnlPercent,
+		BalanceBefore:   balanceBefore,
+		BalanceAfter:    balanceAfter,
+		DepoAmount:      depoAmount,
+		WithdrawAmount:  withdrawAmount,
 	}
 
 	var resultBuilder strings.Builder
@@ -100,5 +102,41 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		InnerHtml: template.HTML(htmlStr),
 		SetupId:   i.GetId(),
 	}
+	return
+}
+
+func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, assets []*structs.AssetTransaction) (totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount float64) {
+
+	var firstOrder, lastOrder *storage.Order
+
+	for _, dealRelation := range dealRelations {
+		if dealRelation.Deal.Status != structs.StatusClosed {
+			continue
+		}
+
+		for _, order := range dealRelation.Orders {
+			if (lastOrder == nil || order.CreatedTime.After(lastOrder.CreatedTime)) &&
+				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
+
+				lastOrder = order
+			}
+			if (firstOrder == nil || order.CreatedTime.Before(firstOrder.CreatedTime)) &&
+				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
+				firstOrder = order
+			}
+		}
+	}
+	if firstOrder == nil || lastOrder == nil {
+		return
+	}
+
+	mainBalanceBefore := currencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
+	mainBalanceAfter := currencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
+	tradeBalanceBefore := currencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
+	tradeBalanceAfter := currencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
+
+	balanceBefore = mainBalanceBefore + tradeCurrencyToMain(tradeBalanceBefore, firstOrder.Price)
+	balanceAfter = mainBalanceAfter + tradeCurrencyToMain(tradeBalanceAfter, lastOrder.Price)
+
 	return
 }
