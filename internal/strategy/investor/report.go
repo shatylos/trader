@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
 	"strings"
@@ -138,5 +139,10 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, 
 	balanceBefore = mainBalanceBefore + tradeCurrencyToMain(tradeBalanceBefore, firstOrder.Price)
 	balanceAfter = mainBalanceAfter + tradeCurrencyToMain(tradeBalanceAfter, lastOrder.Price)
 
+	totalPnl = balanceAfter - balanceBefore
+	if balanceBefore != 0 {
+		//totalPnlPercent = totalPnl / (balanceBefore / 100)
+		totalPnlPercent = math.Div(totalPnl, math.Div(balanceBefore, 100))
+	}
 	return
 }
