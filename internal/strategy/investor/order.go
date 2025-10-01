@@ -222,7 +222,10 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 		}
 	}
 
-	if i.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
+	if updatedOrder.OrderStatus != domainStructs.OrderStatuses.Filled &&
+		updatedOrder.OrderStatus != domainStructs.OrderStatuses.PartiallyFilled &&
+		i.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
+
 		err = i.updateWalletInfo()
 		if err != nil {
 			return

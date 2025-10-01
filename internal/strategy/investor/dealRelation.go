@@ -32,22 +32,12 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 
 	for _, order := range dealOrders {
 		var mainAmountBefore, tradeAmountBefore, mainAmountAfter, tradeAmountAfter float64
-		for _, coin := range order.WalletBefore.Available {
-			if coin.Coin == i.config.MainCurrency {
-				mainAmountBefore = coin.Amount
-			}
-			if coin.Coin == i.config.TradeCurrency {
-				tradeAmountBefore = coin.Amount
-			}
-		}
-		for _, coin := range order.WalletAfter.Available {
-			if coin.Coin == i.config.MainCurrency {
-				mainAmountAfter = coin.Amount
-			}
-			if coin.Coin == i.config.TradeCurrency {
-				tradeAmountAfter = coin.Amount
-			}
-		}
+
+		mainAmountBefore = currencyAmountTotal(&order.WalletBefore, i.config.MainCurrency)
+		tradeAmountBefore = currencyAmountTotal(&order.WalletBefore, i.config.TradeCurrency)
+		mainAmountAfter = currencyAmountTotal(&order.WalletAfter, i.config.MainCurrency)
+		tradeAmountAfter = currencyAmountTotal(&order.WalletAfter, i.config.TradeCurrency)
+
 		revenueMainCur += mainAmountAfter - mainAmountBefore
 		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
 	}
