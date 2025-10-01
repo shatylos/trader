@@ -5,7 +5,6 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
-	"github.com/shatylos/trader/internal/trading/constant"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
@@ -103,14 +102,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 
 func (i *Investor) loadCandles(timeFrameItem *Timeframe) (err error) {
 
-	var resolutionSeconds int64
-	resolutionSeconds, err = constant.ResolutionToSeconds(timeFrameItem.Config.Resolution)
-	if err != nil {
-		logger.Error(err.Error())
-		return
-	}
-
-	if timeFrameItem.GetCandleTime+resolutionSeconds < time.Now().Unix() {
+	if timeFrameItem.GetCandleTime+timeFrameItem.Config.CandleCacheSeconds < time.Now().Unix() {
 		timeFrameItem.Candles, err = i.provider.LoadCandleHistory(i.config.CoinPare, timeFrameItem.Config.Resolution, timeFrameItem.Config.CandleReview)
 		if err != nil {
 			return

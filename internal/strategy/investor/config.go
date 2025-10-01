@@ -28,6 +28,7 @@ type TimeframeConfig struct {
 	Resolution                  string
 	QtyPercent                  float64
 	CandleReview                int64
+	CandleCacheSeconds          int64
 	SidewaysMinCandlesAmount    int64
 	SidewaysPercentToPrice      float64
 	SidewaysPremiumCoefficient  float64
@@ -240,6 +241,14 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		if err != nil || timeframe.Config.CandleReview < 10 {
 			return tools.AppError{
 				Message:     "The field candle_review is empty or contains not correct value type. Expects int64 value more than 10",
+				ParentError: err,
+			}
+		}
+
+		timeframe.Config.CandleCacheSeconds, err = _type.ToInt64(tfMap["candle_cache_seconds"])
+		if err != nil || timeframe.Config.CandleCacheSeconds < 1 {
+			return tools.AppError{
+				Message:     "The field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1",
 				ParentError: err,
 			}
 		}
