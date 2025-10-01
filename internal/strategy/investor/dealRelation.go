@@ -2,7 +2,6 @@ package investor
 
 import (
 	"context"
-	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
@@ -39,13 +38,8 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		mainAmountAfter = currencyAmountTotal(&order.WalletAfter, i.config.MainCurrency)
 		tradeAmountAfter = currencyAmountTotal(&order.WalletAfter, i.config.TradeCurrency)
 
-		if order.Side == structs.OrderSideBuy {
-			revenueMainCur -= mainAmountAfter - mainAmountBefore
-			revenueTradeCur += tradeAmountAfter - tradeAmountBefore
-		} else if order.Side == structs.OrderSideSell {
-			revenueMainCur += mainAmountAfter - mainAmountBefore
-			revenueTradeCur -= tradeAmountAfter - tradeAmountBefore
-		}
+		revenueMainCur += mainAmountAfter - mainAmountBefore
+		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
 	}
 
 	dealRelation = &DealRelation{
