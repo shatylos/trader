@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal) (order *storage.Order, providerOrderId string, err error) {
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -54,27 +54,29 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
+	msg := fmt.Sprintf("[%s] Placed order to buy %g %s by price %g for timeframe %s", i.config.Id, qty, i.config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	logger.Info(msg)
+
 	var domainOrder domainStructs.DomainOrder
 	domainOrder, err = i.provider.GetOrder(providerOrderId)
 	if err != nil {
 		return
 	}
 
-	storageOrder := storage.Order{
+	order := storage.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
 	}
-	err = i.Storage.SaveOrder(ctx, &storageOrder)
+	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
 		return
 	}
-	order = &storageOrder
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, deal, order, timeFrameItem)
+		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
 		if err != nil {
 			return
 		}
@@ -109,7 +111,7 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty float64) (order *storage.Order, providerOrderId string, err error) {
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty float64) (providerOrderId string, err error) {
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do sell"
 		logger.Error(msg)
@@ -145,27 +147,29 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
+	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.config.Id, qty, i.config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	logger.Info(msg)
+
 	var domainOrder domainStructs.DomainOrder
 	domainOrder, err = i.provider.GetOrder(providerOrderId)
 	if err != nil {
 		return
 	}
 
-	storageOrder := storage.Order{
+	order := storage.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
 	}
-	err = i.Storage.SaveOrder(ctx, &storageOrder)
+	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
 		return
 	}
-	order = &storageOrder
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, deal, order, timeFrameItem)
+		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
 		if err != nil {
 			return
 		}

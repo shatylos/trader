@@ -34,9 +34,8 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 	}
 
 	if qty > 0 {
-		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doSell(ctx, timeFrameItem, deal, qty)
+		providerOrderId, err = i.doSell(ctx, timeFrameItem, deal, qty)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -46,8 +45,6 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 			}
 			return
 		}
-		msg := fmt.Sprintf("[%s] Placed order to sell %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
-		logger.Info(msg)
 	}
 
 	return
@@ -68,9 +65,8 @@ func (i *Investor) handleDiscount(ctx context.Context, deal *storage.Deal, dealO
 	}
 
 	if len(dealOrders) == 0 {
-		var order *storage.Order
 		var providerOrderId string
-		order, providerOrderId, err = i.doBuy(ctx, timeFrameItem, deal)
+		providerOrderId, err = i.doBuy(ctx, timeFrameItem, deal)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -80,8 +76,6 @@ func (i *Investor) handleDiscount(ctx context.Context, deal *storage.Deal, dealO
 			}
 			return
 		}
-		msg := fmt.Sprintf("[%s] Placed order to buy %g %s for timeframe %s", i.config.Id, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
-		logger.Info(msg)
 	} else if len(dealOrders) > 0 {
 		// @TODO: check and maybe do buy more
 	}
