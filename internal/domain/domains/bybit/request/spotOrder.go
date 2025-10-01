@@ -251,12 +251,13 @@ func mapSpotOrderResponseTimeStr(queryResp interface{}) (orderResponse SpotOrder
 	case "FILLED":
 		orderResponse.Status = domainStructs.OrderStatuses.Filled
 		break
-	case "PARTIALLY_FILLED":
-	case "PARTIALLYFILLEDCANCELED":
+	case "PARTIALLY_FILLED",
+		"PARTIALLYFILLED",
+		"PARTIALLYFILLEDCANCELED":
 		orderResponse.Status = domainStructs.OrderStatuses.PartiallyFilled
 		break
-	case "CANCELED":
-	case "CANCELLED":
+	case "CANCELED",
+		"CANCELLED":
 		orderResponse.Status = domainStructs.OrderStatuses.Canceled
 		break
 	case "":

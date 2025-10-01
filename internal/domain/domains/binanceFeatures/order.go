@@ -233,8 +233,8 @@ func (d *DomainBinanceFutures) DeleteOrder(orderId int64, coinPare string) (err 
 
 func (d *DomainBinanceFutures) orderStatusPtoD(providerStatus string) (domainStatus string, err error) {
 	switch providerStatus {
-	case orderStatuses.New:
-	case orderStatuses.PendingNew:
+	case orderStatuses.New,
+		orderStatuses.PendingNew:
 		domainStatus = domainStructs.OrderStatuses.Open
 		break
 	case orderStatuses.PartiallyFilled:
@@ -243,10 +243,10 @@ func (d *DomainBinanceFutures) orderStatusPtoD(providerStatus string) (domainSta
 	case orderStatuses.Filled:
 		domainStatus = domainStructs.OrderStatuses.Filled
 		break
-	case orderStatuses.Canceled:
-	case orderStatuses.Rejected:
-	case orderStatuses.Expired:
-	case orderStatuses.ExpiredInMatch:
+	case orderStatuses.Canceled,
+		orderStatuses.Rejected,
+		orderStatuses.Expired,
+		orderStatuses.ExpiredInMatch:
 		domainStatus = domainStructs.OrderStatuses.Canceled
 		break
 	default:
@@ -261,12 +261,12 @@ func (d *DomainBinanceFutures) orderStatusPtoD(providerStatus string) (domainSta
 
 func (d *DomainBinanceFutures) orderTypePtoD(providerType string) (domainType string, err error) {
 	switch providerType {
-	case orderTypes.Limit:
-	case orderTypes.StopLoss:
-	case orderTypes.StopLossLimit:
-	case orderTypes.TakeProfit:
-	case orderTypes.TakeProfitLimit:
-	case orderTypes.LimitMaker:
+	case orderTypes.Limit,
+		orderTypes.StopLoss,
+		orderTypes.StopLossLimit,
+		orderTypes.TakeProfit,
+		orderTypes.TakeProfitLimit,
+		orderTypes.LimitMaker:
 		domainType = domainStructs.OrderTypes.Limit
 		break
 	case orderTypes.Market:
