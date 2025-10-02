@@ -94,7 +94,7 @@
                     <div class="col-1 bg-danger">{{ $order.Side }}</div>
                     {{ end }}
                     <div class="col-1">{{ $order.OrderStatus }}</div>
-                    <div class="col-1">{{ $order.Qty }}</div>
+                    <div class="col-1">{{ $order.Qty | longFloatShort $.QtyPrecision}}</div>
                     <div class="col-1">{{ mul $order.Qty $order.Price | longFloatShort $.PricePrecision}}</div>
                     <div class="col-1">{{ $order.Price | longFloatShort $.PricePrecision }}</div>
                     <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
