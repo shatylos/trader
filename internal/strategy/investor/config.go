@@ -20,6 +20,8 @@ type Config struct {
 	TimeoutSeconds   time.Duration
 	QtyPrecision     int64
 	PricePrecision   int64
+	CommissionBuy    float64
+	CommissionSell   float64
 	WithdrawPercent  float64
 	RequestDelay     time.Duration
 }
@@ -155,6 +157,22 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field price_precision is empty or contains not correct value type. Expects int64 value",
+			ParentError: err,
+		}
+	}
+
+	i.config.CommissionBuy, err = _type.ToFloat64(configMap["commission_buy"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field commission_buy is empty",
+			ParentError: err,
+		}
+	}
+
+	i.config.CommissionSell, err = _type.ToFloat64(configMap["commission_sell"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field commission_sell is empty",
 			ParentError: err,
 		}
 	}

@@ -23,5 +23,15 @@ func Div(a, b float64) float64 {
 
 func Round(value float64, precision int64) float64 {
 	roundNum := math.Pow(10, float64(precision))
-	return math.Round(value*roundNum) / roundNum
+	return Div(math.Round(Mul(value, roundNum)), roundNum)
+}
+
+func RoundCell(value float64, precision int64) float64 {
+	roundNum := math.Pow(10, float64(precision))
+	return Div(math.Ceil(Mul(value, roundNum)), roundNum)
+}
+
+func RoundFloor(value float64, precision int64) float64 {
+	roundNum := math.Pow(10, float64(precision))
+	return Div(math.Floor(Mul(value, roundNum)), roundNum)
 }
