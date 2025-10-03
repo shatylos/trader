@@ -3,7 +3,7 @@ package investor
 import (
 	"context"
 	"fmt"
-	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
@@ -72,9 +72,8 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		dealRelations = append(dealRelations, dealRelation)
 	}
 
-	// @TODO: Add assets
 	var assets []*structs.AssetTransaction
-	//assets, err = i.Storage.GetAssetTransactions(from, to)
+	assets, err = i.Storage.GetAssetTransactions(ctx, from, to)
 	totalPnl, totalPnlPercent,
 		balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
 		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
@@ -126,7 +125,7 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, 
 	var firstOrder, lastOrder *storage.Order
 
 	for _, dealRelation := range dealRelations {
-		if dealRelation.Deal.Status != structs.StatusClosed {
+		if dealRelation.Deal.Status != storage.DealStatusClosed {
 			continue
 		}
 
@@ -158,6 +157,31 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, 
 	if balanceTotalBefore != 0 {
 		//totalPnlPercent = totalPnl / (balanceBefore / 100)
 		totalPnlPercent = math.Div(totalPnl, math.Div(balanceTotalBefore, 100))
+	}
+
+	for _, asset := range assets {
+		switch asset.TransactionType {
+		case structs.TransactionTypeDeposit:
+			depoAmount += asset.Amount
+			if asset.CreatedTime.Before(firstOrder.CreatedTime) {
+				balanceMainBefore -= asset.Amount
+				balanceTotalBefore -= asset.Amount
+			}
+			if asset.CreatedTime.After(lastOrder.CreatedTime) {
+				balanceMainAfter += asset.Amount
+				balanceTotalAfter += asset.Amount
+			}
+		case structs.TransactionTypeWithdraw:
+			withdrawAmount += asset.Amount
+			if asset.CreatedTime.Before(firstOrder.CreatedTime) {
+				balanceMainBefore += asset.Amount
+				balanceTotalBefore += asset.Amount
+			}
+			if asset.CreatedTime.After(lastOrder.CreatedTime) {
+				balanceMainAfter -= asset.Amount
+				balanceTotalAfter -= asset.Amount
+			}
+		}
 	}
 	return
 }

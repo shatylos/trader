@@ -2,6 +2,7 @@ package fibonacci
 
 import (
 	"fmt"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
@@ -104,14 +105,14 @@ func (f *Fibonacci) reportAmounts(positions []structs.Position, assets []structs
 	var withdrawAmountBeforeStartTrade float64
 	for _, asset := range assets {
 		switch asset.TransactionType {
-		case "deposit":
+		case domainStructs.TransactionTypeDeposit:
 			depoAmount += asset.Amount
 			if firstPositionCreatedTime > asset.CreatedTime {
 				depoAmountBeforeStartTrade += asset.Amount
 				balanceBefore -= asset.Amount
 			}
 			break
-		case "withdraw":
+		case domainStructs.TransactionTypeWithdraw:
 			withdrawAmount += asset.Amount
 			if firstPositionCreatedTime > asset.CreatedTime {
 				withdrawAmountBeforeStartTrade += asset.Amount

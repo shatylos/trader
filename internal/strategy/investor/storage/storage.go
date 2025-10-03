@@ -9,6 +9,7 @@ type Storage struct {
 	Id              string
 	orderCollection *mongo.Collection
 	dealCollection  *mongo.Collection
+	assetCollection *mongo.Collection
 }
 
 func (s *Storage) InitStorage() (err error) {
@@ -19,5 +20,6 @@ func (s *Storage) InitStorage() (err error) {
 	}
 	s.orderCollection = db.Collection("investor_" + s.Id + "_orders")
 	s.dealCollection = db.Collection("investor_" + s.Id + "_deals")
+	s.assetCollection = db.Collection("investor_" + s.Id + "_assets")
 	return
 }

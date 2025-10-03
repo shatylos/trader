@@ -1,6 +1,7 @@
 package buyCheapSellHigh
 
 import (
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/structs"
@@ -23,7 +24,7 @@ func (s *BuyCheapSellHigh) AddAssetTransaction(amount float64, dateTime time.Tim
 	}
 
 	modifyAmount := amount
-	if transactionType == "withdraw" {
+	if transactionType == domainStructs.TransactionTypeWithdraw {
 		modifyAmount *= -1
 	}
 

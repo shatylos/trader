@@ -199,10 +199,10 @@ func (s *BuyCheapSellHigh) getAssets(from time.Time, to time.Time) (float64, flo
 	var deposit, withdraw float64
 
 	for _, asset := range assets {
-		if asset.TransactionType == "deposit" {
+		if asset.TransactionType == structs.TransactionTypeDeposit {
 			deposit += asset.Amount
 		}
-		if asset.TransactionType == "withdraw" {
+		if asset.TransactionType == structs.TransactionTypeWithdraw {
 			withdraw += asset.Amount
 		}
 	}

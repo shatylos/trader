@@ -2,6 +2,7 @@ package fibonacci
 
 import (
 	"fmt"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/fibonacci/storage"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/storage/mongo"
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
@@ -17,7 +18,7 @@ func (f *Fibonacci) AddAssetTransaction(amount float64, dateTime time.Time, tran
 	}
 
 	modifyAmount := amount
-	if transactionType == "withdraw" {
+	if transactionType == domainStructs.TransactionTypeWithdraw {
 		modifyAmount *= -1
 	}
 

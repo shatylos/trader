@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/setup"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
@@ -54,7 +55,7 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	transactionType := r.FormValue("type")
-	if transactionType != "deposit" && transactionType != "withdraw" {
+	if transactionType != structs.TransactionTypeDeposit && transactionType != structs.TransactionTypeWithdraw {
 		logger.Warning(fmt.Sprintf("Invalid deposit value: %s", transactionType))
 		http.Error(w, "Invalid deposit value", 400)
 		return
