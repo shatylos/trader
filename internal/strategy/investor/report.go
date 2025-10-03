@@ -14,21 +14,25 @@ import (
 )
 
 type ReportTemplateData struct {
-	PrevPeriodLink  string
-	NextPeriodLink  string
-	DateFrom        time.Time
-	DateTo          time.Time
-	DealsRelations  []*DealRelation
-	MainCurrency    string
-	TradeCurrency   string
-	PricePrecision  int
-	QtyPrecision    int
-	TotalPnl        float64
-	TotalPnlPercent float64
-	BalanceBefore   float64
-	BalanceAfter    float64
-	DepoAmount      float64
-	WithdrawAmount  float64
+	PrevPeriodLink     string
+	NextPeriodLink     string
+	DateFrom           time.Time
+	DateTo             time.Time
+	DealsRelations     []*DealRelation
+	MainCurrency       string
+	TradeCurrency      string
+	PricePrecision     int
+	QtyPrecision       int
+	TotalPnl           float64
+	TotalPnlPercent    float64
+	BalanceMainBefore  float64
+	BalanceTradeBefore float64
+	BalanceTotalBefore float64
+	BalanceTotalAfter  float64
+	BalanceMainAfter   float64
+	BalanceTradeAfter  float64
+	DepoAmount         float64
+	WithdrawAmount     float64
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
@@ -71,24 +75,31 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	// @TODO: Add assets
 	var assets []*structs.AssetTransaction
 	//assets, err = i.Storage.GetAssetTransactions(from, to)
-	totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
+	totalPnl, totalPnlPercent,
+		balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
+		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
+		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
 	data := ReportTemplateData{
-		PrevPeriodLink:  fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
-		NextPeriodLink:  fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
-		DateFrom:        from,
-		DateTo:          to,
-		DealsRelations:  dealRelations,
-		MainCurrency:    i.config.MainCurrency,
-		TradeCurrency:   i.config.TradeCurrency,
-		PricePrecision:  int(i.config.PricePrecision),
-		QtyPrecision:    int(i.config.QtyPrecision),
-		TotalPnl:        totalPnl,
-		TotalPnlPercent: totalPnlPercent,
-		BalanceBefore:   balanceBefore,
-		BalanceAfter:    balanceAfter,
-		DepoAmount:      depoAmount,
-		WithdrawAmount:  withdrawAmount,
+		PrevPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
+		NextPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
+		DateFrom:           from,
+		DateTo:             to,
+		DealsRelations:     dealRelations,
+		MainCurrency:       i.config.MainCurrency,
+		TradeCurrency:      i.config.TradeCurrency,
+		PricePrecision:     int(i.config.PricePrecision),
+		QtyPrecision:       int(i.config.QtyPrecision),
+		TotalPnl:           totalPnl,
+		TotalPnlPercent:    totalPnlPercent,
+		BalanceMainBefore:  balanceMainBefore,
+		BalanceTradeBefore: balanceTradeBefore,
+		BalanceTotalBefore: balanceTotalBefore,
+		BalanceTotalAfter:  balanceTotalAfter,
+		BalanceMainAfter:   balanceMainAfter,
+		BalanceTradeAfter:  balanceTradeAfter,
+		DepoAmount:         depoAmount,
+		WithdrawAmount:     withdrawAmount,
 	}
 
 	var resultBuilder strings.Builder
@@ -106,7 +117,11 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	return
 }
 
-func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, assets []*structs.AssetTransaction) (totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount float64) {
+func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, assets []*structs.AssetTransaction) (
+	totalPnl, totalPnlPercent,
+	balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
+	balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
+	depoAmount, withdrawAmount float64) {
 
 	var firstOrder, lastOrder *storage.Order
 
@@ -131,18 +146,18 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, 
 		return
 	}
 
-	mainBalanceBefore := currencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
-	mainBalanceAfter := currencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
-	tradeBalanceBefore := currencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
-	tradeBalanceAfter := currencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
+	balanceMainBefore = currencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
+	balanceMainAfter = currencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
+	balanceTradeBefore = currencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
+	balanceTradeAfter = currencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
 
-	balanceBefore = mainBalanceBefore + tradeCurrencyToMain(tradeBalanceBefore, firstOrder.Price)
-	balanceAfter = mainBalanceAfter + tradeCurrencyToMain(tradeBalanceAfter, lastOrder.Price)
+	balanceTotalBefore = balanceMainBefore + tradeCurrencyToMain(balanceTradeBefore, firstOrder.Price)
+	balanceTotalAfter = balanceMainAfter + tradeCurrencyToMain(balanceTradeAfter, lastOrder.Price)
 
-	totalPnl = balanceAfter - balanceBefore
-	if balanceBefore != 0 {
+	totalPnl = balanceTotalAfter - balanceTotalBefore
+	if balanceTotalBefore != 0 {
 		//totalPnlPercent = totalPnl / (balanceBefore / 100)
-		totalPnlPercent = math.Div(totalPnl, math.Div(balanceBefore, 100))
+		totalPnlPercent = math.Div(totalPnl, math.Div(balanceTotalBefore, 100))
 	}
 	return
 }

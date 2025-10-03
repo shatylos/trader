@@ -13,7 +13,7 @@
 <hr/>
 
 <div class="row align-items-start">
-    <div class="col-4">
+    <div class="col-6">
         <h4>
             Total PNL:
             {{ .TotalPnl | longFloatShort .PricePrecision }}
@@ -21,7 +21,10 @@
             ({{ .TotalPnlPercent | longFloatShort 2 }}%)
         </h4>
         <div>
-            Balance before: {{ .BalanceBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+            Balance before:
+            {{ .BalanceMainBefore | longFloatShort .PricePrecision  }} {{ .MainCurrency }}
+            + {{ .BalanceTradeBefore | longFloatShort .QtyPrecision  }} {{ .TradeCurrency }}
+            = <strong>{{ .BalanceTotalBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
         <div>
             Deposit amount: {{ .DepoAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
@@ -30,7 +33,10 @@
             Withdraw amount: {{ .WithdrawAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
         </div>
         <div>
-            Balance after: {{ .BalanceAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+            Balance after:
+            {{ .BalanceMainAfter | longFloatShort .PricePrecision  }} {{ .MainCurrency }}
+            + {{ .BalanceTradeAfter | longFloatShort .QtyPrecision  }} {{ .TradeCurrency }}
+            = <strong>{{ .BalanceTotalAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
     </div>
 
