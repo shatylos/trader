@@ -10,20 +10,21 @@ import (
 )
 
 type Config struct {
-	Id               string
-	Enabled          bool
-	Verbose          bool
-	TelegramNotifier bool
-	CoinPare         string
-	MainCurrency     string
-	TradeCurrency    string
-	TimeoutSeconds   time.Duration
-	QtyPrecision     int64
-	PricePrecision   int64
-	CommissionBuy    float64
-	CommissionSell   float64
-	WithdrawPercent  float64
-	RequestDelay     time.Duration
+	Id                    string
+	Enabled               bool
+	Verbose               bool
+	TelegramNotifier      bool
+	CoinPare              string
+	MainCurrency          string
+	TradeCurrency         string
+	TimeoutSeconds        time.Duration
+	QtyPrecision          int64
+	PricePrecision        int64
+	CommissionBuy         float64
+	CommissionSell        float64
+	MinCoinReservePercent float64
+	WithdrawPercent       float64
+	RequestDelay          time.Duration
 }
 
 type TimeframeConfig struct {
@@ -173,6 +174,14 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field commission_sell is empty",
+			ParentError: err,
+		}
+	}
+
+	i.config.MinCoinReservePercent, err = _type.ToFloat64(configMap["min_coin_reserve_percent"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "The field min_coin_reserve_percent is empty",
 			ParentError: err,
 		}
 	}

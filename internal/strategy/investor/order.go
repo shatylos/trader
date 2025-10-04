@@ -112,6 +112,20 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 	return
 }
 
+func (i *Investor) calculateQtyToSell(qty float64) (qtyResult float64) {
+	tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
+	remainingBalance := tradeAmountAvailable - qty
+	if qty > 0 {
+		//minCoinReserve := qty / 100 * i.config.MinCoinReservePercent
+		minCoinReserve := math.Mul(math.Div(qty, 100), i.config.MinCoinReservePercent)
+		if remainingBalance < minCoinReserve {
+			qty = i.removeCommission(qty, i.config.CommissionBuy)
+		}
+	}
+	qtyResult = math.RoundFloor(qty, i.config.QtyPrecision)
+	return
+}
+
 func (i *Investor) addCommission(qty, commission float64) (calculatedQty float64) {
 	calculatedQty = math.Mul(math.Div(qty, 100), 100+commission)
 	return
@@ -138,12 +152,11 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	walletBefore = *i.Wallet
 
 	price := timeFrameItem.Candles[0].Close
+	qty = i.calculateQtyToSell(qty)
+
 	if i.config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g", qty, i.config.TradeCurrency, price))
 	}
-
-	qty = i.removeCommission(qty, i.config.CommissionBuy)
-	qty = math.RoundFloor(qty, i.config.QtyPrecision)
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
 		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
