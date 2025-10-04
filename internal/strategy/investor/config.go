@@ -23,6 +23,8 @@ type Config struct {
 	CommissionBuy         float64
 	CommissionSell        float64
 	MinCoinReservePercent float64
+	MinQty                float64
+	DoIncreaseQtyToMinQty bool
 	WithdrawPercent       float64
 	RequestDelay          time.Duration
 }
@@ -36,8 +38,6 @@ type TimeframeConfig struct {
 	SidewaysPercentToPrice      float64
 	SidewaysPremiumCoefficient  float64
 	SidewaysDiscountCoefficient float64
-	MinQty                      float64
-	DoIncreaseQtyToMinQty       bool
 	IsHeap                      bool
 }
 
@@ -186,6 +186,20 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
+	i.config.MinQty, err = _type.ToFloat64(configMap["min_qty"])
+	if err != nil {
+		return tools.AppError{
+			Message:     "Empty value min_qty",
+			ParentError: err,
+		}
+	}
+
+	var doIncreaseQtyToMinQty int64
+	doIncreaseQtyToMinQty, _ = _type.ToInt64(configMap["do_increase_qty_to_min_qty"])
+	if doIncreaseQtyToMinQty == 1 {
+		i.config.DoIncreaseQtyToMinQty = true
+	}
+
 	i.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
 	if err != nil {
 		return tools.AppError{
@@ -310,20 +324,6 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 				Message:     "Empty value sideways_discount_coefficient",
 				ParentError: err,
 			}
-		}
-
-		timeframe.Config.MinQty, err = _type.ToFloat64(tfMap["min_qty"])
-		if err != nil {
-			return tools.AppError{
-				Message:     "Empty value min_qty",
-				ParentError: err,
-			}
-		}
-
-		var doIncreaseQtyToMinQty int64
-		doIncreaseQtyToMinQty, _ = _type.ToInt64(tfMap["do_increase_qty_to_min_qty"])
-		if doIncreaseQtyToMinQty == 1 {
-			timeframe.Config.DoIncreaseQtyToMinQty = true
 		}
 
 		var heap int64

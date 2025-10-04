@@ -93,8 +93,8 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 
 	currentPrice = timeFrameItem.Candles[0].Close
 	qtyPercent := timeFrameItem.Config.QtyPercent
-	minQty := timeFrameItem.Config.MinQty
-	doIncreaseQtyToMinQty := timeFrameItem.Config.DoIncreaseQtyToMinQty
+	minQty := i.config.MinQty
+	doIncreaseQtyToMinQty := i.config.DoIncreaseQtyToMinQty
 
 	//qty = mainCurrencyAvailable / 100 * qtyPercent / currentPrice
 	qty = math.Div(math.Mul(math.Div(mainCurrencyAvailable, 100), qtyPercent), currentPrice)
