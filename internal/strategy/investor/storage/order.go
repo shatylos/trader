@@ -5,6 +5,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/math"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -117,4 +118,8 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 	}
 
 	return
+}
+
+func (o *Order) Amount() float64 {
+	return math.Mul(o.Qty, o.Price)
 }

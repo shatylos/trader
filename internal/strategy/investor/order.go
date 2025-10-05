@@ -135,7 +135,9 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty float64) (providerOrderId string, err error) {
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty, price float64) (
+	providerOrderId string, err error) {
+
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do sell"
 		logger.Error(msg)
@@ -151,11 +153,11 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.Wallet
 
-	price := timeFrameItem.Candles[0].Close
 	qty = i.calculateQtyToSell(qty)
 
 	if i.config.Verbose {
-		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g", qty, i.config.TradeCurrency, price))
+		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
+			qty, i.config.TradeCurrency, price))
 	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{

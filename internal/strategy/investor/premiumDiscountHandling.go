@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
@@ -15,10 +16,11 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 		return
 	}
 
-	var qty float64
+	var qty, spentAmountToBuy float64
 	for _, dealOrder := range dealOrders {
 		if dealOrder.Side == structs.OrderSideBuy {
-			qty += dealOrder.DomainOrder.Qty
+			qty += dealOrder.Qty
+			spentAmountToBuy += dealOrder.Amount()
 		}
 		if dealOrder.Side == structs.OrderSideSell {
 			switch dealOrder.OrderStatus {
@@ -33,9 +35,20 @@ func (i *Investor) handlePremium(ctx context.Context, deal *storage.Deal, dealOr
 		}
 	}
 
-	if qty > 0 {
+	if qty > 0 && spentAmountToBuy > 0 {
+		avgPriceBuy := math.Div(spentAmountToBuy, qty)
+		price := timeFrameItem.Candles[0].Close
+		minAmountRange := math.Mul(math.Div(price, 100), timeFrameItem.Config.MinPercentRangeToSell)
+		currentPriceRange := price - avgPriceBuy
+		if currentPriceRange < minAmountRange {
+			if i.config.Verbose {
+				logger.Info(fmt.Sprintf("Too low price range to sell (%g). Expected range: %g", currentPriceRange, minAmountRange))
+			}
+			return
+		}
+
 		var providerOrderId string
-		providerOrderId, err = i.doSell(ctx, timeFrameItem, deal, qty)
+		providerOrderId, err = i.doSell(ctx, timeFrameItem, deal, qty, price)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false
@@ -77,7 +90,7 @@ func (i *Investor) handleDiscount(ctx context.Context, deal *storage.Deal, dealO
 			return
 		}
 	} else if len(dealOrders) > 0 {
-		// @TODO: check and maybe do buy more
+		// @TODO: Check min range to price to buy more
 	}
 
 	return

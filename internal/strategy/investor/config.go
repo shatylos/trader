@@ -38,6 +38,8 @@ type TimeframeConfig struct {
 	SidewaysPercentToPrice      float64
 	SidewaysPremiumCoefficient  float64
 	SidewaysDiscountCoefficient float64
+	MinPercentRangeToSell       float64
+	MinPercentRangeToBuyMore    float64
 	IsHeap                      bool
 }
 
@@ -322,6 +324,22 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		if err != nil {
 			return tools.AppError{
 				Message:     "Empty value sideways_discount_coefficient",
+				ParentError: err,
+			}
+		}
+
+		timeframe.Config.MinPercentRangeToSell, err = _type.ToFloat64(tfMap["min_percent_range_to_sell"])
+		if err != nil {
+			return tools.AppError{
+				Message:     "Empty value min_percent_range_to_sell",
+				ParentError: err,
+			}
+		}
+
+		timeframe.Config.MinPercentRangeToBuyMore, err = _type.ToFloat64(tfMap["min_percent_range_to_buy_more"])
+		if err != nil {
+			return tools.AppError{
+				Message:     "Empty value min_percent_range_to_buy_more",
 				ParentError: err,
 			}
 		}
