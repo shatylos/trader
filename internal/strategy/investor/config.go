@@ -35,6 +35,7 @@ type TimeframeConfig struct {
 	CandleReview                int64
 	CandleCacheSeconds          int64
 	SidewaysMinCandlesAmount    int64
+	MaxNumberOrdersToBuy        int64
 	SidewaysPercentToPrice      float64
 	SidewaysPremiumCoefficient  float64
 	SidewaysDiscountCoefficient float64
@@ -300,6 +301,14 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		if err != nil || timeframe.Config.SidewaysMinCandlesAmount == 0 {
 			return tools.AppError{
 				Message:     "Empty value sideways_min_candles_amount",
+				ParentError: err,
+			}
+		}
+
+		timeframe.Config.MaxNumberOrdersToBuy, err = _type.ToInt64(tfMap["max_number_orders_to_buy"])
+		if err != nil || timeframe.Config.MaxNumberOrdersToBuy == 0 {
+			return tools.AppError{
+				Message:     "Empty value max_number_orders_to_buy",
 				ParentError: err,
 			}
 		}
