@@ -2,9 +2,11 @@ package investor
 
 import (
 	"context"
+	"fmt"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
+	"time"
 )
 
 type DealRelation struct {
@@ -12,6 +14,46 @@ type DealRelation struct {
 	Orders          []*storage.Order
 	RevenueMainCur  float64
 	RevenueTradeCur float64
+}
+
+func (d *DealRelation) GetTotalAmountBefore(mainCurrency, tradeCurrency string) (amount float64) {
+	if d.Deal.ClosedTime.IsZero() {
+		return
+	}
+	monthKey := fmt.Sprintf("%d-%d", d.Deal.ClosedTime.Year(), d.Deal.ClosedTime.Month())
+	var takenOrderTime time.Time
+	for _, order := range d.Orders {
+		orderMonthKey := fmt.Sprintf("%d-%d", order.CreatedTime.Year(), order.CreatedTime.Month())
+		if orderMonthKey != monthKey {
+			continue
+		}
+		if takenOrderTime.IsZero() || takenOrderTime.After(order.CreatedTime) {
+			mainCurr := currencyAmountTotal(&order.WalletBefore, mainCurrency)
+			tradeCurr := currencyAmountTotal(&order.WalletBefore, tradeCurrency)
+			amount = mainCurr + tradeCurrencyToMain(tradeCurr, order.Price)
+		}
+	}
+	return
+}
+
+func (i *Investor) GetDealRelationsByPeriod(ctx context.Context, from, to time.Time) (dealRelations []*DealRelation, err error) {
+	var deals []*storage.Deal
+	deals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
+	if err != nil {
+		return
+	}
+
+	dealRelations = make([]*DealRelation, len(deals))
+
+	for item, deal := range deals {
+		var dealRelation *DealRelation
+		dealRelation, err = i.GetDealRelation(ctx, deal)
+		if err != nil {
+			return
+		}
+		dealRelations[item] = dealRelation
+	}
+	return
 }
 
 func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dealRelation *DealRelation, err error) {
