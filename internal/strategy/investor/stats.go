@@ -60,12 +60,14 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 		avPercPerMonth = math.Div(revPercAllMonths, float64(len(revPerMonth)))
 	}
 
-	lastDealRelation := dealRelations[len(dealRelations)-1]
-	totalAmountBefore := lastDealRelation.GetTotalAmountBefore(i.config.MainCurrency, i.config.TradeCurrency)
 	var pnlPercent float64
-	if totalAmountBefore > 0 && amount > 0 {
-		onePercent := math.Div(totalAmountBefore, 100)
-		pnlPercent = math.Div(amount, onePercent)
+	if len(dealRelations) > 0 {
+		lastDealRelation := dealRelations[len(dealRelations)-1]
+		totalAmountBefore := lastDealRelation.GetTotalAmountBefore(i.config.MainCurrency, i.config.TradeCurrency)
+		if totalAmountBefore > 0 && amount > 0 {
+			onePercent := math.Div(totalAmountBefore, 100)
+			pnlPercent = math.Div(amount, onePercent)
+		}
 	}
 
 	pnl = _struct.Pnl{
