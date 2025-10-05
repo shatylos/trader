@@ -71,30 +71,32 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
 
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
-		//if timeFrameItem.Config.IsHeap {
-		//err = i.handlePremiumHeap(ctx, timeFrameItem)
-		//if err != nil {
-		//	return
-		//}
-		//} else {
-		err = i.handlePremium(ctx, &deal, dealOrders, timeFrameItem)
-		if err != nil {
-			return
+		if timeFrameItem.Config.IsHeap {
+			//err = i.handlePremiumHeap(ctx, timeFrameItem)
+			err = i.handlePremium(ctx, &deal, dealOrders, timeFrameItem)
+			if err != nil {
+				return
+			}
+		} else {
+			err = i.handlePremium(ctx, &deal, dealOrders, timeFrameItem)
+			if err != nil {
+				return
+			}
 		}
-		//}
 	}
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
-		//if timeFrameItem.Config.IsHeap {
-		//err = i.handleDiscountHeap(ctx, timeFrameItem)
-		//if err != nil {
-		//	return
-		//}
-		//} else {
-		err = i.handleDiscount(ctx, &deal, dealOrders, timeFrameItem)
-		if err != nil {
-			return
+		if timeFrameItem.Config.IsHeap {
+			//err = i.handleDiscountHeap(ctx, timeFrameItem)
+			err = i.handleDiscount(ctx, &deal, dealOrders, timeFrameItem)
+			if err != nil {
+				return
+			}
+		} else {
+			err = i.handleDiscount(ctx, &deal, dealOrders, timeFrameItem)
+			if err != nil {
+				return
+			}
 		}
-		//}
 	}
 
 	return
