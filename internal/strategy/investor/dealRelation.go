@@ -72,7 +72,7 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		return
 	}
 
-	var revenueMainCur, revenueTradeCur, revenueTotal float64
+	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice float64
 
 	for _, order := range dealOrders {
 		if order.OrderStatus != structs.OrderStatuses.Filled {
@@ -88,24 +88,10 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 
 		revenueMainCur += mainAmountAfter - mainAmountBefore
 		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
-
-		revenueTotal += mainAmountAfter - mainAmountBefore
-		calculated := tradeCurrencyToMain(tradeAmountAfter-tradeAmountBefore, order.Price)
-		revenueTotal += calculated
-
-		if *deal.Id == "68e23d1b09362425aae99e20" {
-			logger.Info(fmt.Sprintf("mainAmountAfter %g", mainAmountAfter))
-			logger.Info(fmt.Sprintf("mainAmountBefore %g", mainAmountBefore))
-			logger.Info(fmt.Sprintf("tradeAmountAfter %g", tradeAmountAfter))
-			logger.Info(fmt.Sprintf("tradeAmountBefore %g", tradeAmountBefore))
-			logger.Info(fmt.Sprintf("order.Price %g", order.Price))
-			logger.Info(fmt.Sprintf("calculated %g", calculated))
-		}
-
-		//revenueTotal += tradeCurrencyToMain(tradeAmountAfter, order.Price)
-		//revenueTotal -= tradeCurrencyToMain(tradeAmountBefore, order.Price)
-		revenueTotal += tradeAmountAfter - tradeAmountBefore
+		lastPrice = order.Price
 	}
+
+	revenueTotal = revenueMainCur + tradeCurrencyToMain(revenueTradeCur, lastPrice)
 
 	dealRelation = &DealRelation{
 		Deal:            deal,
