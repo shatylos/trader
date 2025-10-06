@@ -71,7 +71,11 @@
         </td>
         <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }},
             {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }} {{ $.TradeCurrency }}
-            = <strong>{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
+            {{ if gt .RevenueTotal 0.0 }}
+            = <strong class="bg-success">{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
+            {{ else }}
+            = <strong class="bg-danger">{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
+            {{ end }}
         </td>
     </tr>
     <tr>
