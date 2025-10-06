@@ -92,7 +92,7 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		//revenueTotal += mainAmountAfter - mainAmountBefore
 		//revenueTotal += tradeCurrencyToMain(tradeAmountAfter-tradeAmountBefore, order.Price)
 		revenueTotal += tradeCurrencyToMain(tradeAmountAfter, order.Price)
-		revenueTotal -= tradeCurrencyToMain(tradeAmountBefore, order.Price)
+		//	revenueTotal -= tradeCurrencyToMain(tradeAmountBefore, order.Price)
 		//revenueTotal += tradeAmountAfter - tradeAmountBefore
 	}
 
