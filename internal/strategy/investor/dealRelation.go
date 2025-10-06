@@ -14,6 +14,7 @@ type DealRelation struct {
 	Orders          []*storage.Order
 	RevenueMainCur  float64
 	RevenueTradeCur float64
+	RevenueTotal    float64
 }
 
 func (d *DealRelation) GetTotalAmountBefore(mainCurrency, tradeCurrency string) (amount float64) {
@@ -70,7 +71,7 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		return
 	}
 
-	var revenueMainCur, revenueTradeCur float64
+	var revenueMainCur, revenueTradeCur, revenueTotal float64
 
 	for _, order := range dealOrders {
 		var mainAmountBefore, tradeAmountBefore, mainAmountAfter, tradeAmountAfter float64
@@ -82,6 +83,8 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 
 		revenueMainCur += mainAmountAfter - mainAmountBefore
 		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
+		revenueTotal += mainAmountAfter - mainAmountBefore
+		revenueTotal += tradeCurrencyToMain(tradeAmountAfter-tradeAmountBefore, order.Price)
 	}
 
 	dealRelation = &DealRelation{
@@ -89,6 +92,7 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		Orders:          dealOrders,
 		RevenueMainCur:  revenueMainCur,
 		RevenueTradeCur: revenueTradeCur,
+		RevenueTotal:    revenueTotal,
 	}
 	return
 }

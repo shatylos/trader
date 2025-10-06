@@ -69,8 +69,9 @@
             {{ .Deal.ClosedTime | dateFormat "2006-01-02 15:04:05" }}
             {{ end }}
         </td>
-        <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}, {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }}
-            {{ $.TradeCurrency }}
+        <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }},
+            {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }} {{ $.TradeCurrency }}
+            = <strong>{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
         </td>
     </tr>
     <tr>
