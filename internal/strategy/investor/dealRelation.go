@@ -7,12 +7,15 @@ import (
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/math"
 	"time"
 )
 
 type DealRelation struct {
 	Deal            *storage.Deal
 	Orders          []*storage.Order
+	AverageBuyPrice float64
+	PriceToSell     float64
 	RevenueMainCur  float64
 	RevenueTradeCur float64
 	RevenueTotal    float64
@@ -72,7 +75,8 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		return
 	}
 
-	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice float64
+	timeFrameItem := i.getTimeframeItemByDeal(deal)
+	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice, lastBuyPrice, boughtQty, spentAmount float64
 
 	for _, order := range dealOrders {
 		if order.OrderStatus != structs.OrderStatuses.Filled {
@@ -89,13 +93,29 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		revenueMainCur += mainAmountAfter - mainAmountBefore
 		revenueTradeCur += tradeAmountAfter - tradeAmountBefore
 		lastPrice = order.Price
+
+		if order.Side == structs.OrderSideBuy {
+			boughtQty += order.Qty
+			spentAmount += order.Amount()
+			lastBuyPrice = order.Price
+		}
 	}
 
 	revenueTotal = revenueMainCur + tradeCurrencyToMain(revenueTradeCur, lastPrice)
 
+	averageBuyPrice := 0.0
+	priceToSell := 0.0
+	if spentAmount > 0 && boughtQty > 0 {
+		averageBuyPrice = math.Div(spentAmount, boughtQty)
+		minAmountRange := math.Mul(math.Div(lastBuyPrice, 100), timeFrameItem.Config.MinPercentRangeToSell)
+		priceToSell = lastBuyPrice + minAmountRange
+	}
+
 	dealRelation = &DealRelation{
 		Deal:            deal,
 		Orders:          dealOrders,
+		AverageBuyPrice: averageBuyPrice,
+		PriceToSell:     priceToSell,
 		RevenueMainCur:  revenueMainCur,
 		RevenueTradeCur: revenueTradeCur,
 		RevenueTotal:    revenueTotal,

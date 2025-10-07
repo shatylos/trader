@@ -65,3 +65,13 @@ func (i *Investor) DoAction() (err error) {
 func (i *Investor) Wait() {
 	time.Sleep(time.Second * i.config.TimeoutSeconds)
 }
+
+func (i *Investor) getTimeframeItemByDeal(deal *storage.Deal) (timeFrameItem *Timeframe) {
+	for _, timeFrame := range i.Timeframes {
+		if timeFrame.Config.Resolution == deal.Timeframe {
+			timeFrameItem = &timeFrame
+			return
+		}
+	}
+	return
+}
