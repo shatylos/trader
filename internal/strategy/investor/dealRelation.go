@@ -76,7 +76,7 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 	}
 
 	timeFrameItem := i.getTimeframeItemByDeal(deal)
-	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice, lastBuyPrice, boughtQty, spentAmount float64
+	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice, boughtQty, spentAmount float64
 
 	for _, order := range dealOrders {
 		if order.OrderStatus != structs.OrderStatuses.Filled {
@@ -97,7 +97,6 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 		if order.Side == structs.OrderSideBuy {
 			boughtQty += order.Qty
 			spentAmount += order.Amount()
-			lastBuyPrice = order.Price
 		}
 	}
 
@@ -107,8 +106,8 @@ func (i *Investor) GetDealRelation(ctx context.Context, deal *storage.Deal) (dea
 	priceToSell := 0.0
 	if spentAmount > 0 && boughtQty > 0 {
 		averageBuyPrice = math.Div(spentAmount, boughtQty)
-		minAmountRange := math.Mul(math.Div(lastBuyPrice, 100), timeFrameItem.Config.MinPercentRangeToSell)
-		priceToSell = lastBuyPrice + minAmountRange
+		minAmountRange := math.Mul(math.Div(averageBuyPrice, 100), timeFrameItem.Config.MinPercentRangeToSell)
+		priceToSell = averageBuyPrice + minAmountRange
 	}
 
 	dealRelation = &DealRelation{
