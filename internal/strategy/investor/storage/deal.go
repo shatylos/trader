@@ -20,7 +20,6 @@ type Deal struct {
 	UpdatedTime time.Time `bson:"UpdatedTime"`
 	ClosedTime  time.Time `bson:"ClosedTime"`
 	//IsHeap    bool
-	//Orders ???
 }
 
 const DealStatusNew = "NEW"
@@ -101,17 +100,31 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *Deal) (err error) {
 	return
 }
 
-func (s *Storage) GetLastDealByTimeframe(ctx context.Context, timeframe string, deal *Deal) (err error) {
-	err = s.dealCollection.FindOne(ctx,
-		bson.D{{"Timeframe", timeframe}},
-		options.FindOne().
-			SetSort(bson.D{{"CreatedTime", -1}}),
-	).Decode(deal)
+func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string) (deal *Deal, err error) {
+	err = s.dealCollection.FindOne(ctx, bson.D{{
+		"$and", bson.A{
+			bson.D{{"Timeframe", timeFrame}},
+			bson.D{{"Status", bson.D{{"$in", bson.A{DealStatusNew, DealStatusActive}}}}},
+		},
+	}}, options.FindOne().SetSort(
+		bson.D{{"CreatedTime", -1}},
+	)).Decode(&deal)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		err = nil
 	}
 	if err != nil {
 		return
+	}
+
+	if deal == nil {
+		deal = &Deal{
+			Timeframe: timeFrame,
+			Status:    DealStatusNew,
+		}
+		err = s.SaveDeal(ctx, deal)
+		if err != nil {
+			return
+		}
 	}
 
 	return

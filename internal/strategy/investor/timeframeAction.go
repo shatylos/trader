@@ -22,26 +22,24 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 		return
 	}
 
-	deal := storage.Deal{}
-	err = i.Storage.GetLastDealByTimeframe(ctx, timeFrameItem.Config.Resolution, &deal)
+	var deal *storage.Deal
+	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem.Config.Resolution)
 	if err != nil {
 		return
 	}
 
-	var dealOrders []*storage.Order
-	if deal.Id != nil {
-		dealOrders, err = i.Storage.GetOrdersByDealId(ctx, *deal.Id)
-		if err != nil {
-			return
-		}
+	var dealRelation *DealRelation
+	dealRelation, err = i.GetDealRelation(ctx, deal)
+	if err != nil {
+		return
 	}
 
-	for _, dealOrder := range dealOrders {
+	for _, dealOrder := range dealRelation.Orders {
 		switch dealOrder.OrderStatus {
 		case domainStructs.OrderStatuses.New,
 			domainStructs.OrderStatuses.Open,
 			domainStructs.OrderStatuses.PartiallyFilled:
-			err = i.updateOrder(ctx, &deal, dealOrder, timeFrameItem)
+			err = i.updateOrder(ctx, dealRelation.Deal, dealOrder, timeFrameItem)
 			if err != nil {
 				return
 			}
@@ -53,7 +51,6 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 				return
 			}
 		}
-
 	}
 
 	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
@@ -73,12 +70,12 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
 		if timeFrameItem.Config.IsHeap {
 			//err = i.handlePremiumHeap(ctx, timeFrameItem)
-			err = i.handlePremium(ctx, &deal, dealOrders, timeFrameItem)
+			err = i.handlePremium(ctx, dealRelation, timeFrameItem)
 			if err != nil {
 				return
 			}
 		} else {
-			err = i.handlePremium(ctx, &deal, dealOrders, timeFrameItem)
+			err = i.handlePremium(ctx, dealRelation, timeFrameItem)
 			if err != nil {
 				return
 			}
@@ -87,12 +84,12 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
 		if timeFrameItem.Config.IsHeap {
 			//err = i.handleDiscountHeap(ctx, timeFrameItem)
-			err = i.handleDiscount(ctx, &deal, dealOrders, timeFrameItem)
+			err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
 			if err != nil {
 				return
 			}
 		} else {
-			err = i.handleDiscount(ctx, &deal, dealOrders, timeFrameItem)
+			err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
 			if err != nil {
 				return
 			}
