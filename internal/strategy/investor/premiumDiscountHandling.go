@@ -35,8 +35,22 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *DealRelation
 			return
 		}
 
+		qty := dealRelation.QtyInTrade
+		avQty := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
+		if avQty < qty {
+			qty = avQty
+		}
+		if qty < i.config.MinQty {
+			dealRelation.Deal.SetClose()
+			err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
+			if err != nil {
+				return
+			}
+			return
+		}
+
 		var providerOrderId string
-		providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation.Deal, dealRelation.QtyInTrade, price)
+		providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation.Deal, qty, price)
 		if err != nil {
 			if providerOrderId != "" {
 				i.config.Enabled = false

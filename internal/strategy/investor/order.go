@@ -221,8 +221,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
 			deal.Status = storage.DealStatusActive
 		} else if updatedOrder.Side == domainStructs.OrderSideSell {
-			deal.Status = storage.DealStatusClosed
-			deal.ClosedTime = time.Now()
+			deal.SetClose()
 		} else {
 			msg := fmt.Sprintf("Unexpected order side %s", updatedOrder.Side)
 			logger.Error(msg)

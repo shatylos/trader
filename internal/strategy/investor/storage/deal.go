@@ -208,3 +208,8 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err
 
 	return
 }
+
+func (d *Deal) SetClose() {
+	d.Status = DealStatusClosed
+	d.ClosedTime = time.Now()
+}
