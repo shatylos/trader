@@ -278,6 +278,11 @@ func (i *Investor) doCancel(ctx context.Context, order *storage.Order) (err erro
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+
 	logger.Warning(fmt.Sprintf("Cancelled %s order for timeframe %s", order.Side, order.Timeframe))
 
 	return
