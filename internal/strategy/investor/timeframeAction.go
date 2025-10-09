@@ -34,6 +34,20 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 		return
 	}
 
+	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
+
+	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
+	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
+	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
+
+	zone := trading.ZoneNeutral
+	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
+		zone = trading.ZonePremium
+	}
+	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
+		zone = trading.ZoneDiscount
+	}
+
 	for _, dealOrder := range dealRelation.Orders {
 		switch dealOrder.OrderStatus {
 		case domainStructs.OrderStatuses.New,
@@ -44,16 +58,25 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 				return
 			}
 			if dealOrder.OrderStatus != domainStructs.OrderStatuses.Filled {
+
+				if (dealOrder.Side == domainStructs.OrderSideBuy && zone == trading.ZonePremium) ||
+					(dealOrder.Side == domainStructs.OrderSideSell && zone == trading.ZoneDiscount) {
+
+					err = i.doCancel(ctx, dealOrder)
+					if err != nil {
+						return
+					}
+					return
+				}
+
 				if i.config.Verbose {
 					logger.Info(fmt.Sprintf("Wait for fill the order %s", dealOrder.OrderId))
 				}
-				// @TODO: cancel order if it's open long time
 				return
 			}
 		}
 	}
 
-	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
 	if !isSideways {
 		// @TODO: зберегти стан
 		//timeFrameItem.TrendState =
@@ -63,11 +86,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 		return
 	}
 
-	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
-	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
-	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
-
-	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
+	if zone == trading.ZonePremium {
 		if timeFrameItem.Config.IsHeap {
 			//err = i.handlePremiumHeap(ctx, timeFrameItem)
 			err = i.handlePremium(ctx, dealRelation, timeFrameItem)
@@ -81,7 +100,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 			}
 		}
 	}
-	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
+	if zone == trading.ZoneDiscount {
 		if timeFrameItem.Config.IsHeap {
 			//err = i.handleDiscountHeap(ctx, timeFrameItem)
 			err = i.handleDiscount(ctx, dealRelation, timeFrameItem)

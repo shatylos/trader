@@ -265,3 +265,20 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 
 	return
 }
+
+func (i *Investor) doCancel(ctx context.Context, order *storage.Order) (err error) {
+	err = i.provider.CancelOrder(order.OrderId, i.config.CoinPare)
+	if err != nil {
+		return
+	}
+
+	order.OrderStatus = domainStructs.OrderStatuses.Canceled
+	err = i.Storage.SaveOrder(ctx, order)
+	if err != nil {
+		return
+	}
+
+	logger.Warning(fmt.Sprintf("Cancelled %s order for timeframe %s", order.Side, order.Timeframe))
+
+	return
+}

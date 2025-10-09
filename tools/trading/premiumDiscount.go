@@ -5,6 +5,12 @@ import (
 	"github.com/shatylos/trader/tools/math"
 )
 
+const (
+	ZonePremium  = "PREMIUM"
+	ZoneDiscount = "DISCOUNT"
+	ZoneNeutral  = "NEUTRAL"
+)
+
 // PremiumDiscount calculate if the current price in premium or discount.
 // maximum premium: pdKoef 100
 // maximum discount: pdKoef -100
