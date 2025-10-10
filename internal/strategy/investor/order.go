@@ -220,6 +220,11 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 
 	if updatedOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
 
+		err = i.updateWalletInfo()
+		if err != nil {
+			return
+		}
+
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
 			deal.Status = storage.DealStatusActive
 		} else if updatedOrder.Side == domainStructs.OrderSideSell {
