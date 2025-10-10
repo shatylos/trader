@@ -113,14 +113,15 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 }
 
 func (i *Investor) calculateQtyToSell(qty float64) (qtyResult float64) {
-	tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
-	remainingBalance := tradeAmountAvailable - qty
+	//tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
+	//remainingBalance := tradeAmountAvailable - qty
 	if qty > 0 {
 		//minCoinReserve := qty / 100 * i.config.MinCoinReservePercent
-		minCoinReserve := math.Mul(math.Div(qty, 100), i.config.MinCoinReservePercent)
-		if remainingBalance < minCoinReserve {
-			qty = i.removeCommission(qty, i.config.CommissionBuy)
-		}
+		//minCoinReserve := math.Mul(math.Div(qty, 100), i.config.MinCoinReservePercent)
+		// @TODO: Remove min_coin_reserve_percent and make the reduce always by config
+		//if remainingBalance < minCoinReserve {
+		qty = i.removeCommission(qty, i.config.CommissionBuy)
+		//}
 	}
 	qtyResult = math.RoundFloor(qty, i.config.QtyPrecision)
 	return
