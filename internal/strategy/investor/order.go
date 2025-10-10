@@ -206,6 +206,12 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 }
 
 func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *storage.Order, timeFrameItem *Timeframe) (err error) {
+
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+
 	var updatedOrder domainStructs.DomainOrder
 	updatedOrder, err = i.provider.GetOrder(order.OrderId)
 	if err != nil {
@@ -213,10 +219,6 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 	}
 
 	if updatedOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateWalletInfo()
-		if err != nil {
-			return
-		}
 
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
 			deal.Status = storage.DealStatusActive
@@ -248,14 +250,11 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 		}
 	}
 
-	if updatedOrder.OrderStatus != domainStructs.OrderStatuses.Filled &&
-		updatedOrder.OrderStatus != domainStructs.OrderStatuses.PartiallyFilled &&
+	if (updatedOrder.OrderStatus == domainStructs.OrderStatuses.New ||
+		updatedOrder.OrderStatus == domainStructs.OrderStatuses.Open) &&
+		// @TODO: Implement isEqual function for wallet
 		i.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
 
-		err = i.updateWalletInfo()
-		if err != nil {
-			return
-		}
 		order.WalletBefore = *i.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
