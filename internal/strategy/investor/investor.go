@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
 	"time"
@@ -66,7 +67,7 @@ func (i *Investor) Wait() {
 	time.Sleep(time.Second * i.config.TimeoutSeconds)
 }
 
-func (i *Investor) getTimeframeItemByDeal(deal *storage.Deal) (timeFrameItem *Timeframe) {
+func (i *Investor) getTimeframeItemByDeal(deal *entity.Deal) (timeFrameItem *Timeframe) {
 	for _, timeFrame := range i.Timeframes {
 		if timeFrame.Config.Resolution == deal.Timeframe {
 			timeFrameItem = &timeFrame

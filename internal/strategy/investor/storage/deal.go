@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,21 +13,7 @@ import (
 	"time"
 )
 
-type Deal struct {
-	Id          *string   `bson:"_id,omitempty"`
-	Timeframe   string    `bson:"Timeframe"`
-	Status      string    `bson:"Status"`
-	CreatedTime time.Time `bson:"CreatedTime"`
-	UpdatedTime time.Time `bson:"UpdatedTime"`
-	ClosedTime  time.Time `bson:"ClosedTime"`
-	//IsHeap    bool
-}
-
-const DealStatusNew = "NEW"
-const DealStatusActive = "ACTIVE"
-const DealStatusClosed = "CLOSED"
-
-func (s *Storage) SaveDeal(ctx context.Context, deal *Deal) (err error) {
+func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 
 	var primObjectID primitive.ObjectID
 	var ok bool
@@ -100,11 +87,11 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *Deal) (err error) {
 	return
 }
 
-func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string) (deal *Deal, err error) {
+func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string) (deal *entity.Deal, err error) {
 	err = s.dealCollection.FindOne(ctx, bson.D{{
 		"$and", bson.A{
 			bson.D{{"Timeframe", timeFrame}},
-			bson.D{{"Status", bson.D{{"$in", bson.A{DealStatusNew, DealStatusActive}}}}},
+			bson.D{{"Status", bson.D{{"$in", bson.A{entity.DealStatusNew, entity.DealStatusActive}}}}},
 		},
 	}}, options.FindOne().SetSort(
 		bson.D{{"CreatedTime", -1}},
@@ -117,9 +104,9 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string
 	}
 
 	if deal == nil {
-		deal = &Deal{
+		deal = &entity.Deal{
 			Timeframe: timeFrame,
-			Status:    DealStatusNew,
+			Status:    entity.DealStatusNew,
 		}
 		err = s.SaveDeal(ctx, deal)
 		if err != nil {
@@ -130,7 +117,7 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string
 	return
 }
 
-func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.Time) (dealPointers []*Deal, err error) {
+func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.Time) (dealPointers []*entity.Deal, err error) {
 	var cursor *mongo.Cursor
 
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
@@ -152,7 +139,7 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 	}
 	defer cursor.Close(ctx)
 
-	var deals []Deal
+	var deals []entity.Deal
 	err = cursor.All(ctx, &deals)
 	if err != nil {
 		msg := "Error getting all deals by period"
@@ -170,12 +157,12 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 	return
 }
 
-func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err error) {
+func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*entity.Deal, err error) {
 	var cursor *mongo.Cursor
 
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
 		"$and", bson.A{
-			bson.D{{"Status", DealStatusActive}},
+			bson.D{{"Status", entity.DealStatusActive}},
 		},
 	}}, options.Find().SetSort(
 		bson.D{{"UpdatedTime", -1}},
@@ -191,7 +178,7 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err
 	}
 	defer cursor.Close(ctx)
 
-	var deals []Deal
+	var deals []entity.Deal
 	err = cursor.All(ctx, &deals)
 	if err != nil {
 		msg := "Error getting all active deals"
@@ -207,9 +194,4 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*Deal, err
 	}
 
 	return
-}
-
-func (d *Deal) SetClose() {
-	d.Status = DealStatusClosed
-	d.ClosedTime = time.Now()
 }

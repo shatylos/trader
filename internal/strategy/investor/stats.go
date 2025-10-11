@@ -3,8 +3,10 @@ package investor
 import (
 	"context"
 	"fmt"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
 
@@ -32,7 +34,7 @@ func (i *Investor) GetStats() (stats _struct.Stats, err error) {
 func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error) {
 	ctx := context.Background()
 
-	var dealRelations []*DealRelation
+	var dealRelations []*entity.DealRelation
 	dealRelations, err = i.GetDealRelationsByPeriod(ctx, from, to)
 
 	revPerMonth := make(map[string]float64)
@@ -42,7 +44,7 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 		if len(dealRelation.Orders) == 0 {
 			continue
 		}
-		revenue := dealRelation.RevenueMainCur + tradeCurrencyToMain(dealRelation.RevenueTradeCur, dealRelation.Orders[0].Price)
+		revenue := dealRelation.RevenueMainCur + trading.TradeCurrencyToMain(dealRelation.RevenueTradeCur, dealRelation.Orders[0].Price)
 		amount += revenue
 
 		date := dealRelation.Deal.ClosedTime

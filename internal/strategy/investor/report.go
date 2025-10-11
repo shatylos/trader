@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/internal/strategy/investor/storage"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
+	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
 	"strings"
@@ -18,7 +19,7 @@ type ReportTemplateData struct {
 	NextPeriodLink     string
 	DateFrom           time.Time
 	DateTo             time.Time
-	DealsRelations     []*DealRelation
+	DealsRelations     []*entity.DealRelation
 	MainCurrency       string
 	TradeCurrency      string
 	PricePrecision     int
@@ -46,7 +47,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		return
 	}
 
-	var deals, closedDeals, activeDeals []*storage.Deal
+	var deals, closedDeals, activeDeals []*entity.Deal
 	closedDeals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
 	if err != nil {
 		return
@@ -62,9 +63,9 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	}
 	deals = append(deals, closedDeals...)
 
-	var dealRelations []*DealRelation
+	var dealRelations []*entity.DealRelation
 	for _, deal := range deals {
-		var dealRelation *DealRelation
+		var dealRelation *entity.DealRelation
 		dealRelation, err = i.GetDealRelation(ctx, deal)
 		if err != nil {
 			return
@@ -116,16 +117,16 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	return
 }
 
-func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, assets []*structs.AssetTransaction) (
+func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRelation, assets []*structs.AssetTransaction) (
 	totalPnl, totalPnlPercent,
 	balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
 	balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
 	depoAmount, withdrawAmount float64) {
 
-	var firstOrder, lastOrder *storage.Order
+	var firstOrder, lastOrder *entity.Order
 
 	for _, dealRelation := range dealRelations {
-		if dealRelation.Deal.Status != storage.DealStatusClosed {
+		if dealRelation.Deal.Status != entity.DealStatusClosed {
 			continue
 		}
 
@@ -145,13 +146,13 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*DealRelation, 
 		return
 	}
 
-	balanceMainBefore = currencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
-	balanceMainAfter = currencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
-	balanceTradeBefore = currencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
-	balanceTradeAfter = currencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
+	balanceMainBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
+	balanceMainAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
+	balanceTradeBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
+	balanceTradeAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
 
-	balanceTotalBefore = balanceMainBefore + tradeCurrencyToMain(balanceTradeBefore, firstOrder.Price)
-	balanceTotalAfter = balanceMainAfter + tradeCurrencyToMain(balanceTradeAfter, lastOrder.Price)
+	balanceTotalBefore = balanceMainBefore + trading.TradeCurrencyToMain(balanceTradeBefore, firstOrder.Price)
+	balanceTotalAfter = balanceMainAfter + trading.TradeCurrencyToMain(balanceTradeAfter, lastOrder.Price)
 
 	totalPnl = balanceTotalAfter - balanceTotalBefore
 	if balanceTotalBefore != 0 {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/internal/strategy/investor/storage"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal) (providerOrderId string, err error) {
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *entity.Deal) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -63,7 +63,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *st
 		return
 	}
 
-	order := storage.Order{
+	order := entity.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
@@ -136,7 +136,7 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *storage.Deal, qty, price float64) (
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *entity.Deal, qty, price float64) (
 	providerOrderId string, err error) {
 
 	if deal.Id == nil {
@@ -184,7 +184,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 		return
 	}
 
-	order := storage.Order{
+	order := entity.Order{
 		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
@@ -206,7 +206,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *s
 	return
 }
 
-func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *storage.Order, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *entity.Order, timeFrameItem *Timeframe) (err error) {
 
 	err = i.updateWalletInfo()
 	if err != nil {
@@ -227,7 +227,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 		}
 
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
-			deal.Status = storage.DealStatusActive
+			deal.Status = entity.DealStatusActive
 		} else if updatedOrder.Side == domainStructs.OrderSideSell {
 			deal.SetClose()
 		} else {
@@ -271,7 +271,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *storage.Deal, order *s
 	return
 }
 
-func (i *Investor) doCancel(ctx context.Context, order *storage.Order) (err error) {
+func (i *Investor) doCancel(ctx context.Context, order *entity.Order) (err error) {
 	err = i.provider.CancelOrder(order.OrderId, i.config.CoinPare)
 	if err != nil {
 		return

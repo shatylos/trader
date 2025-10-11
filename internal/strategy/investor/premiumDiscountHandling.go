@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/internal/strategy/investor/storage"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
+	"github.com/shatylos/trader/tools/trading"
 )
 
-func (i *Investor) handlePremium(ctx context.Context, dealRelation *DealRelation, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *Timeframe) (err error) {
 
-	if dealRelation.Deal.Status != storage.DealStatusActive {
+	if dealRelation.Deal.Status != entity.DealStatusActive {
 		return
 	}
 
@@ -36,7 +37,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *DealRelation
 		}
 
 		qty := dealRelation.QtyInTrade
-		avQty := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
+		avQty := trading.CurrencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
 		if avQty < qty {
 			qty = avQty
 		}
@@ -65,7 +66,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *DealRelation
 	return
 }
 
-func (i *Investor) handleDiscount(ctx context.Context, dealRelation *DealRelation, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *Timeframe) (err error) {
 
 	if len(dealRelation.Orders) == 0 {
 		var providerOrderId string
@@ -123,15 +124,15 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *DealRelatio
 	return
 }
 
-func (i *Investor) handlePremiumHeap(ctx context.Context, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handlePremiumHeap(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *Timeframe) (err error) {
 	return
 }
 
-func (i *Investor) handleDiscountHeap(ctx context.Context, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleDiscountHeap(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *Timeframe) (err error) {
 	return
 }
 
-func (i *Investor) isActiveOrder(dealOrder *storage.Order) (result bool) {
+func (i *Investor) isActiveOrder(dealOrder *entity.Order) (result bool) {
 	switch dealOrder.OrderStatus {
 	case structs.OrderStatuses.New,
 		structs.OrderStatuses.Open,

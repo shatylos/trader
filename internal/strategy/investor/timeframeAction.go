@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
@@ -22,13 +23,13 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 		return
 	}
 
-	var deal *storage.Deal
+	var deal *entity.Deal
 	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem.Config.Resolution)
 	if err != nil {
 		return
 	}
 
-	var dealRelation *DealRelation
+	var dealRelation *entity.DealRelation
 	dealRelation, err = i.GetDealRelation(ctx, deal)
 	if err != nil {
 		return

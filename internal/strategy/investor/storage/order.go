@@ -2,10 +2,9 @@ package storage
 
 import (
 	"context"
-	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
-	"github.com/shatylos/trader/tools/math"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,17 +12,7 @@ import (
 	"time"
 )
 
-type Order struct {
-	domainStructs.DomainOrder `bson:",inline"`
-	DealId                    string                     `bson:"DealId"`
-	Timeframe                 string                     `bson:"Timeframe"`
-	CreatedTime               time.Time                  `bson:"CreatedTime"`
-	UpdatedTime               time.Time                  `bson:"UpdatedTime"`
-	WalletBefore              domainStructs.DomainWallet `bson:"WalletBefore"`
-	WalletAfter               domainStructs.DomainWallet `bson:"WalletAfter"`
-}
-
-func (s *Storage) SaveOrder(ctx context.Context, order *Order) (err error) {
+func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error) {
 	var primObjectID primitive.ObjectID
 	var ok bool
 
@@ -96,7 +85,7 @@ func (s *Storage) SaveOrder(ctx context.Context, order *Order) (err error) {
 	return
 }
 
-func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersResult []*Order, err error) {
+func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersResult []*entity.Order, err error) {
 	var cursor *mongo.Cursor
 	cursor, err = s.orderCollection.Find(ctx,
 		bson.D{{"DealId", dealId}},
@@ -107,7 +96,7 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 	}
 	defer cursor.Close(ctx)
 
-	orders := make([]Order, 0)
+	orders := make([]entity.Order, 0)
 	err = cursor.All(ctx, &orders)
 	if err != nil {
 		return
@@ -118,8 +107,4 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 	}
 
 	return
-}
-
-func (o *Order) Amount() float64 {
-	return math.Mul(o.Qty, o.Price)
 }
