@@ -43,7 +43,7 @@ func TestCalculateQtyToSellModify(t *testing.T) {
 
 	i := Investor{
 		Wallet: &wallet,
-		config: Config{
+		Config: Config{
 			TradeCurrency:         "BTC",
 			MinCoinReservePercent: 1,
 			CommissionBuy:         0.18,
@@ -71,7 +71,7 @@ func TestCalculateQtyToSellNotModify(t *testing.T) {
 
 	i := Investor{
 		Wallet: &wallet,
-		config: Config{
+		Config: Config{
 			TradeCurrency:         "BTC",
 			MinCoinReservePercent: 1,
 			CommissionBuy:         0.18,

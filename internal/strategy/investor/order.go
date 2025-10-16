@@ -5,6 +5,7 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
+	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *entity.Deal) (providerOrderId string, err error) {
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -28,7 +29,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *en
 	}
 
 	var walletBefore, walletAfter domainStructs.DomainWallet
-	walletBefore = *i.Wallet
+	walletBefore = *i.State.Wallet
 
 	var qty, price float64
 	qty, price, err = i.calculateQtyToBuy(timeFrameItem)
@@ -36,8 +37,8 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *en
 		return
 	}
 
-	if i.config.Verbose {
-		logger.Info(fmt.Sprintf("Try to open limit order to buy %g%s. Price is %g", qty, i.config.TradeCurrency, price))
+	if i.Config.Verbose {
+		logger.Info(fmt.Sprintf("Try to open limit order to buy %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
 	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
@@ -46,7 +47,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *en
 		Price:       price,
 		ReduceOnly:  false,
 		Side:        domainStructs.OrderSideBuy,
-		Symbol:      i.config.CoinPare,
+		Symbol:      i.Config.CoinPare,
 		TimeInForce: "GTC",
 		Type:        domainStructs.OrderTypes.Limit,
 	})
@@ -54,7 +55,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *en
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Placed order to buy %g %s by price %g for timeframe %s", i.config.Id, qty, i.config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	msg := fmt.Sprintf("[%s] Placed order to buy %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
 	logger.Info(msg)
 
 	var domainOrder domainStructs.DomainOrder
@@ -85,7 +86,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *Timeframe, deal *en
 	return
 }
 
-func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, currentPrice float64, err error) {
+func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.Timeframe) (qty float64, currentPrice float64, err error) {
 	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {
 		return
@@ -93,8 +94,8 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 
 	currentPrice = timeFrameItem.Candles[0].Close
 	qtyPercent := timeFrameItem.Config.QtyPercent
-	minQty := i.config.MinQty
-	doIncreaseQtyToMinQty := i.config.DoIncreaseQtyToMinQty
+	minQty := i.Config.MinQty
+	doIncreaseQtyToMinQty := i.Config.DoIncreaseQtyToMinQty
 
 	//qty = mainCurrencyAvailable / 100 * qtyPercent / currentPrice
 	qty = math.Div(math.Mul(math.Div(mainCurrencyAvailable, 100), qtyPercent), currentPrice)
@@ -106,24 +107,24 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *Timeframe) (qty float64, cur
 			qty = 0
 		}
 	}
-	qty = i.addCommission(qty, i.config.CommissionBuy)
-	qty = math.RoundCell(qty, i.config.QtyPrecision)
+	qty = i.addCommission(qty, i.Config.CommissionBuy)
+	qty = math.RoundCell(qty, i.Config.QtyPrecision)
 
 	return
 }
 
 func (i *Investor) calculateQtyToSell(qty float64) (qtyResult float64) {
-	//tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.config.TradeCurrency)
+	//tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.Config.TradeCurrency)
 	//remainingBalance := tradeAmountAvailable - qty
 	if qty > 0 {
-		//minCoinReserve := qty / 100 * i.config.MinCoinReservePercent
-		//minCoinReserve := math.Mul(math.Div(qty, 100), i.config.MinCoinReservePercent)
-		// @TODO: Remove min_coin_reserve_percent and make the reduce always by config
+		//minCoinReserve := qty / 100 * i.Config.MinCoinReservePercent
+		//minCoinReserve := math.Mul(math.Div(qty, 100), i.Config.MinCoinReservePercent)
+		// @TODO: Remove min_coin_reserve_percent and make the reduce always by Config
 		//if remainingBalance < minCoinReserve {
-		qty = i.removeCommission(qty, i.config.CommissionBuy)
+		qty = i.removeCommission(qty, i.Config.CommissionBuy)
 		//}
 	}
-	qtyResult = math.RoundFloor(qty, i.config.QtyPrecision)
+	qtyResult = math.RoundFloor(qty, i.Config.QtyPrecision)
 	return
 }
 
@@ -136,7 +137,7 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *entity.Deal, qty, price float64) (
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal, qty, price float64) (
 	providerOrderId string, err error) {
 
 	if deal.Id == nil {
@@ -152,13 +153,13 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *e
 	}
 
 	var walletBefore, walletAfter domainStructs.DomainWallet
-	walletBefore = *i.Wallet
+	walletBefore = *i.State.Wallet
 
 	qty = i.calculateQtyToSell(qty)
 
-	if i.config.Verbose {
+	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
-			qty, i.config.TradeCurrency, price))
+			qty, i.Config.TradeCurrency, price))
 	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
@@ -167,7 +168,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *e
 		Price:       price,
 		ReduceOnly:  false,
 		Side:        domainStructs.OrderSideSell,
-		Symbol:      i.config.CoinPare,
+		Symbol:      i.Config.CoinPare,
 		TimeInForce: "GTC",
 		Type:        domainStructs.OrderTypes.Limit,
 	})
@@ -175,7 +176,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *e
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.config.Id, qty, i.config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
 	logger.Info(msg)
 
 	var domainOrder domainStructs.DomainOrder
@@ -206,7 +207,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *Timeframe, deal *e
 	return
 }
 
-func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *entity.Order, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *entity.Order, timeFrameItem *_struct.Timeframe) (err error) {
 
 	err = i.updateWalletInfo()
 	if err != nil {
@@ -240,7 +241,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		order.OrderStatus = updatedOrder.OrderStatus
 		order.Price = updatedOrder.Price
 		order.Qty = updatedOrder.Qty
-		order.WalletAfter = *i.Wallet
+		order.WalletAfter = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
 			return
@@ -249,9 +250,9 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		if err != nil {
 			return
 		}
-		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.config.Id, order.Side, order.DomainOrder.Qty, i.config.TradeCurrency, timeFrameItem.Config.Resolution)
+		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrameItem.Config.Resolution)
 		logger.Success(msg)
-		if i.config.TelegramNotifier {
+		if i.Config.TelegramNotifier {
 			tgNotifier.Notify(msg)
 		}
 	}
@@ -259,9 +260,9 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 	if (updatedOrder.OrderStatus == domainStructs.OrderStatuses.New ||
 		updatedOrder.OrderStatus == domainStructs.OrderStatuses.Open) &&
 		// @TODO: Implement isEqual function for wallet
-		i.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
+		i.State.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
 
-		order.WalletBefore = *i.Wallet
+		order.WalletBefore = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
 			return
@@ -272,7 +273,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 }
 
 func (i *Investor) doCancel(ctx context.Context, order *entity.Order) (err error) {
-	err = i.provider.CancelOrder(order.OrderId, i.config.CoinPare)
+	err = i.provider.CancelOrder(order.OrderId, i.Config.CoinPare)
 	if err != nil {
 		return
 	}

@@ -3,6 +3,7 @@ package investor
 import (
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
+	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
@@ -29,24 +30,9 @@ type Config struct {
 	RequestDelay          time.Duration
 }
 
-type TimeframeConfig struct {
-	Resolution                  string
-	QtyPercent                  float64
-	CandleReview                int64
-	CandleCacheSeconds          int64
-	SidewaysMinCandlesAmount    int64
-	MaxNumberOrdersToBuy        int64
-	SidewaysPercentToPrice      float64
-	SidewaysPremiumCoefficient  float64
-	SidewaysDiscountCoefficient float64
-	MinPercentRangeToSell       float64
-	MinPercentRangeToBuyMore    float64
-	IsHeap                      bool
-}
-
 func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string]interface{}) (err error) {
 
-	i.config = Config{}
+	i.Config = Config{}
 
 	configMap, ok := strategyConfig.(map[interface{}]interface{})
 	if !ok {
@@ -57,7 +43,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 
-	i.config.Id, err = _type.ToString(configMap["id"])
+	i.Config.Id, err = _type.ToString(configMap["id"])
 	if err != nil {
 		logger.Error("The field id is empty or contains not correct value type. Expects string value")
 		err = tools.AppError{
@@ -78,44 +64,44 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 	if enabled == 1 {
-		i.config.Enabled = true
+		i.Config.Enabled = true
 	} else {
-		i.config.Enabled = false
+		i.Config.Enabled = false
 	}
 
 	var verbose int64
 	verbose, err = _type.ToInt64(configMap["verbose"])
 	if err != nil {
-		logger.Error("The field verbose in strategy config is empty or contains not correct value type. Expects 1 or 0")
+		logger.Error("The field verbose in strategy Config is empty or contains not correct value type. Expects 1 or 0")
 		err = tools.AppError{
-			Message:     "The field verbose in strategy config is empty or contains not correct value type. Expects 1 or 0",
+			Message:     "The field verbose in strategy Config is empty or contains not correct value type. Expects 1 or 0",
 			ParentError: err,
 		}
 		return
 	}
 	if verbose == 1 {
-		i.config.Verbose = true
+		i.Config.Verbose = true
 	} else {
-		i.config.Verbose = false
+		i.Config.Verbose = false
 	}
 
 	if configMap["telegram_notifier"] != nil {
 		var tgNotifier int64
 		tgNotifier, err = _type.ToInt64(configMap["telegram_notifier"])
 		if err != nil {
-			logger.Error("The field telegram_notifier in strategy config is empty or contains not correct value type. Expects 1 or 0")
+			logger.Error("The field telegram_notifier in strategy Config is empty or contains not correct value type. Expects 1 or 0")
 			err = tools.AppError{
-				Message:     "The field telegram_notifier in strategy config is empty or contains not correct value type. Expects 1 or 0",
+				Message:     "The field telegram_notifier in strategy Config is empty or contains not correct value type. Expects 1 or 0",
 				ParentError: err,
 			}
 			return
 		}
 		if tgNotifier == 1 {
-			i.config.TelegramNotifier = true
+			i.Config.TelegramNotifier = true
 		}
 	}
 
-	i.config.CoinPare, err = _type.ToString(configMap["coin_pare"])
+	i.Config.CoinPare, err = _type.ToString(configMap["coin_pare"])
 	if err != nil {
 		err = tools.AppError{
 			Message:     "The field coin_pare is empty or contains not correct value type",
@@ -124,7 +110,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 
-	i.config.MainCurrency, err = _type.ToString(configMap["main_currency"])
+	i.Config.MainCurrency, err = _type.ToString(configMap["main_currency"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field main_currency is empty or contains not correct value type",
@@ -132,7 +118,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.TradeCurrency, err = _type.ToString(configMap["trade_currency"])
+	i.Config.TradeCurrency, err = _type.ToString(configMap["trade_currency"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field trade_currency is empty or contains not correct value type",
@@ -140,7 +126,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.TimeoutSeconds, err = _type.ToTimeDuration(configMap["timeout_seconds"])
+	i.Config.TimeoutSeconds, err = _type.ToTimeDuration(configMap["timeout_seconds"])
 	if err != nil {
 		err = tools.AppError{
 			Message:     "The field timeout_seconds is empty or contains not correct value",
@@ -149,7 +135,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 
-	i.config.QtyPrecision, err = _type.ToInt64(configMap["qty_precision"])
+	i.Config.QtyPrecision, err = _type.ToInt64(configMap["qty_precision"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field qty_precision is empty or contains not correct value type. Expects int64 value",
@@ -157,7 +143,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.PricePrecision, err = _type.ToInt64(configMap["price_precision"])
+	i.Config.PricePrecision, err = _type.ToInt64(configMap["price_precision"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field price_precision is empty or contains not correct value type. Expects int64 value",
@@ -165,7 +151,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.CommissionBuy, err = _type.ToFloat64(configMap["commission_buy"])
+	i.Config.CommissionBuy, err = _type.ToFloat64(configMap["commission_buy"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field commission_buy is empty",
@@ -173,7 +159,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.CommissionSell, err = _type.ToFloat64(configMap["commission_sell"])
+	i.Config.CommissionSell, err = _type.ToFloat64(configMap["commission_sell"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field commission_sell is empty",
@@ -181,7 +167,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.MinCoinReservePercent, err = _type.ToFloat64(configMap["min_coin_reserve_percent"])
+	i.Config.MinCoinReservePercent, err = _type.ToFloat64(configMap["min_coin_reserve_percent"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field min_coin_reserve_percent is empty",
@@ -189,7 +175,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.MinQty, err = _type.ToFloat64(configMap["min_qty"])
+	i.Config.MinQty, err = _type.ToFloat64(configMap["min_qty"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "Empty value min_qty",
@@ -200,10 +186,10 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	var doIncreaseQtyToMinQty int64
 	doIncreaseQtyToMinQty, _ = _type.ToInt64(configMap["do_increase_qty_to_min_qty"])
 	if doIncreaseQtyToMinQty == 1 {
-		i.config.DoIncreaseQtyToMinQty = true
+		i.Config.DoIncreaseQtyToMinQty = true
 	}
 
-	i.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
+	i.Config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field withdraw_percent is empty",
@@ -211,7 +197,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
+	i.Config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
 	if err != nil {
 		return tools.AppError{
 			Message:     "The field request_delay is empty",
@@ -229,7 +215,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 
-	i.Storage = storage.Storage{Id: i.config.Id}
+	i.Storage = storage.Storage{Id: i.Config.Id}
 	err = i.Storage.InitStorage()
 	if err != nil {
 		return
@@ -261,8 +247,8 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
-		timeframe := Timeframe{
-			Config: TimeframeConfig{},
+		timeframe := _struct.Timeframe{
+			Config: _struct.TimeframeConfig{},
 		}
 
 		timeframe.Config.Resolution, err = _type.ToString(tfMap["resolution"])
@@ -394,13 +380,13 @@ func (i *Investor) applyDomainConfig(configMap map[interface{}]interface{}, doma
 	domainConfigItem, ok := domainConfig[domainId].(map[interface{}]interface{})
 	if !ok {
 		return tools.AppError{
-			Message: "The domain config is not valid. Domain value should be related to the domain config item",
+			Message: "The domain Config is not valid. Domain value should be related to the domain Config item",
 		}
 	}
 	domainCode, err := _type.ToString(domainConfigItem["code"])
 	if err != nil {
 		return tools.AppError{
-			Message:     "The field code is empty in domain config or contains not correct value type",
+			Message:     "The field code is empty in domain Config or contains not correct value type",
 			ParentError: err,
 		}
 	}

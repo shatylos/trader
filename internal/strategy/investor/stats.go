@@ -1,7 +1,6 @@
 package investor
 
 import (
-	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
@@ -25,17 +24,17 @@ func (i *Investor) GetStats() (stats _struct.Stats, err error) {
 
 	stats.WithdrawablePrevMonth = 0
 	if stats.PNLLastMonth.Amount > 0 {
-		stats.WithdrawablePrevMonth = math.Mul(math.Div(stats.PNLLastMonth.Amount, 100), i.config.WithdrawPercent)
+		stats.WithdrawablePrevMonth = math.Mul(math.Div(stats.PNLLastMonth.Amount, 100), i.Config.WithdrawPercent)
 	}
 
 	return
 }
 
 func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error) {
-	ctx := context.Background()
+	ctx := i.getContext()
 
 	var dealRelations []*entity.DealRelation
-	dealRelations, err = i.GetDealRelationsByPeriod(ctx, from, to)
+	dealRelations, err = i.Storage.GetDealRelationsByPeriod(ctx, from, to)
 
 	revPerMonth := make(map[string]float64)
 	startAmounts := make(map[string]float64)
@@ -50,7 +49,7 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 		date := dealRelation.Deal.ClosedTime
 		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
 		revPerMonth[monthKey] += revenue
-		startAmounts[monthKey] = dealRelation.GetTotalAmountBefore(i.config.MainCurrency, i.config.TradeCurrency)
+		startAmounts[monthKey] = dealRelation.GetTotalAmountBefore(i.Config.MainCurrency, i.Config.TradeCurrency)
 	}
 
 	revPercAllMonths := 0.0
@@ -65,7 +64,7 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 	var pnlPercent float64
 	if len(dealRelations) > 0 {
 		lastDealRelation := dealRelations[len(dealRelations)-1]
-		totalAmountBefore := lastDealRelation.GetTotalAmountBefore(i.config.MainCurrency, i.config.TradeCurrency)
+		totalAmountBefore := lastDealRelation.GetTotalAmountBefore(i.Config.MainCurrency, i.Config.TradeCurrency)
 		if totalAmountBefore > 0 && amount > 0 {
 			onePercent := math.Div(totalAmountBefore, 100)
 			pnlPercent = math.Div(amount, onePercent)
@@ -76,7 +75,7 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 		Amount:         amount,
 		Percent:        pnlPercent,
 		AvPercPerMonth: avPercPerMonth,
-		Currency:       i.config.MainCurrency,
+		Currency:       i.Config.MainCurrency,
 	}
 	return
 }

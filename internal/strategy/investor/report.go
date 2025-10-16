@@ -1,7 +1,6 @@
 package investor
 
 import (
-	"context"
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
@@ -38,8 +37,7 @@ type ReportTemplateData struct {
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, CtxSetupKey, i)
+	ctx := i.getContext()
 
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
@@ -66,7 +64,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 	var dealRelations []*entity.DealRelation
 	for _, deal := range deals {
 		var dealRelation *entity.DealRelation
-		dealRelation, err = i.GetDealRelation(ctx, deal)
+		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
 		if err != nil {
 			return
 		}
@@ -86,10 +84,10 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		DateFrom:           from,
 		DateTo:             to,
 		DealsRelations:     dealRelations,
-		MainCurrency:       i.config.MainCurrency,
-		TradeCurrency:      i.config.TradeCurrency,
-		PricePrecision:     int(i.config.PricePrecision),
-		QtyPrecision:       int(i.config.QtyPrecision),
+		MainCurrency:       i.Config.MainCurrency,
+		TradeCurrency:      i.Config.TradeCurrency,
+		PricePrecision:     int(i.Config.PricePrecision),
+		QtyPrecision:       int(i.Config.QtyPrecision),
 		TotalPnl:           totalPnl,
 		TotalPnlPercent:    totalPnlPercent,
 		BalanceMainBefore:  balanceMainBefore,
@@ -146,10 +144,10 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRel
 		return
 	}
 
-	balanceMainBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.config.MainCurrency)
-	balanceMainAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.config.MainCurrency)
-	balanceTradeBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.config.TradeCurrency)
-	balanceTradeAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.config.TradeCurrency)
+	balanceMainBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.Config.MainCurrency)
+	balanceMainAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.Config.MainCurrency)
+	balanceTradeBefore = trading.CurrencyAmountTotal(&firstOrder.WalletBefore, i.Config.TradeCurrency)
+	balanceTradeAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.Config.TradeCurrency)
 
 	balanceTotalBefore = balanceMainBefore + trading.TradeCurrencyToMain(balanceTradeBefore, firstOrder.Price)
 	balanceTotalAfter = balanceMainAfter + trading.TradeCurrencyToMain(balanceTradeAfter, lastOrder.Price)

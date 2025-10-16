@@ -10,13 +10,13 @@ func (i *Investor) updateWalletInfo() (err error) {
 	if err != nil {
 		return
 	}
-	i.Wallet = &wallet
+	i.State.Wallet = &wallet
 	return
 }
 
 func (i *Investor) getMainCurrencyAvailable() (mainCurrencyAvailable float64) {
-	for _, coin := range i.Wallet.Available {
-		if coin.Coin == i.config.MainCurrency {
+	for _, coin := range i.State.Wallet.Available {
+		if coin.Coin == i.Config.MainCurrency {
 			mainCurrencyAvailable = coin.Amount
 		}
 	}
@@ -24,8 +24,8 @@ func (i *Investor) getMainCurrencyAvailable() (mainCurrencyAvailable float64) {
 }
 
 func (i *Investor) getTradeCurrencyAvailable() (tradeCurrencyAvailable float64) {
-	for _, coin := range i.Wallet.Available {
-		if coin.Coin == i.config.TradeCurrency {
+	for _, coin := range i.State.Wallet.Available {
+		if coin.Coin == i.Config.TradeCurrency {
 			tradeCurrencyAvailable = coin.Amount
 		}
 	}

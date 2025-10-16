@@ -5,31 +5,26 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
+	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
 
-type Timeframe struct {
-	Config        TimeframeConfig
-	GetCandleTime int64
-	Candles       []domainStructs.DomainCandle
-}
-
-func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.Timeframe) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
 		return
 	}
 
 	var deal *entity.Deal
-	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem.Config.Resolution)
+	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem)
 	if err != nil {
 		return
 	}
 
 	var dealRelation *entity.DealRelation
-	dealRelation, err = i.GetDealRelation(ctx, deal)
+	dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
 	if err != nil {
 		return
 	}
@@ -69,7 +64,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 					return
 				}
 
-				if i.config.Verbose {
+				if i.Config.Verbose {
 					logger.Info(fmt.Sprintf("Wait for fill the order %s", dealOrder.OrderId))
 				}
 				return
@@ -80,54 +75,65 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *Timeframe
 	if !isSideways {
 		// @TODO: зберегти стан
 		//timeFrameItem.TrendState =
-		if i.config.Verbose {
+		if i.Config.Verbose {
 			logger.Info(fmt.Sprintf("Timeframe %s is not in sideways", timeFrameItem.Config.Resolution))
 		}
 		return
 	}
 
 	if zone == trading.ZonePremium {
-		if timeFrameItem.Config.IsHeap {
-			//err = i.handlePremiumHeap(ctx, timeFrameItem)
-			err = i.handlePremium(ctx, dealRelation, timeFrameItem)
-			if err != nil {
-				return
-			}
-		} else {
-			err = i.handlePremium(ctx, dealRelation, timeFrameItem)
-			if err != nil {
-				return
-			}
+		err = i.handlePremium(ctx, dealRelation, timeFrameItem)
+		if err != nil {
+			return
 		}
 	}
 	if zone == trading.ZoneDiscount {
-		if timeFrameItem.Config.IsHeap {
-			//err = i.handleDiscountHeap(ctx, timeFrameItem)
-			err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
-			if err != nil {
-				return
-			}
-		} else {
-			err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
-			if err != nil {
-				return
-			}
+		err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
+		if err != nil {
+			return
 		}
 	}
 
 	return
 }
 
-func (i *Investor) loadCandles(timeFrameItem *Timeframe) (err error) {
+func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_struct.Timeframe) (err error) {
+	err = i.loadCandles(timeFrameItem)
+	if err != nil {
+		return
+	}
 
-	if timeFrameItem.GetCandleTime+timeFrameItem.Config.CandleCacheSeconds < time.Now().Unix() {
-		timeFrameItem.Candles, err = i.provider.LoadCandleHistory(i.config.CoinPare, timeFrameItem.Config.Resolution, timeFrameItem.Config.CandleReview)
+	i.State.Heap, err = i.Storage.UpdateHeap(ctx, i.State.Heap)
+	if err != nil {
+		return
+	}
+
+	_, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
+	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
+	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
+	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
+
+	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
+		// premium
+		fmt.Println("premium")
+	}
+	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
+		// discount
+		fmt.Println("discount")
+	}
+
+	return
+}
+
+func (i *Investor) loadCandles(timeFrameItem *_struct.Timeframe) (err error) {
+	if timeFrameItem.GetCandleTime.Before(time.Now().Add(-time.Duration(timeFrameItem.Config.CandleCacheSeconds) * time.Second)) {
+		timeFrameItem.Candles, err = i.provider.LoadCandleHistory(i.Config.CoinPare, timeFrameItem.Config.Resolution, timeFrameItem.Config.CandleReview)
 		if err != nil {
 			return
 		}
-		timeFrameItem.GetCandleTime = time.Now().Unix()
+		timeFrameItem.GetCandleTime = time.Now()
 		i.State.CurrentPrice = timeFrameItem.Candles[0].Close
-		time.Sleep(time.Second * i.config.RequestDelay)
+		time.Sleep(time.Second * i.Config.RequestDelay)
 	}
 
 	return

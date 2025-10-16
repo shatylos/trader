@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
+	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -87,10 +88,10 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 	return
 }
 
-func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string) (deal *entity.Deal, err error) {
+func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_struct.Timeframe) (deal *entity.Deal, err error) {
 	err = s.dealCollection.FindOne(ctx, bson.D{{
 		"$and", bson.A{
-			bson.D{{"Timeframe", timeFrame}},
+			bson.D{{"Timeframe", timeFrame.Config.Resolution}},
 			bson.D{{"Status", bson.D{{"$in", bson.A{entity.DealStatusNew, entity.DealStatusActive}}}}},
 		},
 	}}, options.FindOne().SetSort(
@@ -105,13 +106,19 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame string
 
 	if deal == nil {
 		deal = &entity.Deal{
-			Timeframe: timeFrame,
-			Status:    entity.DealStatusNew,
+			Timeframe:             timeFrame.Config.Resolution,
+			Status:                entity.DealStatusNew,
+			MinPercentRangeToSell: timeFrame.Config.MinPercentRangeToSell,
 		}
 		err = s.SaveDeal(ctx, deal)
 		if err != nil {
 			return
 		}
+	}
+
+	// @TODO: Remove it after fill the values in DB
+	if deal.MinPercentRangeToSell == 0 {
+		deal.MinPercentRangeToSell = timeFrame.Config.MinPercentRangeToSell
 	}
 
 	return
@@ -143,6 +150,46 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 	err = cursor.All(ctx, &deals)
 	if err != nil {
 		msg := "Error getting all deals by period"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	for _, deal := range deals {
+		dealPointers = append(dealPointers, &deal)
+	}
+
+	return
+}
+
+func (s *Storage) GetDealsOnHeap(ctx context.Context) (dealPointers []*entity.Deal, err error) {
+	var cursor *mongo.Cursor
+
+	cursor, err = s.dealCollection.Find(ctx, bson.D{{
+		"$and", bson.A{
+			bson.D{{"ClosedTime", bson.D{{"$gt", time.Time{}}}}},
+			bson.D{{"IsHeap", true}},
+		},
+	}}, options.Find().SetSort(
+		bson.D{{"ClosedTime", -1}},
+	))
+	if err != nil {
+		msg := "Error getting cursor deals for heap"
+		logger.Error(msg)
+		err = tools.AppError{
+			Message:     msg,
+			ParentError: err,
+		}
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var deals []entity.Deal
+	err = cursor.All(ctx, &deals)
+	if err != nil {
+		msg := "Error getting all deals for heap"
 		logger.Error(msg)
 		err = tools.AppError{
 			Message:     msg,
