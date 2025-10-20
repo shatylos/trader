@@ -3,7 +3,6 @@ package investor
 import (
 	"context"
 	"fmt"
-	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
@@ -54,12 +53,7 @@ func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.
 	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionSell), i.Config.QtyPrecision)
 	if priceCheck && qty > minQty {
 		var providerOrderId string
-		var deal *entity.Deal
-		deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeframeItem)
-		if err != nil {
-			return
-		}
-		providerOrderId, err = i.doSell(ctx, timeframeItem, deal, qty, currentPrice)
+		providerOrderId, err = i.doSell(ctx, timeframeItem, i.State.Heap.Deal, qty, currentPrice)
 		if err != nil {
 			if providerOrderId != "" {
 				i.Config.Enabled = false

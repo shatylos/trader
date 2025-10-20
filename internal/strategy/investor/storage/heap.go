@@ -10,10 +10,10 @@ import (
 	"github.com/shatylos/trader/tools/math"
 )
 
-func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap) (heap *entity.Heap, err error) {
+func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap, timeFrameItem *_struct.Timeframe) (heap *entity.Heap, err error) {
 	heap = heapParam
 	if heap == nil {
-		heap, err = s.getHeap(ctx)
+		heap, err = s.getHeap(ctx, timeFrameItem)
 		if err != nil {
 			return
 		}
@@ -21,7 +21,7 @@ func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap) (heap 
 	return
 }
 
-func (s *Storage) getHeap(ctx context.Context) (heapPointer *entity.Heap, err error) {
+func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.Timeframe) (heapPointer *entity.Heap, err error) {
 
 	heapTimeframe, ok := ctx.Value(_struct.CtxHeapTimeframeKey).(string)
 	if !ok {
@@ -73,9 +73,16 @@ func (s *Storage) getHeap(ctx context.Context) (heapPointer *entity.Heap, err er
 		price = math.Div(buyAmount, buyQty)
 	}
 
+	var deal *entity.Deal
+	deal, err = s.GetActiveDealByTimeframe(ctx, timeFrameItem)
+	if err != nil {
+		return
+	}
+
 	heap := entity.Heap{
 		Qty:            qty,
 		Price:          price,
+		Deal:           deal,
 		LastOrderHeap:  lastOrderHeap,
 		LastOrderMoved: lastOrderMoved,
 	}
