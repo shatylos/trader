@@ -354,6 +354,27 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			isHeapSet = true
 		}
 
+		if timeframe.Config.IsHeap {
+			heapConfig := _struct.HeapConfig{}
+
+			heapConfig.QtyPercentOnMaxPrice, err = _type.ToFloat64(tfMap["qty_percent_on_max_price"])
+			if err != nil {
+				return tools.AppError{
+					Message:     "Empty value qty_percent_on_max_price for heap config",
+					ParentError: err,
+				}
+			}
+			heapConfig.QtyPercentOnMinPrice, err = _type.ToFloat64(tfMap["qty_percent_on_min_price"])
+			if err != nil {
+				return tools.AppError{
+					Message:     "Empty value qty_percent_on_min_price for heap config",
+					ParentError: err,
+				}
+			}
+
+			timeframe.Config.HeapConfig = &heapConfig
+		}
+
 		i.Timeframes = append(i.Timeframes, timeframe)
 	}
 

@@ -114,12 +114,16 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
 
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
-		// premium
-		fmt.Println("premium")
+		err = i.handleHeapPremium(ctx, timeFrameItem)
+		if err != nil {
+			return
+		}
 	}
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
-		// discount
-		fmt.Println("discount")
+		err = i.handleHeapDiscount(ctx, timeFrameItem)
+		if err != nil {
+			return
+		}
 	}
 
 	return

@@ -23,4 +23,10 @@ type TimeframeConfig struct {
 	MinPercentRangeToSell       float64
 	MinPercentRangeToBuyMore    float64
 	IsHeap                      bool
+	HeapConfig                  *HeapConfig
+}
+
+type HeapConfig struct {
+	QtyPercentOnMaxPrice float64
+	QtyPercentOnMinPrice float64
 }

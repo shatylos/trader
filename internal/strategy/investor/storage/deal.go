@@ -110,6 +110,9 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_stru
 			Status:                entity.DealStatusNew,
 			MinPercentRangeToSell: timeFrame.Config.MinPercentRangeToSell,
 		}
+		if timeFrame.Config.IsHeap {
+			deal.IsHeap = true
+		}
 		err = s.SaveDeal(ctx, deal)
 		if err != nil {
 			return
@@ -119,6 +122,10 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_stru
 	// @TODO: Remove it after fill the values in DB
 	if deal.MinPercentRangeToSell == 0 {
 		deal.MinPercentRangeToSell = timeFrame.Config.MinPercentRangeToSell
+	}
+	// @TODO: Remove it after fill the values in DB
+	if timeFrame.Config.IsHeap {
+		deal.IsHeap = true
 	}
 
 	return
