@@ -230,7 +230,9 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
 			deal.Status = entity.DealStatusActive
 		} else if updatedOrder.Side == domainStructs.OrderSideSell {
-			deal.SetClose()
+			if !deal.IsHeap {
+				deal.SetClose()
+			}
 		} else {
 			msg := fmt.Sprintf("Unexpected order side %s", updatedOrder.Side)
 			logger.Error(msg)
