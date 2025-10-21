@@ -157,5 +157,6 @@ func (i Investor) moveToHeap(ctx context.Context, dealRelation *entity.DealRelat
 	if err != nil {
 		return
 	}
+	logger.Info(fmt.Sprintf("Deal for timeframe %s moved to heap", dealRelation.Deal.Timeframe))
 	return
 }
