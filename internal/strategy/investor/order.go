@@ -86,6 +86,72 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.Timeframe, 
 	return
 }
 
+func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal, qty, price float64) (providerOrderId string, err error) {
+
+	if deal.Id == nil {
+		msg := "deal struct must be saved before do buy"
+		logger.Error(msg)
+		err = tools.AppError{Message: msg}
+		return
+	}
+
+	err = i.updateWalletInfo()
+	if err != nil {
+		return
+	}
+
+	var walletBefore, walletAfter domainStructs.DomainWallet
+	walletBefore = *i.State.Wallet
+
+	if i.Config.Verbose {
+		logger.Info(fmt.Sprintf("Try to open limit order to buy for heap %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
+	}
+
+	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
+		OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
+		Qty:         qty,
+		Price:       price,
+		ReduceOnly:  false,
+		Side:        domainStructs.OrderSideBuy,
+		Symbol:      i.Config.CoinPare,
+		TimeInForce: "GTC",
+		Type:        domainStructs.OrderTypes.Limit,
+	})
+	if err != nil {
+		return
+	}
+
+	msg := fmt.Sprintf("[%s] Placed order to buy for heap %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	logger.Info(msg)
+
+	var domainOrder domainStructs.DomainOrder
+	domainOrder, err = i.provider.GetOrder(providerOrderId)
+	if err != nil {
+		return
+	}
+
+	order := entity.Order{
+		DealId:       *deal.Id,
+		Timeframe:    timeFrameItem.Config.Resolution,
+		DomainOrder:  domainOrder,
+		WalletBefore: walletBefore,
+		WalletAfter:  walletAfter,
+	}
+	err = i.Storage.SaveOrder(ctx, &order)
+	if err != nil {
+		return
+	}
+
+	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
+		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.Timeframe) (qty float64, currentPrice float64, err error) {
 	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {

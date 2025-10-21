@@ -71,10 +71,51 @@ func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.
 func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct.Timeframe) (err error) {
 
 	// calculate price from last order
+	lastOrderPrice := 0.0
+	if i.State.Heap.LastOrderHeap != nil {
+		lastOrderPrice = i.State.Heap.LastOrderHeap.Price
+	}
+	currentPrice := i.State.CurrentPrice
+
+	priceCheck := false
+	priceRange := math.Mul(math.Div(currentPrice, 100), timeframeItem.Config.MinPercentRangeToSell)
+	nextBuyPrice := lastOrderPrice - priceRange
+
+	if currentPrice < nextBuyPrice {
+		priceCheck = true
+	}
 
 	// calculate qty from qty on heap, available amounts and current price
+	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(timeframeItem.Candles)
+
+	qtyPercentOnMaxPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMaxPrice
+	qtyPercentOnMinPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMinPrice
+
+	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
+	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
+	tradeCurrencyAmount := trading.TradeCurrencyToMain(tradeCurrencyQty, currentPrice)
+	totalAmount := mainCurrencyAmount + tradeCurrencyAmount
+	qtyPercentForCurrentPrice := math.MapRange(historyMinPrice, historyMaxPrice, qtyPercentOnMinPrice, qtyPercentOnMaxPrice, currentPrice)
+
+	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
+	purposeQty := purposeAmount / currentPrice
+	qty := purposeQty - tradeCurrencyQty
 
 	// do buy
+	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionBuy), i.Config.QtyPrecision)
+	if priceCheck && qty > minQty {
+		var providerOrderId string
+		providerOrderId, err = i.doBuyOnHeap(ctx, timeframeItem, i.State.Heap.Deal, qty, currentPrice)
+		if err != nil {
+			if providerOrderId != "" {
+				i.Config.Enabled = false
+				msg := fmt.Sprintf("[%s] Order for buy on heap was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
+				logger.Warning(msg)
+				tgNotifier.Notify(msg)
+			}
+			return
+		}
+	}
 
 	return
 }
