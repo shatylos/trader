@@ -3,11 +3,14 @@ package investor
 import (
 	"context"
 	"fmt"
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
 	"github.com/shatylos/trader/tools/trading"
+	"time"
 )
 
 func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.Timeframe) (err error) {
@@ -117,5 +120,42 @@ func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct
 		}
 	}
 
+	return
+}
+
+func (i Investor) isTimeToMoveToHeap(timeframeItem *_struct.Timeframe, dealRelation *entity.DealRelation) (result bool) {
+	var lastOrder *entity.Order
+	for _, order := range dealRelation.Orders {
+		if order.OrderStatus == domainStructs.OrderStatuses.New || order.OrderStatus == domainStructs.OrderStatuses.Open {
+			return
+		}
+		if lastOrder == nil {
+			lastOrder = order
+		}
+		if order.CreatedTime.After(lastOrder.CreatedTime) {
+			lastOrder = order
+		}
+	}
+
+	if lastOrder == nil {
+		return
+	}
+
+	timeToMove := lastOrder.CreatedTime.Add(timeframeItem.Config.DurationToMoveToHeap)
+
+	if time.Now().After(timeToMove) {
+		result = true
+	}
+	return
+}
+
+func (i Investor) moveToHeap(ctx context.Context, dealRelation *entity.DealRelation) (err error) {
+
+	dealRelation.Deal.IsHeap = true
+	dealRelation.Deal.SetClose()
+	err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
+	if err != nil {
+		return
+	}
 	return
 }

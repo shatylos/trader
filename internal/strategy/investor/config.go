@@ -197,6 +197,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
+	// @TODO: Save the value in correct duration, not in nanoseconds
 	i.Config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
 	if err != nil {
 		return tools.AppError{
@@ -352,6 +353,17 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			}
 			timeframe.Config.IsHeap = true
 			isHeapSet = true
+		}
+
+		if !timeframe.Config.IsHeap {
+			timeframe.Config.DurationToMoveToHeap, err = _type.ToTimeDuration(tfMap["hours_duration_to_move_to_heap"])
+			if err != nil {
+				return tools.AppError{
+					Message:     "The field hours_duration_to_move_to_heap is empty",
+					ParentError: err,
+				}
+			}
+			timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
 		}
 
 		if timeframe.Config.IsHeap {

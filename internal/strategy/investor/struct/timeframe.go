@@ -24,6 +24,7 @@ type TimeframeConfig struct {
 	MinPercentRangeToBuyMore    float64
 	IsHeap                      bool
 	HeapConfig                  *HeapConfig
+	DurationToMoveToHeap        time.Duration
 }
 
 type HeapConfig struct {
