@@ -31,6 +31,9 @@ func (i *Investor) GetId() string {
 }
 
 func (i *Investor) GetTitle() string {
+	if !i.Config.Enabled {
+		return fmt.Sprintf("Investor: %s (%s) (DISABLED)", i.Config.Id, i.Config.CoinPare)
+	}
 	return fmt.Sprintf("Investor: %s (%s)", i.Config.Id, i.Config.CoinPare)
 }
 
