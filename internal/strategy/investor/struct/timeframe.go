@@ -14,7 +14,7 @@ type TimeframeConfig struct {
 	Resolution                  string
 	QtyPercent                  float64
 	CandleReview                int64
-	CandleCacheSeconds          int64
+	CandleCacheDuration         time.Duration
 	SidewaysMinCandlesAmount    int64
 	MaxNumberOrdersToBuy        int64
 	SidewaysPercentToPrice      float64

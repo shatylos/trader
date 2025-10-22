@@ -18,7 +18,7 @@ type Config struct {
 	CoinPare              string
 	MainCurrency          string
 	TradeCurrency         string
-	TimeoutSeconds        time.Duration
+	TimeoutDuration       time.Duration
 	QtyPrecision          int64
 	PricePrecision        int64
 	CommissionBuy         float64
@@ -126,7 +126,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	i.Config.TimeoutSeconds, err = _type.ToTimeDuration(configMap["timeout_seconds"])
+	i.Config.TimeoutDuration, err = _type.ToTimeDuration(configMap["timeout_seconds"])
 	if err != nil {
 		err = tools.AppError{
 			Message:     "The field timeout_seconds is empty or contains not correct value",
@@ -134,6 +134,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 		return
 	}
+	i.Config.TimeoutDuration = i.Config.TimeoutDuration * time.Second
 
 	i.Config.QtyPrecision, err = _type.ToInt64(configMap["qty_precision"])
 	if err != nil {
@@ -197,7 +198,6 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		}
 	}
 
-	// @TODO: Save the value in correct duration, not in nanoseconds
 	i.Config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
 	if err != nil {
 		return tools.AppError{
@@ -205,6 +205,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 			ParentError: err,
 		}
 	}
+	i.Config.RequestDelay = i.Config.RequestDelay * time.Second
 
 	err = i.applyTimeframeConfig(configMap["timeframes"])
 	if err != nil {
@@ -276,10 +277,17 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			}
 		}
 
-		timeframe.Config.CandleCacheSeconds, err = _type.ToInt64(tfMap["candle_cache_seconds"])
-		if err != nil || timeframe.Config.CandleCacheSeconds < 1 {
+		timeframe.Config.CandleCacheDuration, err = _type.ToTimeDuration(tfMap["candle_cache_seconds"])
+		if err != nil {
 			return tools.AppError{
 				Message:     "The field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1",
+				ParentError: err,
+			}
+		}
+		timeframe.Config.CandleCacheDuration = timeframe.Config.CandleCacheDuration * time.Second
+		if timeframe.Config.CandleCacheDuration < time.Second {
+			return tools.AppError{
+				Message:     "The field candle_cache_seconds contains not correct value. Expects int64 value more than 1",
 				ParentError: err,
 			}
 		}

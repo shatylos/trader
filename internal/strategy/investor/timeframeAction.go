@@ -137,14 +137,14 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 }
 
 func (i *Investor) loadCandles(timeFrameItem *_struct.Timeframe) (err error) {
-	if timeFrameItem.GetCandleTime.Before(time.Now().Add(-time.Duration(timeFrameItem.Config.CandleCacheSeconds) * time.Second)) {
+	if timeFrameItem.GetCandleTime.Before(time.Now().Add(-timeFrameItem.Config.CandleCacheDuration)) {
 		timeFrameItem.Candles, err = i.provider.LoadCandleHistory(i.Config.CoinPare, timeFrameItem.Config.Resolution, timeFrameItem.Config.CandleReview)
 		if err != nil {
 			return
 		}
 		timeFrameItem.GetCandleTime = time.Now()
 		i.State.CurrentPrice = timeFrameItem.Candles[0].Close
-		time.Sleep(time.Second * i.Config.RequestDelay)
+		time.Sleep(i.Config.RequestDelay)
 	}
 
 	return

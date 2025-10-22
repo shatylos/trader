@@ -68,7 +68,7 @@ func (i *Investor) DoAction() (err error) {
 }
 
 func (i *Investor) Wait() {
-	time.Sleep(time.Second * i.Config.TimeoutSeconds)
+	time.Sleep(i.Config.TimeoutDuration)
 }
 
 func (i *Investor) GetTimeframeItemByDeal(deal *entity.Deal) (timeFrameItem *_struct.Timeframe) {
