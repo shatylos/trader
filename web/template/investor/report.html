@@ -45,6 +45,23 @@
 <div class="clearfix"></div>
 <hr/>
 
+<div class="row align-items-start">
+    {{ range .TimeframeItems }}
+    <div class="col-2">
+        Resolution: {{ .Config.Resolution }}<br />
+        {{ if .IsSidewaysState }}
+        Sideway <br />
+        {{ else }}
+        Not sideway <br />
+        {{ end }}
+        Zone: {{ .Zone }}
+    </div>
+    {{ end }}
+</div>
+
+<div class="clearfix"></div>
+<hr/>
+
 <table class="table table-dark align-middle">
 
     <thead class="align-middle">

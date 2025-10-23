@@ -6,9 +6,11 @@ import (
 )
 
 type Timeframe struct {
-	Config        TimeframeConfig
-	GetCandleTime time.Time
-	Candles       []domainStructs.DomainCandle
+	Config          TimeframeConfig
+	GetCandleTime   time.Time
+	Candles         []domainStructs.DomainCandle
+	IsSidewaysState bool
+	Zone            string
 }
 type TimeframeConfig struct {
 	Resolution                  string

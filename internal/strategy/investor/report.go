@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
-	_struct "github.com/shatylos/trader/internal/strategy/struct"
+	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	strategyStruct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
@@ -33,9 +34,10 @@ type ReportTemplateData struct {
 	BalanceTradeAfter  float64
 	DepoAmount         float64
 	WithdrawAmount     float64
+	TimeframeItems     []_struct.Timeframe
 }
 
-func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
+func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruct.Report, err error) {
 
 	ctx := i.getContext()
 
@@ -98,6 +100,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 		BalanceTradeAfter:  balanceTradeAfter,
 		DepoAmount:         depoAmount,
 		WithdrawAmount:     withdrawAmount,
+		TimeframeItems:     i.Timeframes,
 	}
 
 	var resultBuilder strings.Builder
@@ -108,7 +111,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report _struct.Repor
 
 	htmlStr := resultBuilder.String()
 
-	report = _struct.Report{
+	report = strategyStruct.Report{
 		InnerHtml: template.HTML(htmlStr),
 		SetupId:   i.GetId(),
 	}

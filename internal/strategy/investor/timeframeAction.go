@@ -30,6 +30,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	}
 
 	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
+	timeFrameItem.IsSidewaysState = isSideways
 
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
@@ -42,6 +43,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
 		zone = trading.ZoneDiscount
 	}
+	timeFrameItem.Zone = zone
 
 	for _, dealOrder := range dealRelation.Orders {
 		switch dealOrder.OrderStatus {
@@ -73,8 +75,6 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	}
 
 	if !isSideways {
-		// @TODO: зберегти стан
-		//timeFrameItem.TrendState =
 		if i.Config.Verbose {
 			logger.Info(fmt.Sprintf("Timeframe %s is not in sideways", timeFrameItem.Config.Resolution))
 		}
@@ -108,23 +108,28 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 		return
 	}
 
-	_, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
+	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
+	timeFrameItem.IsSidewaysState = isSideways
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
 	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
 
+	zone := trading.ZoneNeutral
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
+		zone = trading.ZonePremium
 		err = i.handleHeapPremium(ctx, timeFrameItem)
 		if err != nil {
 			return
 		}
 	}
 	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
+		zone = trading.ZoneDiscount
 		err = i.handleHeapDiscount(ctx, timeFrameItem)
 		if err != nil {
 			return
 		}
 	}
+	timeFrameItem.Zone = zone
 
 	return
 }
