@@ -88,7 +88,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 			if i.isActiveOrder(dealOrder) {
 				return
 			}
-			if dealOrder.Side == structs.OrderSideBuy {
+			if dealOrder.Side == structs.OrderSideBuy && dealOrder.OrderStatus != structs.OrderStatuses.Canceled {
 				countBuyOrders++
 				if minOrderPrice == 0 || minOrderPrice > dealOrder.Price {
 					minOrderPrice = dealOrder.Price
@@ -117,8 +117,11 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 				}
 				return
 			}
-		} else {
-			// @TODO: move to heap and close deal
+		} else if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
+			err = i.moveToHeap(ctx, dealRelation)
+			if err != nil {
+				return
+			}
 		}
 	}
 

@@ -72,13 +72,6 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 		}
 	}
 
-	if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
-		err = i.moveToHeap(ctx, dealRelation)
-		if err != nil {
-			return
-		}
-	}
-
 	if !isSideways {
 		// @TODO: зберегти стан
 		//timeFrameItem.TrendState =
