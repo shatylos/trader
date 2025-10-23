@@ -42,7 +42,9 @@ func TestCalculateQtyToSellModify(t *testing.T) {
 	}
 
 	i := Investor{
-		Wallet: &wallet,
+		State: State{
+			Wallet: &wallet,
+		},
 		Config: Config{
 			TradeCurrency:         "BTC",
 			MinCoinReservePercent: 1,
@@ -53,7 +55,7 @@ func TestCalculateQtyToSellModify(t *testing.T) {
 
 	qty := 0.000051
 
-	result := i.calculateQtyToSell(qty)
+	result := i.calculateQtyToSell(qty, false)
 	expected := 0.00005
 
 	if result != expected {
@@ -70,7 +72,9 @@ func TestCalculateQtyToSellNotModify(t *testing.T) {
 	}
 
 	i := Investor{
-		Wallet: &wallet,
+		State: State{
+			Wallet: &wallet,
+		},
 		Config: Config{
 			TradeCurrency:         "BTC",
 			MinCoinReservePercent: 1,
@@ -81,7 +85,7 @@ func TestCalculateQtyToSellNotModify(t *testing.T) {
 
 	qty := 0.00005
 
-	result := i.calculateQtyToSell(qty)
+	result := i.calculateQtyToSell(qty, false)
 	expected := 0.00005
 
 	if result != expected {

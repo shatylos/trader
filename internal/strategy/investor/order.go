@@ -10,6 +10,7 @@ import (
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
+	"github.com/shatylos/trader/tools/trading"
 	"strconv"
 	"time"
 )
@@ -179,16 +180,14 @@ func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.Timeframe) (qty floa
 	return
 }
 
-func (i *Investor) calculateQtyToSell(qty float64) (qtyResult float64) {
-	//tradeAmountAvailable := currencyAmountAvailable(i.Wallet, i.Config.TradeCurrency)
-	//remainingBalance := tradeAmountAvailable - qty
-	if qty > 0 {
-		//minCoinReserve := qty / 100 * i.Config.MinCoinReservePercent
-		//minCoinReserve := math.Mul(math.Div(qty, 100), i.Config.MinCoinReservePercent)
-		// @TODO: Remove min_coin_reserve_percent and make the reduce always by Config
-		//if remainingBalance < minCoinReserve {
-		qty = i.removeCommission(qty, i.Config.CommissionBuy)
-		//}
+func (i *Investor) calculateQtyToSell(qty float64, isHeap bool) (qtyResult float64) {
+	tradeAmountAvailable := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+	remainingBalance := tradeAmountAvailable - qty
+	if qty > 0 && !isHeap {
+		minCoinReserve := math.Mul(math.Div(qty, 100), i.Config.MinCoinReservePercent)
+		if remainingBalance < minCoinReserve {
+			qty = i.removeCommission(qty, i.Config.CommissionBuy)
+		}
 	}
 	qtyResult = math.RoundFloor(qty, i.Config.QtyPrecision)
 	return
@@ -221,7 +220,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.State.Wallet
 
-	qty = i.calculateQtyToSell(qty)
+	qty = i.calculateQtyToSell(qty, timeFrameItem.Config.IsHeap)
 
 	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
