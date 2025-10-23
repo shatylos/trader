@@ -326,8 +326,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 
 	if (updatedOrder.OrderStatus == domainStructs.OrderStatuses.New ||
 		updatedOrder.OrderStatus == domainStructs.OrderStatuses.Open) &&
-		// @TODO: Implement isEqual function for wallet
-		i.State.Wallet.UpdatedTime.After(order.WalletBefore.UpdatedTime) {
+		!i.State.Wallet.IsEqual(&order.WalletBefore) {
 
 		order.WalletBefore = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
