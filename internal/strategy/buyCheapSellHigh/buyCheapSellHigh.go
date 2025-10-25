@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/logger"
+	"net/http"
 	"time"
 )
 
@@ -37,6 +38,9 @@ type BuyCheapSellHigh struct {
 }
 
 var _ _struct.StrategyInterface = (*BuyCheapSellHigh)(nil)
+
+func (s *BuyCheapSellHigh) Init(mux *http.ServeMux) {
+}
 
 func (s *BuyCheapSellHigh) GetId() string {
 	return s.Id

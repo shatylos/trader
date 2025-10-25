@@ -11,7 +11,7 @@ import (
 
 const defaultPort = "8080"
 
-func StartWebApp() {
+func StartWebApp(mux *http.ServeMux) {
 	port := defaultPort
 	appConfig, err := config.GetConfig()
 	if err != nil {
@@ -20,15 +20,14 @@ func StartWebApp() {
 		port = appConfig.App["web_port"]
 	}
 
-	logger.Info(fmt.Sprintf("Starting web app http://127.0.0.1:%s/", port))
-	mux := http.NewServeMux()
-	mux.Handle("GET /", http.HandlerFunc(handlers.SetupListController))
-	mux.Handle("GET /report/{setup_id}/{period}/", http.HandlerFunc(handlers.ReportPeriodHandler))
-	mux.Handle("GET /report/{setup_id}/", http.HandlerFunc(handlers.ReportHandler))
-	mux.Handle("GET /assets/{setup_id}/", http.HandlerFunc(handlers.AssetFormHandler))
-	mux.Handle("POST /assets/{setup_id}/", http.HandlerFunc(handlers.AssetAddHandler))
-	mux.Handle("GET /stats/", http.HandlerFunc(handlers.StatsHandler))
+	mux.HandleFunc("GET /", handlers.SetupListController)
+	mux.HandleFunc("GET /report/{setup_id}/{period}/", handlers.ReportPeriodHandler)
+	mux.HandleFunc("GET /report/{setup_id}/", handlers.ReportHandler)
+	mux.HandleFunc("GET /assets/{setup_id}/", handlers.AssetFormHandler)
+	mux.HandleFunc("POST /assets/{setup_id}/", handlers.AssetAddHandler)
+	mux.HandleFunc("GET /stats/", handlers.StatsHandler)
 
+	logger.Info(fmt.Sprintf("Starting web app http://127.0.0.1:%s/", port))
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error http ListenAndServe: %s", err.Error()))

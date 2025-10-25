@@ -4,9 +4,11 @@ import (
 	"github.com/shatylos/trader/internal/setup"
 	setupStructs "github.com/shatylos/trader/internal/setup/structs"
 	"github.com/shatylos/trader/tools/logger"
+	"net/http"
+	"sync"
 )
 
-func StartTradingApp() {
+func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
 	logger.Info("Starting trading app")
 
 	setupList := setup.GetSetupList()
@@ -14,8 +16,10 @@ func StartTradingApp() {
 
 	for i := range *setupList {
 		setupItem := &(*setupList)[i]
+		setupItem.Init(mux)
 		setupChanel <- setupItem
 	}
+	initWg.Done()
 
 	for setupItem := range setupChanel {
 		go setupItem.NextStep(setupChanel)

@@ -1,3 +1,4 @@
+<div hx-ext="ws" ws-connect="{{ .WsLink }}">
 <div class="col md-12">
     <div>
         Date Range:
@@ -38,6 +39,16 @@
             + {{ .BalanceTradeAfter | longFloatShort .QtyPrecision  }} {{ .TradeCurrency }}
             = <strong>{{ .BalanceTotalAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
+    </div>
+    <div class="col-6">
+        <h4>
+            Current price:
+            {{ block "current-price" . }}
+            <span id="current-price">
+                1 {{ .TradeCurrency }} = {{ .CurrentPrice | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+            </span>
+            {{ end }}
+        </h4>
     </div>
 
 </div>
@@ -142,3 +153,4 @@
     </tbody>
 
 </table>
+</div>

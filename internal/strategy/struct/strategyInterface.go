@@ -2,6 +2,7 @@ package _struct
 
 import (
 	"html/template"
+	"net/http"
 	"time"
 )
 
@@ -34,4 +35,5 @@ type StrategyInterface interface {
 	GetStats() (Stats, error)
 	Wait()
 	AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error
+	Init(mux *http.ServeMux)
 }

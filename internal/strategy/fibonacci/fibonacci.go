@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/fibonacci/structs"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
+	"net/http"
 	"time"
 )
 
@@ -25,6 +26,9 @@ type FibState struct {
 	MaxPriceReview    float64
 	CurrentPrice      float64
 	NewOrderCondition string
+}
+
+func (f *Fibonacci) Init(mux *http.ServeMux) {
 }
 
 func (f *Fibonacci) GetId() string {

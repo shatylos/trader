@@ -5,7 +5,9 @@ import (
 	"github.com/shatylos/trader/internal/trading"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/web"
+	"net/http"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -15,6 +17,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	go trading.StartTradingApp()
-	web.StartWebApp()
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	mux := http.NewServeMux()
+	go trading.StartTradingApp(&wg, mux)
+
+	wg.Wait()
+	web.StartWebApp(mux)
 }

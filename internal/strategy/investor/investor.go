@@ -3,12 +3,14 @@ package investor
 import (
 	"context"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/shatylos/trader/internal/domain"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
+	"net/http"
 	"time"
 )
 
@@ -18,12 +20,22 @@ type Investor struct {
 	Timeframes []_struct.Timeframe
 	State      State
 	Storage    storage.Storage
+	WebSocket  WebSocket
 }
 
 type State struct {
 	CurrentPrice float64
 	Heap         *entity.Heap
 	Wallet       *domainStructs.DomainWallet
+}
+
+func (i *Investor) Init(mux *http.ServeMux) {
+	i.WebSocket = WebSocket{
+		Clients:   make(map[*websocket.Conn]bool),
+		Config:    &i.Config,
+		Broadcast: make(chan string),
+	}
+	mux.HandleFunc(fmt.Sprintf("GET /%s/ws-report", i.GetId()), i.WebSocket.WsHandler)
 }
 
 func (i *Investor) GetId() string {

@@ -4,6 +4,8 @@ go 1.24
 
 require (
 	github.com/FerretDB/FerretDB v1.24.0
+	github.com/dustin/go-humanize v1.0.1
+	github.com/gorilla/websocket v1.5.0
 	github.com/shopspring/decimal v1.4.0
 	go.mongodb.org/mongo-driver v1.17.2
 	gopkg.in/yaml.v2 v2.4.0
@@ -17,7 +19,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect

@@ -5,6 +5,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
+	"net/http"
 	"time"
 )
 
@@ -12,6 +13,10 @@ type Setup struct {
 	ID         string
 	errorCount int64
 	Strategy   _struct.StrategyInterface
+}
+
+func (s *Setup) Init(mux *http.ServeMux) {
+	s.Strategy.Init(mux)
 }
 
 func (s *Setup) NextStep(setupChanel chan *Setup) {

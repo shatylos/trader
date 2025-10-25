@@ -9,6 +9,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -24,6 +25,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	go trading.StartTradingApp()
-	web.StartWebApp()
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	mux := http.NewServeMux()
+	go trading.StartTradingApp(&wg, mux)
+
+	wg.Wait()
+	web.StartWebApp(mux)
 }

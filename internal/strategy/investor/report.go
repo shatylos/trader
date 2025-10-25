@@ -17,6 +17,7 @@ import (
 type ReportTemplateData struct {
 	PrevPeriodLink     string
 	NextPeriodLink     string
+	WsLink             string
 	DateFrom           time.Time
 	DateTo             time.Time
 	DealsRelations     []*entity.DealRelation
@@ -35,6 +36,7 @@ type ReportTemplateData struct {
 	DepoAmount         float64
 	WithdrawAmount     float64
 	TimeframeItems     []_struct.Timeframe
+	CurrentPrice       float64
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruct.Report, err error) {
@@ -83,6 +85,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 	data := ReportTemplateData{
 		PrevPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
+		WsLink:             fmt.Sprintf("/%s/ws-report", i.GetId()),
 		DateFrom:           from,
 		DateTo:             to,
 		DealsRelations:     dealRelations,
@@ -101,6 +104,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		DepoAmount:         depoAmount,
 		WithdrawAmount:     withdrawAmount,
 		TimeframeItems:     i.Timeframes,
+		CurrentPrice:       i.State.CurrentPrice,
 	}
 
 	var resultBuilder strings.Builder
