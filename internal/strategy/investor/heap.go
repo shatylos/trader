@@ -50,7 +50,10 @@ func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.
 
 	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
 	purposeQty := purposeAmount / currentPrice
-	qty := tradeCurrencyQty - purposeQty
+
+	qtyRange := math.Mul(math.Div(purposeQty, 100), timeframeItem.Config.QtyPercent)
+
+	qty := tradeCurrencyQty - purposeQty + qtyRange
 
 	// do sell
 	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionSell), i.Config.QtyPrecision)
@@ -102,7 +105,10 @@ func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct
 
 	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
 	purposeQty := purposeAmount / currentPrice
-	qty := purposeQty - tradeCurrencyQty
+
+	qtyRange := math.Mul(math.Div(purposeQty, 100), timeframeItem.Config.QtyPercent)
+
+	qty := purposeQty - tradeCurrencyQty + qtyRange
 
 	// do buy
 	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionBuy), i.Config.QtyPrecision)
