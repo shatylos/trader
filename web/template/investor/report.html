@@ -17,27 +17,27 @@
     <div class="col-6">
         <h4>
             Total PNL:
-            {{ .TotalPnl | longFloatShort .PricePrecision }}
+            {{ .TotalPnl | moneyFormat .PricePrecision }}
             {{ .MainCurrency }}
-            ({{ .TotalPnlPercent | longFloatShort 2 }}%)
+            ({{ .TotalPnlPercent | moneyFormat 2 }}%)
         </h4>
         <div>
             Balance before:
-            {{ .BalanceMainBefore | longFloatShort .PricePrecision  }} {{ .MainCurrency }}
-            + {{ .BalanceTradeBefore | longFloatShort .QtyPrecision  }} {{ .TradeCurrency }}
-            = <strong>{{ .BalanceTotalBefore | longFloatShort .PricePrecision }} {{ .MainCurrency }}</strong>
+            {{ .BalanceMainBefore | moneyFormat .PricePrecision  }} {{ .MainCurrency }}
+            + {{ .BalanceTradeBefore | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}
+            = <strong>{{ .BalanceTotalBefore | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
         <div>
-            Deposit amount: {{ .DepoAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+            Deposit amount: {{ .DepoAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
         </div>
         <div>
-            Withdraw amount: {{ .WithdrawAmount | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+            Withdraw amount: {{ .WithdrawAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
         </div>
         <div>
             Balance after:
-            {{ .BalanceMainAfter | longFloatShort .PricePrecision  }} {{ .MainCurrency }}
-            + {{ .BalanceTradeAfter | longFloatShort .QtyPrecision  }} {{ .TradeCurrency }}
-            = <strong>{{ .BalanceTotalAfter | longFloatShort .PricePrecision }} {{ .MainCurrency }}</strong>
+            {{ .BalanceMainAfter | moneyFormat .PricePrecision  }} {{ .MainCurrency }}
+            + {{ .BalanceTradeAfter | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}
+            = <strong>{{ .BalanceTotalAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
     </div>
     <div class="col-6">
@@ -45,7 +45,7 @@
             Current price:
             {{ block "current-price" . }}
             <span id="current-price">
-                1 {{ .TradeCurrency }} = {{ .CurrentPrice | longFloatShort .PricePrecision }} {{ .MainCurrency }}
+                1 {{ .TradeCurrency }} = {{ .CurrentPrice | moneyFormat .PricePrecision }} {{ .MainCurrency }}
             </span>
             {{ end }}
         </h4>
@@ -93,14 +93,14 @@
     <tr>
         <td class="">{{ .Deal.Timeframe }}</td>
         <td class="">{{ .Deal.Status }}</td>
-        <td class="">{{ .AverageBuyPrice | longFloatShort $.PricePrecision }}</td>
-        <td class="">{{ .PriceToSell | longFloatShort $.PricePrecision }}</td>
-        <td class="">{{ .RevenueMainCur | longFloatShort $.PricePrecision }} {{ $.MainCurrency }},
-            {{ .RevenueTradeCur | longFloatShort $.QtyPrecision }} {{ $.TradeCurrency }}
+        <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
+        <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}</td>
+        <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
+            {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
             {{ if gt .RevenueTotal 0.0 }}
-            = <strong class="bg-success">{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
+            = <strong class="bg-success">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
             {{ else }}
-            = <strong class="bg-danger">{{ .RevenueTotal | longFloatShort $.PricePrecision }} {{ $.MainCurrency }}</strong>
+            = <strong class="bg-danger">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
             {{ end }}
         </td>
         <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
@@ -138,9 +138,9 @@
                     <div class="col-1 bg-danger">{{ $order.Side }}</div>
                     {{ end }}
                     <div class="col-1">{{ $order.OrderStatus }}</div>
-                    <div class="col-1">{{ $order.Qty | longFloatShort $.QtyPrecision}}</div>
-                    <div class="col-1">{{ mul $order.Qty $order.Price | longFloatShort $.PricePrecision}}</div>
-                    <div class="col-1">{{ $order.Price | longFloatShort $.PricePrecision }}</div>
+                    <div class="col-1">{{ $order.Qty | moneyFormat $.QtyPrecision}}</div>
+                    <div class="col-1">{{ mul $order.Qty $order.Price | moneyFormat $.PricePrecision}}</div>
+                    <div class="col-1">{{ $order.Price | moneyFormat $.PricePrecision }}</div>
                     <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
                     <div class="col-2">{{ $order.UpdatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
                 </div>
