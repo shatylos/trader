@@ -73,84 +73,105 @@
 <div class="clearfix"></div>
 <hr/>
 
-<table class="table table-dark align-middle">
+<h5>Timeframes</h5>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" id="timeframeTab" role="tablist">
+    {{ range $i, $timeframeItem := .TimeframeItems }}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {{ if eq $i 0 }}active{{ end }}" id="tf-{{ $timeframeItem.Config.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ $timeframeItem.Config.Resolution }}"
+                type="button" role="tab">{{ $timeframeItem.Config.Resolution }}</button>
+    </li>
+    {{ end }}
+</ul>
 
-    <thead class="align-middle">
-    <tr>
-        <th>Timeframe</th>
-        <th>Status</th>
-        <th>Average<br/> Buy Price</th>
-        <th>Min. Price To Sell</th>
-        <th>Revenue</th>
-        <th>Created Time</th>
-        <th>Closed Time</th>
-    </tr>
-    </thead>
+<!-- Tab content -->
+<div class="tab-content mt-3">
+    {{ range $i, $timeframeItem := .TimeframeItems }}
+    <div class="tab-pane fade {{ if eq $i 0 }}show active{{ end }}" id="tf-{{ $timeframeItem.Config.Resolution }}" role="tabpanel">
+        <table class="table table-dark align-middle">
 
-    <tbody>
+            <thead class="align-middle">
+            <tr>
+                <th>Timeframe</th>
+                <th>Status</th>
+                <th>Average<br/> Buy Price</th>
+                <th>Min. Price To Sell</th>
+                <th>Revenue</th>
+                <th>Created Time</th>
+                <th>Closed Time</th>
+            </tr>
+            </thead>
 
-    {{ range .DealsRelations }}
-    <tr>
-        <td class="">{{ .Deal.Timeframe }}</td>
-        <td class="">{{ .Deal.Status }}</td>
-        <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
-        <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}</td>
-        <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
-            {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
-            {{ if gt .RevenueTotal 0.0 }}
-            = <strong class="bg-success">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
-            {{ else }}
-            = <strong class="bg-danger">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
-            {{ end }}
-        </td>
-        <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
-        <td class="">
-            {{ if not (isZeroTime .Deal.ClosedTime) }}
-            {{ .Deal.ClosedTime | dateFormat "2006-01-02 15:04:05" }}
-            {{ end }}
-        </td>
-    </tr>
-    <tr>
-        <td colspan="100" class="bg-secondary">
-            <div class="container">
-                <div class="row">
-                    <div class="col-1">Order:</div>
-                    <div class="col-1">Direction:</div>
-                    <div class="col-1">Status:</div>
-                    <div class="col-1">Qty:</div>
-                    <div class="col-1">Amount:</div>
-                    <div class="col-1">Price:</div>
-                    <div class="col-2">Created Time:</div>
-                    <div class="col-2">Updated Time:</div>
-                </div>
-            </div>
-        </td>
-    </tr>
-    {{ range $i, $order := .Orders }}
-    <tr>
-        <td colspan="100" class="bg-secondary">
-            <div class="container">
-                <div class="row">
-                    <div class="col-1">#{{ add $i 1 }}</div>
-                    {{ if eq $order.Side "BUY" }}
-                    <div class="col-1 bg-success">{{ $order.Side }}</div>
+            <tbody>
+            {{ range $.DealsRelations }}
+            {{ if eq .Deal.Timeframe $timeframeItem.Config.Resolution }}
+            <tr>
+                <td class="">{{ .Deal.Timeframe }}</td>
+                <td class="">{{ .Deal.Status }}</td>
+                <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
+                <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}</td>
+                <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
+                    {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
+                    {{ if gt .RevenueTotal 0.0 }}
+                    = <strong class="bg-success">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                     {{ else }}
-                    <div class="col-1 bg-danger">{{ $order.Side }}</div>
+                    = <strong class="bg-danger">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                     {{ end }}
-                    <div class="col-1">{{ $order.OrderStatus }}</div>
-                    <div class="col-1">{{ $order.Qty | moneyFormat $.QtyPrecision}}</div>
-                    <div class="col-1">{{ mul $order.Qty $order.Price | moneyFormat $.PricePrecision}}</div>
-                    <div class="col-1">{{ $order.Price | moneyFormat $.PricePrecision }}</div>
-                    <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
-                    <div class="col-2">{{ $order.UpdatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
-                </div>
-            </div>
-        </td>
-    </tr>
-    {{ end }}
-    {{ end }}
+                </td>
+                <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
+                <td class="">
+                    {{ if not (isZeroTime .Deal.ClosedTime) }}
+                    {{ .Deal.ClosedTime | dateFormat "2006-01-02 15:04:05" }}
+                    {{ end }}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="100" class="bg-secondary">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-1">Order:</div>
+                            <div class="col-1">Direction:</div>
+                            <div class="col-1">Status:</div>
+                            <div class="col-1">Qty:</div>
+                            <div class="col-1">Amount:</div>
+                            <div class="col-1">Price:</div>
+                            <div class="col-2">Created Time:</div>
+                            <div class="col-2">Updated Time:</div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {{ range $i, $order := .Orders }}
+            <tr>
+                <td colspan="100" class="bg-secondary">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-1">#{{ add $i 1 }}</div>
+                            {{ if eq $order.Side "BUY" }}
+                            <div class="col-1 bg-success">{{ $order.Side }}</div>
+                            {{ else }}
+                            <div class="col-1 bg-danger">{{ $order.Side }}</div>
+                            {{ end }}
+                            <div class="col-1">{{ $order.OrderStatus }}</div>
+                            <div class="col-1">{{ $order.Qty | moneyFormat $.QtyPrecision}}</div>
+                            <div class="col-1">{{ mul $order.Qty $order.Price | moneyFormat $.PricePrecision}}</div>
+                            <div class="col-1">{{ $order.Price | moneyFormat $.PricePrecision }}</div>
+                            <div class="col-2">{{ $order.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
+                            <div class="col-2">{{ $order.UpdatedTime | dateFormat "2006-01-02 15:04:05" }}</div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {{ end }}
+            {{ end }}
+            {{ end }}
 
-    </tbody>
+            </tbody>
 
-</table>
+        </table>
+    </div>
+    {{ end }}
+</div>
+
+
 </div>
