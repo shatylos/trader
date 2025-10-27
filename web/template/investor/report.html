@@ -62,7 +62,7 @@
     {{ range $i, $timeframeReport := .TimeframeReports }}
     <li class="nav-item" role="presentation">
         <button class="nav-link {{ if eq $i 0 }}active{{ end }}" id="tf-{{ $timeframeReport.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ $timeframeReport.Resolution }}"
-                type="button" role="tab">{{ $timeframeReport.Resolution }}</button>
+                type="button" role="tab">{{ $timeframeReport.Resolution }}{{ if $timeframeReport.TimeframeItem.Config.IsHeap }} (Heap){{end}}</button>
     </li>
     {{ end }}
 </ul>
