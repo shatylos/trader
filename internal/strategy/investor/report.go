@@ -35,13 +35,8 @@ type ReportTemplateData struct {
 	BalanceTradeAfter  float64
 	DepoAmount         float64
 	WithdrawAmount     float64
-	TimeframeReports   []TimeframeReport
+	Timeframes         []_struct.Timeframe
 	CurrentPrice       float64
-}
-
-type TimeframeReport struct {
-	Resolution    string
-	TimeframeItem _struct.Timeframe
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruct.Report, err error) {
@@ -87,11 +82,6 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
 		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
-	timeframeReports := make([]TimeframeReport, len(i.Timeframes))
-	for it, timeframeItem := range i.Timeframes {
-		timeframeReports[it] = i.getReportByTimeframe(timeframeItem)
-	}
-
 	data := ReportTemplateData{
 		PrevPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
@@ -113,7 +103,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		BalanceTradeAfter:  balanceTradeAfter,
 		DepoAmount:         depoAmount,
 		WithdrawAmount:     withdrawAmount,
-		TimeframeReports:   timeframeReports,
+		Timeframes:         i.Timeframes,
 		CurrentPrice:       i.State.CurrentPrice,
 	}
 
@@ -129,12 +119,6 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		InnerHtml: template.HTML(htmlStr),
 		SetupId:   i.GetId(),
 	}
-	return
-}
-
-func (i *Investor) getReportByTimeframe(timeframeItem _struct.Timeframe) (timeframeReport TimeframeReport) {
-	timeframeReport.TimeframeItem = timeframeItem
-	timeframeReport.Resolution = timeframeItem.Config.Resolution
 	return
 }
 

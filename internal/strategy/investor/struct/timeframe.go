@@ -11,6 +11,10 @@ type Timeframe struct {
 	Candles         []domainStructs.DomainCandle
 	IsSidewaysState bool
 	Zone            string
+	prevValues      struct {
+		IsSidewaysState bool
+		Zone            string
+	}
 }
 type TimeframeConfig struct {
 	Resolution                  string
@@ -32,4 +36,16 @@ type TimeframeConfig struct {
 type HeapConfig struct {
 	QtyPercentOnMaxPrice float64
 	QtyPercentOnMinPrice float64
+}
+
+func (t *Timeframe) IsStatusChanged() (isChanged bool) {
+	if t.IsSidewaysState != t.prevValues.IsSidewaysState {
+		isChanged = true
+		t.prevValues.IsSidewaysState = t.IsSidewaysState
+	}
+	if t.Zone != t.prevValues.Zone {
+		isChanged = true
+		t.prevValues.Zone = t.Zone
+	}
+	return
 }

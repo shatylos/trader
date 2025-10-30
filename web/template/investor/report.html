@@ -59,28 +59,32 @@
 <h5>Timeframes</h5>
 <!-- Nav tabs -->
 <ul class="nav nav-tabs" id="timeframeTab" role="tablist">
-    {{ range $i, $timeframeReport := .TimeframeReports }}
+    {{ range $i, $timeframe := .Timeframes }}
     <li class="nav-item" role="presentation">
-        <button class="nav-link {{ if eq $i 0 }}active{{ end }}" id="tf-{{ $timeframeReport.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ $timeframeReport.Resolution }}"
-                type="button" role="tab">{{ $timeframeReport.Resolution }}{{ if $timeframeReport.TimeframeItem.Config.IsHeap }} (Heap){{end}}</button>
+        <button class="nav-link {{ if eq $i 0 }}active{{ end }}" id="tf-{{ $timeframe.Config.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ $timeframe.Config.Resolution }}"
+                type="button" role="tab">{{ $timeframe.Config.Resolution }}{{ if $timeframe.Config.IsHeap }} (Heap){{end}}</button>
     </li>
     {{ end }}
 </ul>
 
 <!-- Tab content -->
 <div class="tab-content mt-3">
-    {{ range $i, $timeframeReport := .TimeframeReports }}
-    <div class="tab-pane fade {{ if eq $i 0 }}show active{{ end }}" id="tf-{{ $timeframeReport.Resolution }}" role="tabpanel">
+    {{ range $i, $timeframe := .Timeframes }}
+    <div class="tab-pane fade {{ if eq $i 0 }}show active{{ end }}" id="tf-{{ $timeframe.Config.Resolution }}" role="tabpanel">
 
         <div class="row align-items-start">
             <div class="col-2">
-                Resolution: {{ .Resolution }}<br />
-                {{ if .TimeframeItem.IsSidewaysState }}
+                {{ block "timeframe-status" . }}
+                <div id="timeframe-status-{{ .Config.Resolution }}">
+                Resolution: {{ .Config.Resolution }}<br />
+                {{ if .IsSidewaysState }}
                 Sideway <br />
                 {{ else }}
                 Not sideway <br />
                 {{ end }}
-                Zone: {{ .TimeframeItem.Zone }}
+                Zone: {{ .Zone }}
+                </div>
+                {{ end }}
             </div>
         </div>
 
@@ -103,7 +107,7 @@
 
             <tbody>
             {{ range $.DealsRelations }}
-            {{ if eq .Deal.Timeframe $timeframeReport.Resolution }}
+            {{ if eq .Deal.Timeframe $timeframe.Config.Resolution }}
             <tr>
                 <td class="">{{ .Deal.Timeframe }}</td>
                 <td class="">{{ .Deal.Status }}</td>

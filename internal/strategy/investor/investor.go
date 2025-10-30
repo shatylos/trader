@@ -78,6 +78,9 @@ func (i *Investor) DoAction() (err error) {
 				return
 			}
 		}
+		if i.Timeframes[key].IsStatusChanged() {
+			i.WebSocket.SendTimeframeStatus(&(i.Timeframes[key]))
+		}
 	}
 	return
 }
