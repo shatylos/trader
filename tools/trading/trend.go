@@ -13,7 +13,7 @@ const (
 )
 
 func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
-	trendLinearRegression := GetTrendLinearRegression(candles)
+	trendLinearRegression, _ := GetTrendLinearRegression(candles)
 	trendSimpleCompare := GetTrendSimpleCompare(candles)
 	if verbose {
 		logger.Info(fmt.Sprintf("Trend Linear Regression: %s", trendLinearRegression))
@@ -26,9 +26,10 @@ func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
 	return TrendUnknown
 }
 
-func GetTrendLinearRegression(candles []domainStructs.DomainCandle) string {
+func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend string, slope float64) {
 	if len(candles) < 2 {
-		return TrendUnknown
+		trend = TrendUnknown
+		return
 	}
 
 	reversed := make([]domainStructs.DomainCandle, len(candles))
@@ -54,20 +55,24 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) string {
 	denominator := n*sumXX - sumX*sumX
 
 	if denominator == 0 {
-		return TrendUnknown
+		trend = TrendUnknown
+		return
 	}
 
-	slope := numerator / denominator
+	slope = numerator / denominator
 
 	const threshold = 0.01 // small buffer to ignore noise
 
 	if slope > threshold {
-		return TrendLong
+		trend = TrendLong
+		return
 	} else if slope < -threshold {
-		return TrendShort
+		trend = TrendShort
+		return
 	}
 
-	return TrendUnknown
+	trend = TrendUnknown
+	return
 }
 
 func GetTrendSimpleCompare(candles []domainStructs.DomainCandle) string {

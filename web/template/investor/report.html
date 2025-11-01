@@ -65,7 +65,9 @@
                     {{ else }}
                     Not sideway <br />
                     {{ end }}
-                    Zone: {{ .Zone }}
+                    Zone: {{ .Zone }} <br />
+                    Trend: {{ .Trend }} <br />
+                    Trend slope: {{ .TrendSlope | longFloatShort 2 }}
                 </div>
                 {{ end }}
             </div>

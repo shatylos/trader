@@ -32,6 +32,8 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
 	timeFrameItem.IsSidewaysState = isSideways
 
+	timeFrameItem.Trend, timeFrameItem.TrendSlope = trading.GetTrendLinearRegression(timeFrameItem.Candles)
+
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
 	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
@@ -110,6 +112,9 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 
 	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
 	timeFrameItem.IsSidewaysState = isSideways
+
+	timeFrameItem.Trend, timeFrameItem.TrendSlope = trading.GetTrendLinearRegression(timeFrameItem.Candles)
+
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
 	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)

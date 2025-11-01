@@ -50,11 +50,11 @@ func (f *Fibonacci) calculateNewPosition() (position structs.Position, err error
 	}
 
 	//stTrend := trading.GetFullTrend(candles, f.config.Verbose)
-	stTrend := trading.GetTrendLinearRegression(candles)
+	stTrend, _ := trading.GetTrendLinearRegression(candles)
 	if f.config.Verbose {
 		logger.Info(fmt.Sprintf("Detected short time trend: %s", stTrend))
 	}
-	ltTrend := trading.GetTrendLinearRegression(ltCandles)
+	ltTrend, _ := trading.GetTrendLinearRegression(ltCandles)
 	if f.config.Verbose {
 		logger.Info(fmt.Sprintf("Detected long time trend: %s", ltTrend))
 	}

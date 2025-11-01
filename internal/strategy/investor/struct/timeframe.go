@@ -11,9 +11,13 @@ type Timeframe struct {
 	Candles         []domainStructs.DomainCandle
 	IsSidewaysState bool
 	Zone            string
+	Trend           string
+	TrendSlope      float64
 	prevValues      struct {
 		IsSidewaysState bool
 		Zone            string
+		Trend           string
+		TrendSlope      float64
 	}
 }
 type TimeframeConfig struct {
@@ -46,6 +50,14 @@ func (t *Timeframe) IsStatusChanged() (isChanged bool) {
 	if t.Zone != t.prevValues.Zone {
 		isChanged = true
 		t.prevValues.Zone = t.Zone
+	}
+	if t.Trend != t.prevValues.Trend {
+		isChanged = true
+		t.prevValues.Trend = t.Trend
+	}
+	if t.TrendSlope != t.prevValues.TrendSlope {
+		isChanged = true
+		t.prevValues.TrendSlope = t.TrendSlope
 	}
 	return
 }
