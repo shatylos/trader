@@ -56,9 +56,9 @@
         <h5>Timeframes:</h5>
         <div class="row align-items-start">
             {{ range $i, $timeframe := .Timeframes }}
-            <div class="col-3 mb-3">
-                {{ block "timeframe-status" . }}
-                <div id="timeframe-status-{{ .Config.Resolution }}">
+            <div class="col-4 mb-3">
+                {{ block "timeframe-item-status" . }}
+                <div id="timeframe-item-status-{{ .Config.Resolution }}">
                     Resolution: {{ .Config.Resolution }}<br />
                     {{ if .IsSidewaysState }}
                     Sideway <br />
@@ -72,6 +72,21 @@
                 {{ end }}
             </div>
             {{ end }}
+            <div class="col-4 mb-3">
+                {{ block "heap-timeframe-status" . }}
+                <div id="heap-timeframe-status">
+                    Resolution: {{ .HeapTimeframe.Config.Resolution }}<br />
+                    {{ if .HeapTimeframe.IsSidewaysState }}
+                    Sideway <br />
+                    {{ else }}
+                    Not sideway <br />
+                    {{ end }}
+                    Zone: {{ .HeapTimeframe.Zone }} <br />
+                    Trend: {{ .HeapTimeframe.Trend }} <br />
+                    Trend slope: {{ .HeapTimeframe.TrendSlope | longFloatShort 2 }}
+                </div>
+                {{ end }}
+            </div>
         </div>
     </div>
 </div>
@@ -85,17 +100,20 @@
     {{ range $i, $timeframe := .Timeframes }}
     <li class="nav-item" role="presentation">
         <button class="nav-link {{ if eq $i 0 }}active{{ end }}" id="tf-{{ $timeframe.Config.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ $timeframe.Config.Resolution }}"
-                type="button" role="tab">{{ $timeframe.Config.Resolution }}{{ if $timeframe.Config.IsHeap }} (Heap){{end}}</button>
+                type="button" role="tab">{{ $timeframe.Config.Resolution }}</button>
     </li>
     {{ end }}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tf-{{ .HeapTimeframe.Config.Resolution }}-tab" data-bs-toggle="tab" data-bs-target="#tf-{{ .HeapTimeframe.Config.Resolution }}"
+                type="button" role="tab">{{ .HeapTimeframe.Config.Resolution }} (Heap)</button>
+    </li>
 </ul>
 
 <!-- Tab content -->
 <div class="tab-content mt-3">
-    {{ range $i, $timeframe := .Timeframes }}
-    <div class="tab-pane fade {{ if eq $i 0 }}show active{{ end }}" id="tf-{{ $timeframe.Config.Resolution }}" role="tabpanel">
 
-
+    {{ define "timeframe_deal_block" }}
+    <div class="tab-pane fade {{ if .isActive }}show active{{ end }}" id="tf-{{ .timeframe.Config.Resolution }}" role="tabpanel">
 
         <table class="table table-dark align-middle">
 
@@ -112,8 +130,8 @@
             </thead>
 
             <tbody>
-            {{ range $.DealsRelations }}
-            {{ if eq .Deal.Timeframe $timeframe.Config.Resolution }}
+            {{ range .DealsRelations }}
+            {{ if eq .Deal.Timeframe $.timeframe.Config.Resolution }}
             <tr>
                 <td class="">{{ .Deal.Timeframe }}</td>
                 <td class="">{{ .Deal.Status }}</td>
@@ -180,6 +198,31 @@
         </table>
     </div>
     {{ end }}
+
+    {{ range $i, $timeframe := .Timeframes }}
+        {{ $isActive := false }}
+        {{ if eq $i 0 }} {{ $isActive = true }} {{ end }}
+        {{ $args := dict "isActive" $isActive
+                         "timeframe" $timeframe
+                         "DealsRelations" $.DealsRelations
+                         "PricePrecision" $.PricePrecision
+                         "MainCurrency" $.MainCurrency
+                         "QtyPrecision" $.QtyPrecision
+                         "TradeCurrency" $.TradeCurrency
+        }}
+        {{ template "timeframe_deal_block" $args }}
+    {{ end }}
+
+    {{ $args := dict "isActive" false
+                     "timeframe" .HeapTimeframe
+                     "DealsRelations" .DealsRelations
+                     "PricePrecision" .PricePrecision
+                     "MainCurrency" .MainCurrency
+                     "QtyPrecision" .QtyPrecision
+                     "TradeCurrency" .TradeCurrency
+    }}
+
+    {{ template "timeframe_deal_block" $args }}
 </div>
 
 

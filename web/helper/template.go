@@ -15,6 +15,7 @@ func GetTemplate(fileName string) (*template.Template, error) {
 	baseFileName := filepath.Base(fileName)
 
 	tmpl, err := template.New(baseFileName).Funcs(template.FuncMap{
+		"dict":               dict,
 		"dateFormat":         dateFormat,
 		"dateFormatFromUnix": dateFormatFromUnix,
 		"longFloatShort":     longFloatShort,
@@ -33,6 +34,15 @@ func GetTemplate(fileName string) (*template.Template, error) {
 	}
 
 	return tmpl, nil
+}
+
+func dict(values ...any) (dict map[string]any) {
+	dict = make(map[string]any)
+	for i := 0; i < len(values); i += 2 {
+		key := values[i].(string)
+		dict[key] = values[i+1]
+	}
+	return dict
 }
 
 func dateFormat(layout string, t time.Time) string {

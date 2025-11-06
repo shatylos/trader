@@ -5,20 +5,21 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
+	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
 
-func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.Timeframe) (err error) {
+func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.TimeframeItem) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
 		return
 	}
 
 	var deal *entity.Deal
-	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem)
+	deal, err = storage.GetActiveDealByTimeframe(ctx, &i.Storage, timeFrameItem)
 	if err != nil {
 		return
 	}
@@ -99,7 +100,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	return
 }
 
-func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_struct.Timeframe) (err error) {
+func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_struct.HeapTimeframe) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
 		return
@@ -139,14 +140,15 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 	return
 }
 
-func (i *Investor) loadCandles(timeFrameItem *_struct.Timeframe) (err error) {
-	if timeFrameItem.GetCandleTime.Before(time.Now().Add(-timeFrameItem.Config.CandleCacheDuration)) {
-		timeFrameItem.Candles, err = i.provider.LoadCandleHistory(i.Config.CoinPare, timeFrameItem.Config.Resolution, timeFrameItem.Config.CandleReview)
+func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
+	if timeFrame.GetCandleTime().Before(time.Now().Add(-timeFrame.GetConfig().GetCandleCacheDuration())) {
+		var candles []domainStructs.DomainCandle
+		candles, err = i.provider.LoadCandleHistory(i.Config.CoinPare, timeFrame.Resolution(), timeFrame.GetConfig().GetCandleReview())
 		if err != nil {
 			return
 		}
-		timeFrameItem.GetCandleTime = time.Now()
-		newPrice := timeFrameItem.Candles[0].Close
+		timeFrame.SetCandles(candles)
+		newPrice := timeFrame.GetCandles()[0].Close
 		if i.State.CurrentPrice != newPrice {
 			i.WebSocket.SendCurrentPrice(newPrice)
 		}

@@ -15,12 +15,13 @@ import (
 )
 
 type Investor struct {
-	Config     Config
-	provider   domain.SpotDomainInterface
-	Timeframes []_struct.Timeframe
-	State      State
-	Storage    storage.Storage
-	WebSocket  WebSocket
+	Config        Config
+	provider      domain.SpotDomainInterface
+	Timeframes    []_struct.TimeframeItem
+	HeapTimeframe _struct.HeapTimeframe
+	State         State
+	Storage       storage.Storage
+	WebSocket     WebSocket
 }
 
 type State struct {
@@ -67,20 +68,20 @@ func (i *Investor) DoAction() (err error) {
 	}
 
 	for key := range i.Timeframes {
-		if i.Timeframes[key].Config.IsHeap {
-			err = i.handleHeapTimeframe(ctx, &(i.Timeframes[key]))
-			if err != nil {
-				return
-			}
-		} else {
-			err = i.handleTimeframe(ctx, &(i.Timeframes[key]))
-			if err != nil {
-				return
-			}
+		err = i.handleTimeframe(ctx, &(i.Timeframes[key]))
+		if err != nil {
+			return
 		}
 		if i.Timeframes[key].IsStatusChanged() {
 			i.WebSocket.SendTimeframeStatus(&(i.Timeframes[key]))
 		}
+	}
+	err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
+	if err != nil {
+		return
+	}
+	if i.HeapTimeframe.IsStatusChanged() {
+		i.WebSocket.SendTimeframeStatus(&i.HeapTimeframe)
 	}
 	return
 }
@@ -89,28 +90,10 @@ func (i *Investor) Wait() {
 	time.Sleep(i.Config.TimeoutDuration)
 }
 
-func (i *Investor) GetTimeframeItemByDeal(deal *entity.Deal) (timeFrameItem *_struct.Timeframe) {
-	for _, timeFrame := range i.Timeframes {
-		if timeFrame.Config.Resolution == deal.Timeframe {
-			timeFrameItem = &timeFrame
-			return
-		}
-	}
-	return
-}
-
 func (i *Investor) getContext() (ctx context.Context) {
 	ctx = context.Background()
 	ctx = context.WithValue(ctx, _struct.CtxSetupKey, i)
 	ctx = context.WithValue(ctx, _struct.CtxMainCurrencyKey, i.Config.MainCurrency)
 	ctx = context.WithValue(ctx, _struct.CtxTradeCurrencyKey, i.Config.TradeCurrency)
-
-	var heapTimeframeResolution string
-	for _, timeframe := range i.Timeframes {
-		if timeframe.Config.IsHeap {
-			heapTimeframeResolution = timeframe.Config.Resolution
-		}
-	}
-	ctx = context.WithValue(ctx, _struct.CtxHeapTimeframeKey, heapTimeframeResolution)
 	return
 }

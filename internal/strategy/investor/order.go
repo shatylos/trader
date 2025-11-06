@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal) (providerOrderId string, err error) {
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeItem, deal *entity.Deal) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -87,7 +87,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.Timeframe, 
 	return
 }
 
-func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal, qty, price float64) (providerOrderId string, err error) {
+func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapTimeframe, deal *entity.Deal, qty, price float64) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
 		msg := "deal struct must be saved before do buy"
@@ -122,7 +122,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timef
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Placed order to buy for heap %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	msg := fmt.Sprintf("[%s] Placed order to buy for heap %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, heapTimeframe.Config.Resolution)
 	logger.Info(msg)
 
 	var domainOrder domainStructs.DomainOrder
@@ -133,7 +133,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timef
 
 	order := entity.Order{
 		DealId:       *deal.Id,
-		Timeframe:    timeFrameItem.Config.Resolution,
+		Timeframe:    heapTimeframe.Config.Resolution,
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
@@ -144,7 +144,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timef
 	}
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
+		err = i.updateOrder(ctx, deal, &order, heapTimeframe)
 		if err != nil {
 			return
 		}
@@ -153,7 +153,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, timeFrameItem *_struct.Timef
 	return
 }
 
-func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.Timeframe) (qty float64, currentPrice float64, err error) {
+func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.TimeframeItem) (qty float64, currentPrice float64, err error) {
 	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {
 		return
@@ -202,7 +202,7 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe, deal *entity.Deal, qty, price float64) (
+func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal *entity.Deal, qty, price float64) (
 	providerOrderId string, err error) {
 
 	if deal.Id == nil {
@@ -220,7 +220,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.State.Wallet
 
-	qty = i.calculateQtyToSell(qty, timeFrameItem.Config.IsHeap)
+	qty = i.calculateQtyToSell(qty, timeFrame.IsHeap())
 
 	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
@@ -241,7 +241,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
+	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrame.Resolution())
 	logger.Info(msg)
 
 	var domainOrder domainStructs.DomainOrder
@@ -252,7 +252,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 
 	order := entity.Order{
 		DealId:       *deal.Id,
-		Timeframe:    timeFrameItem.Config.Resolution,
+		Timeframe:    timeFrame.Resolution(),
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
@@ -263,7 +263,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 	}
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
+		err = i.updateOrder(ctx, deal, &order, timeFrame)
 		if err != nil {
 			return
 		}
@@ -272,7 +272,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.Timeframe,
 	return
 }
 
-func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *entity.Order, timeFrameItem *_struct.Timeframe) (err error) {
+func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *entity.Order, timeFrame _struct.Timeframe) (err error) {
 
 	err = i.updateWalletInfo()
 	if err != nil {
@@ -317,7 +317,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		if err != nil {
 			return
 		}
-		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrameItem.Config.Resolution)
+		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
 		logger.Success(msg)
 		if i.Config.TelegramNotifier {
 			tgNotifier.Notify(msg)

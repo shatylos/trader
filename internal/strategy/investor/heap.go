@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.Timeframe) (err error) {
+func (i *Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.HeapTimeframe) (err error) {
 	// calculate price from last order and average price of heap
 	lastOrderPrice := 0.0
 	if i.State.Heap.LastOrderHeap != nil {
@@ -39,8 +39,8 @@ func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.
 	// calculate qty from qty on heap, available amounts and current price
 	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(timeframeItem.Candles)
 
-	qtyPercentOnMaxPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMaxPrice
-	qtyPercentOnMinPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMinPrice
+	qtyPercentOnMaxPrice := timeframeItem.Config.QtyPercentOnMaxPrice
+	qtyPercentOnMinPrice := timeframeItem.Config.QtyPercentOnMinPrice
 
 	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
 	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
@@ -74,7 +74,7 @@ func (i Investor) handleHeapPremium(ctx context.Context, timeframeItem *_struct.
 	return
 }
 
-func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct.Timeframe) (err error) {
+func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct.HeapTimeframe) (err error) {
 
 	// calculate price from last order
 	lastOrderPrice := 0.0
@@ -94,8 +94,8 @@ func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct
 	// calculate qty from qty on heap, available amounts and current price
 	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(timeframeItem.Candles)
 
-	qtyPercentOnMaxPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMaxPrice
-	qtyPercentOnMinPrice := timeframeItem.Config.HeapConfig.QtyPercentOnMinPrice
+	qtyPercentOnMaxPrice := timeframeItem.Config.QtyPercentOnMaxPrice
+	qtyPercentOnMinPrice := timeframeItem.Config.QtyPercentOnMinPrice
 
 	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
 	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
@@ -129,7 +129,7 @@ func (i Investor) handleHeapDiscount(ctx context.Context, timeframeItem *_struct
 	return
 }
 
-func (i Investor) isTimeToMoveToHeap(timeframeItem *_struct.Timeframe, dealRelation *entity.DealRelation) (result bool) {
+func (i Investor) isTimeToMoveToHeap(timeframeItem *_struct.TimeframeItem, dealRelation *entity.DealRelation) (result bool) {
 	var lastOrder *entity.Order
 	for _, order := range dealRelation.Orders {
 		if order.OrderStatus == domainStructs.OrderStatuses.New || order.OrderStatus == domainStructs.OrderStatuses.Open {

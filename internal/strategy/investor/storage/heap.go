@@ -5,12 +5,10 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 )
 
-func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap, timeFrameItem *_struct.Timeframe) (heap *entity.Heap, err error) {
+func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap, timeFrameItem *_struct.HeapTimeframe) (heap *entity.Heap, err error) {
 	heap = heapParam
 	if heap == nil {
 		heap, err = s.getHeap(ctx, timeFrameItem)
@@ -21,15 +19,9 @@ func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap, timeFr
 	return
 }
 
-func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.Timeframe) (heapPointer *entity.Heap, err error) {
+func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.HeapTimeframe) (heapPointer *entity.Heap, err error) {
 
-	heapTimeframe, ok := ctx.Value(_struct.CtxHeapTimeframeKey).(string)
-	if !ok {
-		msg := "HeapTimeframe is not accessible from context"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
-		return
-	}
+	heapTimeframe := timeFrameItem.Config.Resolution
 
 	var dealRelations []*entity.DealRelation
 	dealRelations, err = s.GetDealRelationsOnHeap(ctx)
@@ -74,7 +66,7 @@ func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.Timeframe)
 	}
 
 	var deal *entity.Deal
-	deal, err = s.GetActiveDealByTimeframe(ctx, timeFrameItem)
+	deal, err = GetActiveDealByTimeframe(ctx, s, timeFrameItem)
 	if err != nil {
 		return
 	}

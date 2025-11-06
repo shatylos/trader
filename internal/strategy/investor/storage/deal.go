@@ -88,10 +88,10 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 	return
 }
 
-func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_struct.Timeframe) (deal *entity.Deal, err error) {
+func GetActiveDealByTimeframe(ctx context.Context, s *Storage, timeFrame _struct.Timeframe) (deal *entity.Deal, err error) {
 	err = s.dealCollection.FindOne(ctx, bson.D{{
 		"$and", bson.A{
-			bson.D{{"Timeframe", timeFrame.Config.Resolution}},
+			bson.D{{"Timeframe", timeFrame.Resolution()}},
 			bson.D{{"Status", bson.D{{"$in", bson.A{entity.DealStatusNew, entity.DealStatusActive}}}}},
 		},
 	}}, options.FindOne().SetSort(
@@ -106,11 +106,11 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_stru
 
 	if deal == nil {
 		deal = &entity.Deal{
-			Timeframe:             timeFrame.Config.Resolution,
+			Timeframe:             timeFrame.Resolution(),
 			Status:                entity.DealStatusNew,
-			MinPercentRangeToSell: timeFrame.Config.MinPercentRangeToSell,
+			MinPercentRangeToSell: timeFrame.MinPercentRangeToSell(),
 		}
-		if timeFrame.Config.IsHeap {
+		if timeFrame.IsHeap() {
 			deal.IsHeap = true
 		}
 		err = s.SaveDeal(ctx, deal)
@@ -121,10 +121,10 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame *_stru
 
 	// @TODO: Remove it after fill the values in DB
 	if deal.MinPercentRangeToSell == 0 {
-		deal.MinPercentRangeToSell = timeFrame.Config.MinPercentRangeToSell
+		deal.MinPercentRangeToSell = timeFrame.MinPercentRangeToSell()
 	}
 	// @TODO: Remove it after fill the values in DB
-	if timeFrame.Config.IsHeap {
+	if timeFrame.IsHeap() {
 		deal.IsHeap = true
 	}
 

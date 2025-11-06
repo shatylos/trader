@@ -20,7 +20,7 @@ type ReportTemplateData struct {
 	WsLink             string
 	DateFrom           time.Time
 	DateTo             time.Time
-	DealsRelations     []*entity.DealRelation
+	DealsRelations     []*entity.DealRelation //@TODO: remove * from the list
 	MainCurrency       string
 	TradeCurrency      string
 	PricePrecision     int
@@ -35,7 +35,8 @@ type ReportTemplateData struct {
 	BalanceTradeAfter  float64
 	DepoAmount         float64
 	WithdrawAmount     float64
-	Timeframes         []_struct.Timeframe
+	Timeframes         []_struct.TimeframeItem
+	HeapTimeframe      _struct.HeapTimeframe
 	CurrentPrice       float64
 }
 
@@ -104,6 +105,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		DepoAmount:         depoAmount,
 		WithdrawAmount:     withdrawAmount,
 		Timeframes:         i.Timeframes,
+		HeapTimeframe:      i.HeapTimeframe,
 		CurrentPrice:       i.State.CurrentPrice,
 	}
 

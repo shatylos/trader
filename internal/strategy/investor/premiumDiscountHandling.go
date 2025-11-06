@@ -12,7 +12,7 @@ import (
 	"github.com/shatylos/trader/tools/trading"
 )
 
-func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.Timeframe) (err error) {
+func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
 
 	if dealRelation.Deal.Status != entity.DealStatusActive {
 		return
@@ -67,7 +67,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 	return
 }
 
-func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.Timeframe) (err error) {
+func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
 
 	if len(dealRelation.Orders) == 0 {
 		var providerOrderId string
@@ -125,14 +125,6 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		}
 	}
 
-	return
-}
-
-func (i *Investor) handlePremiumHeap(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.Timeframe) (err error) {
-	return
-}
-
-func (i *Investor) handleDiscountHeap(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.Timeframe) (err error) {
 	return
 }
 
