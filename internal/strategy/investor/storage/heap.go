@@ -8,20 +8,7 @@ import (
 	"github.com/shatylos/trader/tools/math"
 )
 
-func (s *Storage) UpdateHeap(ctx context.Context, heapParam *entity.Heap, timeFrameItem *_struct.HeapTimeframe) (heap *entity.Heap, err error) {
-	heap = heapParam
-	if heap == nil {
-		heap, err = s.getHeap(ctx, timeFrameItem)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
-func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.HeapTimeframe) (heapPointer *entity.Heap, err error) {
-
-	heapTimeframe := timeFrameItem.Config.Resolution
+func (s *Storage) UpdateHeapStatus(ctx context.Context, heapTimeFrame *_struct.HeapTimeframe) (err error) {
 
 	var dealRelations []*entity.DealRelation
 	dealRelations, err = s.GetDealRelationsOnHeap(ctx)
@@ -39,7 +26,7 @@ func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.HeapTimefr
 
 	for _, dealRelation := range dealRelations {
 		for _, order := range dealRelation.Orders {
-			if order.Timeframe == heapTimeframe {
+			if order.Timeframe == heapTimeFrame.Config.Resolution {
 				if lastOrderHeap == nil || order.CreatedTime.After(lastOrderHeap.CreatedTime) {
 					lastOrderHeap = order
 				}
@@ -66,20 +53,16 @@ func (s *Storage) getHeap(ctx context.Context, timeFrameItem *_struct.HeapTimefr
 	}
 
 	var deal *entity.Deal
-	deal, err = GetActiveDealByTimeframe(ctx, s, timeFrameItem)
+	deal, err = GetActiveDealByTimeframe(ctx, s, heapTimeFrame)
 	if err != nil {
 		return
 	}
 
-	heap := entity.Heap{
-		Qty:            qty,
-		Price:          price,
-		Deal:           deal,
-		LastOrderHeap:  lastOrderHeap,
-		LastOrderMoved: lastOrderMoved,
-	}
-
-	heapPointer = &heap
+	heapTimeFrame.HeapStatus.Qty = qty
+	heapTimeFrame.HeapStatus.Price = price
+	heapTimeFrame.HeapStatus.Deal = deal
+	heapTimeFrame.HeapStatus.LastOrderHeap = lastOrderHeap
+	heapTimeFrame.HeapStatus.LastOrderMoved = lastOrderMoved
 
 	return
 }

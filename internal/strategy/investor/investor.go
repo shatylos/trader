@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shatylos/trader/internal/domain"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
@@ -26,7 +25,6 @@ type Investor struct {
 
 type State struct {
 	CurrentPrice float64
-	Heap         *entity.Heap
 	Wallet       *domainStructs.DomainWallet
 }
 
@@ -73,7 +71,7 @@ func (i *Investor) DoAction() (err error) {
 			return
 		}
 		if i.Timeframes[key].IsStatusChanged() {
-			i.WebSocket.SendTimeframeStatus(&(i.Timeframes[key]))
+			i.WebSocket.SendTimeframeItemStatus(i.Timeframes[key])
 		}
 	}
 	err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
@@ -81,7 +79,7 @@ func (i *Investor) DoAction() (err error) {
 		return
 	}
 	if i.HeapTimeframe.IsStatusChanged() {
-		i.WebSocket.SendTimeframeStatus(&i.HeapTimeframe)
+		i.WebSocket.SendHeapTimeframeStatus(i.HeapTimeframe)
 	}
 	return
 }

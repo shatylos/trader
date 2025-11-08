@@ -106,7 +106,7 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 		return
 	}
 
-	i.State.Heap, err = i.Storage.UpdateHeap(ctx, i.State.Heap, timeFrameItem)
+	err = i.Storage.UpdateHeapStatus(ctx, timeFrameItem)
 	if err != nil {
 		return
 	}

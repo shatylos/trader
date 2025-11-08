@@ -2,6 +2,7 @@ package _struct
 
 import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"time"
 )
 
@@ -13,11 +14,13 @@ type HeapTimeframe struct {
 	Zone            string
 	Trend           string
 	TrendSlope      float64
+	HeapStatus      entity.HeapStatus
 	prevValues      struct {
 		IsSidewaysState bool
 		Zone            string
 		Trend           string
 		TrendSlope      float64
+		HeapStatus      entity.HeapStatus
 	}
 }
 
@@ -91,6 +94,14 @@ func (t *HeapTimeframe) IsStatusChanged() (isChanged bool) {
 	if t.TrendSlope != t.prevValues.TrendSlope {
 		isChanged = true
 		t.prevValues.TrendSlope = t.TrendSlope
+	}
+	if t.HeapStatus.Price != t.prevValues.HeapStatus.Price {
+		isChanged = true
+		t.prevValues.HeapStatus.Price = t.HeapStatus.Price
+	}
+	if t.HeapStatus.Qty != t.prevValues.HeapStatus.Qty {
+		isChanged = true
+		t.prevValues.HeapStatus.Qty = t.HeapStatus.Qty
 	}
 	return
 }

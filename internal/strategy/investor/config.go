@@ -2,6 +2,7 @@ package investor
 
 import (
 	"github.com/shatylos/trader/internal/domain"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools"
@@ -377,7 +378,8 @@ func (i *Investor) applyHeapConfig(heapTimeframesConfig interface{}) (err error)
 	}
 
 	heapTimeframe := _struct.HeapTimeframe{
-		Config: _struct.HeapConfig{},
+		Config:     _struct.HeapConfig{},
+		HeapStatus: entity.HeapStatus{},
 	}
 
 	heapTimeframe.Config.Resolution, err = _type.ToString(tfMap["resolution"])

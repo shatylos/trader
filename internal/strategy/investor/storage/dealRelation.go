@@ -32,7 +32,7 @@ func (s *Storage) GetDealRelationsByPeriod(ctx context.Context, from, to time.Ti
 	return
 }
 
-func (s Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*entity.DealRelation, err error) {
+func (s *Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*entity.DealRelation, err error) {
 	var deals []*entity.Deal
 	deals, err = s.GetDealsOnHeap(ctx)
 	if err != nil {

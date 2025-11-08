@@ -71,7 +71,7 @@ func (ws *WebSocket) SendCurrentPrice(price float64) {
 	}
 }
 
-func (ws *WebSocket) SendTimeframeStatus(timeframe _struct.Timeframe) {
+func (ws *WebSocket) SendTimeframeItemStatus(timeframe _struct.TimeframeItem) {
 	var err error
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
@@ -81,6 +81,31 @@ func (ws *WebSocket) SendTimeframeStatus(timeframe _struct.Timeframe) {
 	}
 	var buf bytes.Buffer
 	err = tmpl.ExecuteTemplate(&buf, "timeframe-item-status", timeframe)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error executing 'current-price' template for web socket: %v", err))
+		return
+	}
+
+	for client := range ws.Clients {
+		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
+		if err != nil {
+			log.Println("write:", err)
+			client.Close()
+			delete(ws.Clients, client)
+		}
+	}
+}
+
+func (ws *WebSocket) SendHeapTimeframeStatus(heapTimeframe _struct.HeapTimeframe) {
+	var err error
+	var tmpl *template.Template
+	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error getting template for web socket: %v", err))
+		return
+	}
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "heap-timeframe-status", heapTimeframe)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error executing 'current-price' template for web socket: %v", err))
 		return

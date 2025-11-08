@@ -73,17 +73,20 @@
             </div>
             {{ end }}
             <div class="col-4 mb-3">
-                {{ block "heap-timeframe-status" . }}
+                {{ block "heap-timeframe-status" .HeapTimeframe }}
                 <div id="heap-timeframe-status">
-                    Resolution: {{ .HeapTimeframe.Config.Resolution }}<br />
-                    {{ if .HeapTimeframe.IsSidewaysState }}
+                    Resolution: {{ .Config.Resolution }}<br />
+                    {{ if .IsSidewaysState }}
                     Sideway <br />
                     {{ else }}
                     Not sideway <br />
                     {{ end }}
-                    Zone: {{ .HeapTimeframe.Zone }} <br />
-                    Trend: {{ .HeapTimeframe.Trend }} <br />
-                    Trend slope: {{ .HeapTimeframe.TrendSlope | longFloatShort 2 }}
+                    Zone: {{ .Zone }} <br />
+                    Trend: {{ .Trend }} <br />
+                    Trend slope: {{ .TrendSlope | longFloatShort 2 }} <br />
+                    Heap Qty: {{ .HeapStatus.Qty }} <br />
+                    Heap Price: {{ .HeapStatus.Price }} <br />
+
                 </div>
                 {{ end }}
             </div>
