@@ -36,11 +36,11 @@ func (s *Storage) UpdateHeapStatus(ctx context.Context, heapTimeFrame *_struct.H
 				}
 			}
 			if order.Side == structs.OrderSideBuy {
-				buyQty += buyQty
+				buyQty += order.Qty
 				buyAmount += order.Amount()
 			}
 			if order.Side == structs.OrderSideSell {
-				sellQty += sellQty
+				sellQty += order.Qty
 				sellAmount += order.Amount()
 			}
 		}
