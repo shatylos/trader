@@ -86,6 +86,7 @@
                     Trend slope: {{ .HeapStatus.TrendSlope | longFloatShort 2 }} <br />
                     Qty: {{ .HeapStatus.Qty | moneyFormat 6}} BTC<br /> <!-- @TODO Set value from config-->
                     Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br /> <!-- @TODO Set value from config-->
+
                 </div>
                 {{ end }}
             </div>

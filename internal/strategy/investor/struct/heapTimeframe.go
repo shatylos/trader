@@ -7,17 +7,11 @@ import (
 )
 
 type HeapTimeframe struct {
-	Config     HeapConfig
-	CandleTime time.Time
-	Candles    []domainStructs.DomainCandle
-	HeapStatus entity.HeapStatus
-	prevValues struct {
-		IsSidewaysState bool
-		Zone            string
-		Trend           string
-		TrendSlope      float64
-		HeapStatus      entity.HeapStatus
-	}
+	Config         HeapConfig
+	CandleTime     time.Time
+	Candles        []domainStructs.DomainCandle
+	HeapStatus     entity.HeapStatus
+	prevHeapStatus entity.HeapStatus
 }
 
 type HeapConfig struct {
@@ -75,29 +69,29 @@ func (t HeapConfig) GetCandleCacheDuration() time.Duration {
 }
 
 func (t *HeapTimeframe) IsStatusChanged() (isChanged bool) {
-	if t.HeapStatus.IsSidewaysState != t.prevValues.IsSidewaysState {
+	if t.HeapStatus.IsSidewaysState != t.prevHeapStatus.IsSidewaysState {
 		isChanged = true
-		t.prevValues.IsSidewaysState = t.HeapStatus.IsSidewaysState
+		t.prevHeapStatus.IsSidewaysState = t.HeapStatus.IsSidewaysState
 	}
-	if t.HeapStatus.Zone != t.prevValues.Zone {
+	if t.HeapStatus.Zone != t.prevHeapStatus.Zone {
 		isChanged = true
-		t.prevValues.Zone = t.HeapStatus.Zone
+		t.prevHeapStatus.Zone = t.HeapStatus.Zone
 	}
-	if t.HeapStatus.Trend != t.prevValues.Trend {
+	if t.HeapStatus.Trend != t.prevHeapStatus.Trend {
 		isChanged = true
-		t.prevValues.Trend = t.HeapStatus.Trend
+		t.prevHeapStatus.Trend = t.HeapStatus.Trend
 	}
-	if t.HeapStatus.TrendSlope != t.prevValues.TrendSlope {
+	if t.HeapStatus.TrendSlope != t.prevHeapStatus.TrendSlope {
 		isChanged = true
-		t.prevValues.TrendSlope = t.HeapStatus.TrendSlope
+		t.prevHeapStatus.TrendSlope = t.HeapStatus.TrendSlope
 	}
-	if t.HeapStatus.Price != t.prevValues.HeapStatus.Price {
+	if t.HeapStatus.Price != t.prevHeapStatus.Price {
 		isChanged = true
-		t.prevValues.HeapStatus.Price = t.HeapStatus.Price
+		t.prevHeapStatus.Price = t.HeapStatus.Price
 	}
-	if t.HeapStatus.Qty != t.prevValues.HeapStatus.Qty {
+	if t.HeapStatus.Qty != t.prevHeapStatus.Qty {
 		isChanged = true
-		t.prevValues.HeapStatus.Qty = t.HeapStatus.Qty
+		t.prevHeapStatus.Qty = t.HeapStatus.Qty
 	}
 	return
 }
