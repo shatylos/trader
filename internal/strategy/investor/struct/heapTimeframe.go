@@ -7,15 +7,11 @@ import (
 )
 
 type HeapTimeframe struct {
-	Config          HeapConfig
-	CandleTime      time.Time
-	Candles         []domainStructs.DomainCandle
-	IsSidewaysState bool
-	Zone            string
-	Trend           string
-	TrendSlope      float64
-	HeapStatus      entity.HeapStatus
-	prevValues      struct {
+	Config     HeapConfig
+	CandleTime time.Time
+	Candles    []domainStructs.DomainCandle
+	HeapStatus entity.HeapStatus
+	prevValues struct {
 		IsSidewaysState bool
 		Zone            string
 		Trend           string
@@ -79,21 +75,21 @@ func (t HeapConfig) GetCandleCacheDuration() time.Duration {
 }
 
 func (t *HeapTimeframe) IsStatusChanged() (isChanged bool) {
-	if t.IsSidewaysState != t.prevValues.IsSidewaysState {
+	if t.HeapStatus.IsSidewaysState != t.prevValues.IsSidewaysState {
 		isChanged = true
-		t.prevValues.IsSidewaysState = t.IsSidewaysState
+		t.prevValues.IsSidewaysState = t.HeapStatus.IsSidewaysState
 	}
-	if t.Zone != t.prevValues.Zone {
+	if t.HeapStatus.Zone != t.prevValues.Zone {
 		isChanged = true
-		t.prevValues.Zone = t.Zone
+		t.prevValues.Zone = t.HeapStatus.Zone
 	}
-	if t.Trend != t.prevValues.Trend {
+	if t.HeapStatus.Trend != t.prevValues.Trend {
 		isChanged = true
-		t.prevValues.Trend = t.Trend
+		t.prevValues.Trend = t.HeapStatus.Trend
 	}
-	if t.TrendSlope != t.prevValues.TrendSlope {
+	if t.HeapStatus.TrendSlope != t.prevValues.TrendSlope {
 		isChanged = true
-		t.prevValues.TrendSlope = t.TrendSlope
+		t.prevValues.TrendSlope = t.HeapStatus.TrendSlope
 	}
 	if t.HeapStatus.Price != t.prevValues.HeapStatus.Price {
 		isChanged = true

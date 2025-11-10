@@ -170,3 +170,79 @@ func (i *Investor) moveToHeap(ctx context.Context, dealRelation *entity.DealRela
 	}
 	return
 }
+
+func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
+
+	var dealRelations []*entity.DealRelation
+	dealRelations, err = i.Storage.GetDealRelationsOnHeap(ctx)
+	if err != nil {
+		return
+	}
+
+	buyQty := 0.0
+	buyAmount := 0.0
+	sellQty := 0.0
+	sellAmount := 0.0
+
+	var lastOrderHeap *entity.Order
+	var lastOrderMoved *entity.Order
+
+	for _, dealRelation := range dealRelations {
+		for _, order := range dealRelation.Orders {
+			if order.Timeframe == i.HeapTimeframe.Config.Resolution {
+				if lastOrderHeap == nil || order.CreatedTime.After(lastOrderHeap.CreatedTime) {
+					lastOrderHeap = order
+				}
+			} else {
+				if lastOrderMoved == nil || order.CreatedTime.After(lastOrderMoved.CreatedTime) {
+					lastOrderMoved = order
+				}
+			}
+			if order.Side == domainStructs.OrderSideBuy {
+				buyQty += order.Qty
+				buyAmount += order.Amount()
+			}
+			if order.Side == domainStructs.OrderSideSell {
+				sellQty += order.Qty
+				sellAmount += order.Amount()
+			}
+		}
+	}
+
+	qty := buyQty - sellQty
+	price := 0.0
+	if buyQty > 0 {
+		price = math.Div(buyAmount, buyQty)
+	}
+
+	var deal *entity.Deal
+	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, &i.HeapTimeframe)
+	if err != nil {
+		return
+	}
+
+	isSideways, sidewaysKLinesAmount := trading.CheckSideways(i.HeapTimeframe.Candles, i.HeapTimeframe.Config.SidewaysMinCandlesAmount, i.HeapTimeframe.Config.SidewaysPercentToPrice)
+	i.HeapTimeframe.HeapStatus.IsSidewaysState = isSideways
+	i.HeapTimeframe.HeapStatus.Trend, i.HeapTimeframe.HeapStatus.TrendSlope = trading.GetTrendLinearRegression(i.HeapTimeframe.Candles)
+
+	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
+	copy(sidewaysKlines, i.HeapTimeframe.Candles[:sidewaysKLinesAmount])
+	i.HeapTimeframe.HeapStatus.PremiumDiscount = trading.PremiumDiscount(sidewaysKlines)
+
+	i.HeapTimeframe.HeapStatus.Qty = qty
+	i.HeapTimeframe.HeapStatus.Price = price
+	i.HeapTimeframe.HeapStatus.Deal = deal
+	i.HeapTimeframe.HeapStatus.LastOrderHeap = lastOrderHeap
+	i.HeapTimeframe.HeapStatus.LastOrderMoved = lastOrderMoved
+
+	zone := trading.ZoneNeutral
+	if i.HeapTimeframe.HeapStatus.PremiumDiscount > i.HeapTimeframe.Config.SidewaysPremiumCoefficient {
+		zone = trading.ZonePremium
+	}
+	if i.HeapTimeframe.HeapStatus.PremiumDiscount < i.HeapTimeframe.Config.SidewaysDiscountCoefficient {
+		zone = trading.ZoneDiscount
+	}
+	i.HeapTimeframe.HeapStatus.Zone = zone
+
+	return
+}

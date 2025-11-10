@@ -88,7 +88,7 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 	return
 }
 
-func GetActiveDealByTimeframe(ctx context.Context, s *Storage, timeFrame _struct.Timeframe) (deal *entity.Deal, err error) {
+func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struct.Timeframe) (deal *entity.Deal, err error) {
 	err = s.dealCollection.FindOne(ctx, bson.D{{
 		"$and", bson.A{
 			bson.D{{"Timeframe", timeFrame.Resolution()}},

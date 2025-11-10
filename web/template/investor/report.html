@@ -76,17 +76,16 @@
                 {{ block "heap-timeframe-status" .HeapTimeframe }}
                 <div id="heap-timeframe-status">
                     Resolution: {{ .Config.Resolution }} (Heap)<br />
-                    {{ if .IsSidewaysState }}
+                    {{ if .HeapStatus.IsSidewaysState }}
                     Sideway<br />
                     {{ else }}
                     Not sideway<br />
                     {{ end }}
-                    Zone: {{ .Zone }}<br />
-                    Trend: {{ .Trend }}<br />
-                    Trend slope: {{ .TrendSlope | longFloatShort 2 }} <br />
+                    Zone: {{ .HeapStatus.Zone }}<br />
+                    Trend: {{ .HeapStatus.Trend }}<br />
+                    Trend slope: {{ .HeapStatus.TrendSlope | longFloatShort 2 }} <br />
                     Qty: {{ .HeapStatus.Qty | moneyFormat 6}} BTC<br /> <!-- @TODO Set value from config-->
                     Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br /> <!-- @TODO Set value from config-->
-
                 </div>
                 {{ end }}
             </div>

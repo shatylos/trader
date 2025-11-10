@@ -5,7 +5,6 @@ import (
 	"fmt"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
-	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
@@ -19,7 +18,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	}
 
 	var deal *entity.Deal
-	deal, err = storage.GetActiveDealByTimeframe(ctx, &i.Storage, timeFrameItem)
+	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem)
 	if err != nil {
 		return
 	}
@@ -106,36 +105,23 @@ func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_stru
 		return
 	}
 
-	err = i.Storage.UpdateHeapStatus(ctx, timeFrameItem)
+	err = i.UpdateHeapStatus(ctx)
 	if err != nil {
 		return
 	}
 
-	isSideways, sidewaysKLinesAmount := trading.CheckSideways(timeFrameItem.Candles, timeFrameItem.Config.SidewaysMinCandlesAmount, timeFrameItem.Config.SidewaysPercentToPrice)
-	timeFrameItem.IsSidewaysState = isSideways
-
-	timeFrameItem.Trend, timeFrameItem.TrendSlope = trading.GetTrendLinearRegression(timeFrameItem.Candles)
-
-	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
-	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
-	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
-
-	zone := trading.ZoneNeutral
-	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
-		zone = trading.ZonePremium
+	if i.HeapTimeframe.HeapStatus.Zone == trading.ZonePremium {
 		err = i.handleHeapPremium(ctx, timeFrameItem)
 		if err != nil {
 			return
 		}
 	}
-	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
-		zone = trading.ZoneDiscount
+	if i.HeapTimeframe.HeapStatus.Zone == trading.ZoneDiscount {
 		err = i.handleHeapDiscount(ctx, timeFrameItem)
 		if err != nil {
 			return
 		}
 	}
-	timeFrameItem.Zone = zone
 
 	return
 }
