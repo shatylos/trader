@@ -36,24 +36,9 @@ func (i *Investor) handleHeapPremium(ctx context.Context, heapTimeframe *_struct
 		priceCheck = true
 	}
 
-	// calculate qty from qty on heap, available amounts and current price
-	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(heapTimeframe.Candles)
+	qtyRange := math.Mul(math.Div(heapTimeframe.HeapStatus.PurposeQty, 100), heapTimeframe.Config.QtyPercent)
 
-	qtyPercentOnMaxPrice := heapTimeframe.Config.QtyPercentOnMaxPrice
-	qtyPercentOnMinPrice := heapTimeframe.Config.QtyPercentOnMinPrice
-
-	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
-	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
-	tradeCurrencyAmount := trading.TradeCurrencyToMain(tradeCurrencyQty, currentPrice)
-	totalAmount := mainCurrencyAmount + tradeCurrencyAmount
-	qtyPercentForCurrentPrice := math.MapRange(historyMinPrice, historyMaxPrice, qtyPercentOnMinPrice, qtyPercentOnMaxPrice, currentPrice)
-
-	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
-	purposeQty := purposeAmount / currentPrice
-
-	qtyRange := math.Mul(math.Div(purposeQty, 100), heapTimeframe.Config.QtyPercent)
-
-	qty := tradeCurrencyQty - purposeQty + qtyRange
+	qty := heapTimeframe.HeapStatus.Qty - heapTimeframe.HeapStatus.PurposeQty + qtyRange
 
 	// do sell
 	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionSell), i.Config.QtyPrecision)
@@ -91,24 +76,9 @@ func (i *Investor) handleHeapDiscount(ctx context.Context, heapTimeframe *_struc
 		priceCheck = true
 	}
 
-	// calculate qty from qty on heap, available amounts and current price
-	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(heapTimeframe.Candles)
-
-	qtyPercentOnMaxPrice := heapTimeframe.Config.QtyPercentOnMaxPrice
-	qtyPercentOnMinPrice := heapTimeframe.Config.QtyPercentOnMinPrice
-
-	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
 	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
-	tradeCurrencyAmount := trading.TradeCurrencyToMain(tradeCurrencyQty, currentPrice)
-	totalAmount := mainCurrencyAmount + tradeCurrencyAmount
-	qtyPercentForCurrentPrice := math.MapRange(historyMinPrice, historyMaxPrice, qtyPercentOnMinPrice, qtyPercentOnMaxPrice, currentPrice)
-
-	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
-	purposeQty := purposeAmount / currentPrice
-
-	qtyRange := math.Mul(math.Div(purposeQty, 100), heapTimeframe.Config.QtyPercent)
-
-	qty := purposeQty - tradeCurrencyQty + qtyRange
+	qtyRange := math.Mul(math.Div(heapTimeframe.HeapStatus.PurposeQty, 100), heapTimeframe.Config.QtyPercent)
+	qty := heapTimeframe.HeapStatus.PurposeQty - tradeCurrencyQty + qtyRange
 
 	// do buy
 	minQty := math.RoundCell(i.Config.MinQty+math.Mul(math.Div(i.Config.MinQty, 100), i.Config.CommissionBuy), i.Config.QtyPrecision)
@@ -172,7 +142,6 @@ func (i *Investor) moveToHeap(ctx context.Context, dealRelation *entity.DealRela
 }
 
 func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
-
 	var dealRelations []*entity.DealRelation
 	dealRelations, err = i.Storage.GetDealRelationsOnHeap(ctx)
 	if err != nil {
@@ -243,6 +212,20 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 		zone = trading.ZoneDiscount
 	}
 	i.HeapTimeframe.HeapStatus.Zone = zone
+
+	historyMinPrice, historyMaxPrice := trading.MinMaxPrice(i.HeapTimeframe.Candles)
+
+	qtyPercentOnMaxPrice := i.HeapTimeframe.Config.QtyPercentOnMaxPrice
+	qtyPercentOnMinPrice := i.HeapTimeframe.Config.QtyPercentOnMinPrice
+
+	mainCurrencyAmount := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.MainCurrency)
+	tradeCurrencyQty := trading.CurrencyAmountTotal(i.State.Wallet, i.Config.TradeCurrency)
+	tradeCurrencyAmount := trading.TradeCurrencyToMain(tradeCurrencyQty, i.State.CurrentPrice)
+	totalAmount := mainCurrencyAmount + tradeCurrencyAmount
+	qtyPercentForCurrentPrice := math.MapRange(historyMinPrice, historyMaxPrice, qtyPercentOnMinPrice, qtyPercentOnMaxPrice, i.State.CurrentPrice)
+
+	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
+	i.HeapTimeframe.HeapStatus.PurposeQty = purposeAmount / i.State.CurrentPrice
 
 	return
 }
