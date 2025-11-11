@@ -224,8 +224,8 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 	totalAmount := mainCurrencyAmount + tradeCurrencyAmount
 	qtyPercentForCurrentPrice := math.MapRange(historyMinPrice, historyMaxPrice, qtyPercentOnMinPrice, qtyPercentOnMaxPrice, i.State.CurrentPrice)
 
-	purposeAmount := totalAmount / 100.0 * qtyPercentForCurrentPrice
-	i.HeapTimeframe.HeapStatus.PurposeQty = purposeAmount / i.State.CurrentPrice
+	i.HeapTimeframe.HeapStatus.PurposeQtyEqv = totalAmount / 100.0 * qtyPercentForCurrentPrice
+	i.HeapTimeframe.HeapStatus.PurposeQty = i.HeapTimeframe.HeapStatus.PurposeQtyEqv / i.State.CurrentPrice
 
 	return
 }

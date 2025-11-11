@@ -14,7 +14,7 @@
 <hr/>
 
 <div class="row align-items-start">
-    <div class="col-6">
+    <div class="col-4">
         <h4>
             Total PNL:
             {{ .TotalPnl | moneyFormat .PricePrecision }}
@@ -40,15 +40,15 @@
             = <strong>{{ .BalanceTotalAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
     </div>
-    <div class="col-6">
-        <h4>
+    <div class="col-4">
+        <h5>
             Current price:
             {{ block "current-price" . }}
             <span id="current-price">
                 1 {{ .TradeCurrency }} = {{ .CurrentPrice | moneyFormat .PricePrecision }} {{ .MainCurrency }}
             </span>
             {{ end }}
-        </h4>
+        </h5>
 
         <div class="clearfix"></div>
         <hr/>
@@ -56,7 +56,7 @@
         <h5>Timeframes:</h5>
         <div class="row align-items-start">
             {{ range $i, $timeframe := .Timeframes }}
-            <div class="col-4 mb-3">
+            <div class="col-6 mb-3">
                 {{ block "timeframe-item-status" . }}
                 <div id="timeframe-item-status-{{ .Config.Resolution }}">
                     Resolution: {{ .Config.Resolution }}<br />
@@ -72,25 +72,27 @@
                 {{ end }}
             </div>
             {{ end }}
-            <div class="col-4 mb-3">
-                {{ block "heap-timeframe-status" .HeapTimeframe }}
-                <div id="heap-timeframe-status">
-                    Resolution: {{ .Config.Resolution }} (Heap)<br />
-                    {{ if .HeapStatus.IsSidewaysState }}
-                    Sideway<br />
-                    {{ else }}
-                    Not sideway<br />
-                    {{ end }}
-                    Zone: {{ .HeapStatus.Zone }}<br />
-                    Trend: {{ .HeapStatus.Trend }}<br />
-                    Trend slope: {{ .HeapStatus.TrendSlope | longFloatShort 2 }} <br />
-                    Qty: {{ .HeapStatus.Qty | moneyFormat 6}} BTC<br /> <!-- @TODO Set value from config-->
-                    Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br /> <!-- @TODO Set value from config-->
-                    Purpose Qty: {{ .HeapStatus.PurposeQty | moneyFormat 6}} BTC<br /> <!-- @TODO Set value from config-->
-
-                </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="col-12 mb-3">
+            {{ block "heap-timeframe-status" .HeapTimeframe }}
+            <div id="heap-timeframe-status">
+                <h5>Resolution: {{ .Config.Resolution }} (Heap)</h5>
+                {{ if .HeapStatus.IsSidewaysState }}
+                Sideway<br />
+                {{ else }}
+                Not sideway<br />
                 {{ end }}
+                Zone: {{ .HeapStatus.Zone }}<br />
+                Trend: {{ .HeapStatus.Trend }}<br />
+                Trend slope: {{ .HeapStatus.TrendSlope | longFloatShort 2 }} <br />
+                Qty: {{ .HeapStatus.Qty | moneyFormat 6}} BTC<br /> <!-- @TODO Set value from config-->
+                Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br /> <!-- @TODO Set value from config-->
+                Purpose Qty: {{ .HeapStatus.PurposeQty | moneyFormat 6}} BTC <!-- @TODO Set value from config-->
+                ≈ {{ .HeapStatus.PurposeQtyEqv | moneyFormat 2}} USDT<br /> <!-- @TODO Set value from config-->
             </div>
+            {{ end }}
         </div>
     </div>
 </div>
