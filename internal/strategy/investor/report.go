@@ -15,29 +15,33 @@ import (
 )
 
 type ReportTemplateData struct {
-	PrevPeriodLink     string
-	NextPeriodLink     string
-	WsLink             string
-	DateFrom           time.Time
-	DateTo             time.Time
-	DealsRelations     []*entity.DealRelation //@TODO: remove * from the list
-	MainCurrency       string
-	TradeCurrency      string
-	PricePrecision     int
-	QtyPrecision       int
-	TotalPnl           float64
-	TotalPnlPercent    float64
-	BalanceMainBefore  float64
-	BalanceTradeBefore float64
-	BalanceTotalBefore float64
-	BalanceTotalAfter  float64
-	BalanceMainAfter   float64
-	BalanceTradeAfter  float64
-	DepoAmount         float64
-	WithdrawAmount     float64
-	Timeframes         []_struct.TimeframeItem
-	HeapTimeframe      _struct.HeapTimeframe
-	CurrentPrice       float64
+	PrevPeriodLink        string
+	NextPeriodLink        string
+	WsLink                string
+	DateFrom              time.Time
+	DateTo                time.Time
+	DealsRelations        []*entity.DealRelation //@TODO: remove * from the list
+	MainCurrency          string
+	TradeCurrency         string
+	PricePrecision        int
+	QtyPrecision          int
+	TotalPnl              float64
+	TotalPnlPercent       float64
+	BalanceMainBefore     float64
+	BalanceMainBeforeEqv  float64
+	BalanceTradeBefore    float64
+	BalanceTradeBeforeEqv float64
+	BalanceTotalBefore    float64
+	BalanceTotalAfter     float64
+	BalanceMainAfter      float64
+	BalanceMainAfterEqv   float64
+	BalanceTradeAfter     float64
+	BalanceTradeAfterEqv  float64
+	DepoAmount            float64
+	WithdrawAmount        float64
+	Timeframes            []_struct.TimeframeItem
+	HeapTimeframe         _struct.HeapTimeframe
+	CurrentPrice          float64
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruct.Report, err error) {
@@ -84,29 +88,33 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
 	data := ReportTemplateData{
-		PrevPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
-		NextPeriodLink:     fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
-		WsLink:             fmt.Sprintf("/%s/ws-report", i.GetId()),
-		DateFrom:           from,
-		DateTo:             to,
-		DealsRelations:     dealRelations,
-		MainCurrency:       i.Config.MainCurrency,
-		TradeCurrency:      i.Config.TradeCurrency,
-		PricePrecision:     int(i.Config.PricePrecision),
-		QtyPrecision:       int(i.Config.QtyPrecision),
-		TotalPnl:           totalPnl,
-		TotalPnlPercent:    totalPnlPercent,
-		BalanceMainBefore:  balanceMainBefore,
-		BalanceTradeBefore: balanceTradeBefore,
-		BalanceTotalBefore: balanceTotalBefore,
-		BalanceTotalAfter:  balanceTotalAfter,
-		BalanceMainAfter:   balanceMainAfter,
-		BalanceTradeAfter:  balanceTradeAfter,
-		DepoAmount:         depoAmount,
-		WithdrawAmount:     withdrawAmount,
-		Timeframes:         i.Timeframes,
-		HeapTimeframe:      i.HeapTimeframe,
-		CurrentPrice:       i.State.CurrentPrice,
+		PrevPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
+		NextPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
+		WsLink:                fmt.Sprintf("/%s/ws-report", i.GetId()),
+		DateFrom:              from,
+		DateTo:                to,
+		DealsRelations:        dealRelations,
+		MainCurrency:          i.Config.MainCurrency,
+		TradeCurrency:         i.Config.TradeCurrency,
+		PricePrecision:        int(i.Config.PricePrecision),
+		QtyPrecision:          int(i.Config.QtyPrecision),
+		TotalPnl:              totalPnl,
+		TotalPnlPercent:       totalPnlPercent,
+		BalanceMainBefore:     balanceMainBefore,
+		BalanceMainBeforeEqv:  math.Div(balanceMainBefore, i.State.CurrentPrice),
+		BalanceTradeBefore:    balanceTradeBefore,
+		BalanceTradeBeforeEqv: math.Mul(balanceTradeBefore, i.State.CurrentPrice),
+		BalanceTotalBefore:    balanceTotalBefore,
+		BalanceTotalAfter:     balanceTotalAfter,
+		BalanceMainAfter:      balanceMainAfter,
+		BalanceMainAfterEqv:   math.Div(balanceMainAfter, i.State.CurrentPrice),
+		BalanceTradeAfter:     balanceTradeAfter,
+		BalanceTradeAfterEqv:  math.Mul(balanceTradeAfter, i.State.CurrentPrice),
+		DepoAmount:            depoAmount,
+		WithdrawAmount:        withdrawAmount,
+		Timeframes:            i.Timeframes,
+		HeapTimeframe:         i.HeapTimeframe,
+		CurrentPrice:          i.State.CurrentPrice,
 	}
 
 	var resultBuilder strings.Builder

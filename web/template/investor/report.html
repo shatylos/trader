@@ -15,29 +15,34 @@
 
 <div class="row align-items-start">
     <div class="col-4">
-        <h4>
+        <h5>
             Total PNL:
             {{ .TotalPnl | moneyFormat .PricePrecision }}
             {{ .MainCurrency }}
             ({{ .TotalPnlPercent | moneyFormat 2 }}%)
-        </h4>
+        </h5>
+        <hr/>
         <div>
-            Balance before:
-            {{ .BalanceMainBefore | moneyFormat .PricePrecision  }} {{ .MainCurrency }}
-            + {{ .BalanceTradeBefore | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}
-            = <strong>{{ .BalanceTotalBefore | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
+            Balance before:<br />
+            {{ .BalanceMainBefore | moneyFormat .PricePrecision  }} {{ .MainCurrency }} ≈
+            {{ .BalanceMainBeforeEqv | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}<br />
+            {{ .BalanceTradeBefore | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }} ≈
+            {{ .BalanceTradeBeforeEqv | moneyFormat .PricePrecision  }} {{ .MainCurrency }}<br />
+            Total: <strong>{{ .BalanceTotalBefore | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
+        <hr/>
         <div>
-            Deposit amount: {{ .DepoAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
-        </div>
-        <div>
+            Deposit amount: {{ .DepoAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}<br/>
             Withdraw amount: {{ .WithdrawAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
         </div>
+        <hr/>
         <div>
-            Balance after:
-            {{ .BalanceMainAfter | moneyFormat .PricePrecision  }} {{ .MainCurrency }}
-            + {{ .BalanceTradeAfter | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}
-            = <strong>{{ .BalanceTotalAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
+            Balance after:<br />
+            {{ .BalanceMainAfter | moneyFormat .PricePrecision  }} {{ .MainCurrency }} ≈
+            {{ .BalanceMainAfterEqv | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }}<br />
+            {{ .BalanceTradeAfter | moneyFormat .QtyPrecision  }} {{ .TradeCurrency }} ≈
+            {{ .BalanceTradeAfterEqv | moneyFormat .PricePrecision  }} {{ .MainCurrency }}<br />
+            Total: <strong>{{ .BalanceTotalAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
     </div>
     <div class="col-4">
