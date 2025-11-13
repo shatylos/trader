@@ -39,7 +39,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	}
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
-	if qty < math.Div(available, i.State.CurrentPrice) {
+	if qty > math.Div(available, i.State.CurrentPrice) {
 		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
 		return
 	}
@@ -111,7 +111,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 	walletBefore = *i.State.Wallet
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
-	if qty < math.Div(available, i.State.CurrentPrice) {
+	if qty > math.Div(available, i.State.CurrentPrice) {
 		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
 		return
 	}
@@ -235,7 +235,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	qty = i.calculateQtyToSell(qty, timeFrame.IsHeap())
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
-	if qty < available {
+	if qty > available {
 		logger.Warning(fmt.Sprintf("Insufficient balance to sell %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.TradeCurrency))
 		return
 	}
