@@ -38,6 +38,12 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 		return
 	}
 
+	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
+	if qty < math.Div(available, i.State.CurrentPrice) {
+		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
+		return
+	}
+
 	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to buy %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
 	}
@@ -103,6 +109,12 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 
 	var walletBefore, walletAfter domainStructs.DomainWallet
 	walletBefore = *i.State.Wallet
+
+	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
+	if qty < math.Div(available, i.State.CurrentPrice) {
+		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
+		return
+	}
 
 	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to buy for heap %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
@@ -221,6 +233,12 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	walletBefore = *i.State.Wallet
 
 	qty = i.calculateQtyToSell(qty, timeFrame.IsHeap())
+
+	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+	if qty < available {
+		logger.Warning(fmt.Sprintf("Insufficient balance to sell %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.TradeCurrency))
+		return
+	}
 
 	if i.Config.Verbose {
 		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
