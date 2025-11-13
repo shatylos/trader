@@ -227,5 +227,8 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 	i.HeapTimeframe.HeapStatus.PurposeQtyEqv = totalAmount / 100.0 * qtyPercentForCurrentPrice
 	i.HeapTimeframe.HeapStatus.PurposeQty = i.HeapTimeframe.HeapStatus.PurposeQtyEqv / i.State.CurrentPrice
 
+	i.HeapTimeframe.HeapStatus.QtyExcess = i.HeapTimeframe.HeapStatus.Qty - i.HeapTimeframe.HeapStatus.PurposeQty
+	i.HeapTimeframe.HeapStatus.QtyExcessEqv = math.Mul(i.HeapTimeframe.HeapStatus.QtyExcess, i.State.CurrentPrice)
+
 	return
 }

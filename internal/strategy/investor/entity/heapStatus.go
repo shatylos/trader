@@ -4,6 +4,8 @@ type HeapStatus struct {
 	Qty             float64
 	PurposeQty      float64
 	PurposeQtyEqv   float64
+	QtyExcess       float64
+	QtyExcessEqv    float64
 	Price           float64
 	Deal            *Deal
 	LastOrderHeap   *Order

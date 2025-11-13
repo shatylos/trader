@@ -110,6 +110,8 @@
                     Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br/> <!-- @TODO Set value from config-->
                     Purpose Qty: {{ .HeapStatus.PurposeQty | moneyFormat 6}} BTC <!-- @TODO Set value from config-->
                     ≈ {{ .HeapStatus.PurposeQtyEqv | moneyFormat 2}} USDT<br/> <!-- @TODO Set value from config-->
+                    QTY excess (QTY - purpose QTY): {{ .HeapStatus.QtyExcess | moneyFormat 6}} BTC <!-- @TODO Set value from config-->
+                    ≈ {{ .HeapStatus.QtyExcessEqv | moneyFormat 2}} USDT<br/> <!-- @TODO Set value from config-->
                 </div>
                 {{ end }}
             </div>
