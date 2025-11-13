@@ -15,6 +15,9 @@ import (
 )
 
 type ReportTemplateData struct {
+	AvailableMain         float64
+	AvailableTrade        float64
+	AvailableTotalMain    float64
 	PrevPeriodLink        string
 	NextPeriodLink        string
 	WsLink                string
@@ -93,7 +96,13 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		isCurrentPeriod = true
 	}
 
+	availableMain := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
+	availableTrade := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+
 	data := ReportTemplateData{
+		AvailableMain:         availableMain,
+		AvailableTrade:        availableTrade,
+		AvailableTotalMain:    availableMain + math.Mul(availableTrade, i.State.CurrentPrice),
 		PrevPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
 		WsLink:                fmt.Sprintf("/%s/ws-report", i.GetId()),

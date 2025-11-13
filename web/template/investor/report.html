@@ -56,11 +56,18 @@
     <div class="row align-items-start">
         <div class="col-6">
             <h5>
-                Current price:
                 {{ block "current-price" . }}
-                <span id="current-price">
-                1 {{ .TradeCurrency }} = {{ .CurrentPrice | moneyFormat .PricePrecision }} {{ .MainCurrency }}
-            </span>
+                <div id="current-price">
+                    Current price: 1 {{ .TradeCurrency }} = <span class="text-success">{{ .CurrentPrice | moneyFormat .PricePrecision }}</span>
+                    {{ .MainCurrency }}
+                    <br/>
+                    Available: <span class="text-success">{{ .AvailableMain | moneyFormat .PricePrecision }}</span> {{
+                    .MainCurrency }},
+                    <span class="text-success">{{ .AvailableTrade | moneyFormat .QtyPrecision }}</span> {{
+                    .TradeCurrency }},
+                    ∑ ≈ <span class="text-success">{{ .AvailableTotalMain | moneyFormat .PricePrecision }}</span> {{
+                    .MainCurrency }}
+                </div>
                 {{ end }}
             </h5>
             <hr/>

@@ -9,6 +9,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/trading"
 	"net/http"
 	"time"
 )
@@ -19,6 +20,7 @@ type Investor struct {
 	Timeframes    []_struct.TimeframeItem
 	HeapTimeframe _struct.HeapTimeframe
 	State         State
+	prevState     State
 	Storage       storage.Storage
 	WebSocket     WebSocket
 }
@@ -81,6 +83,9 @@ func (i *Investor) DoAction() (err error) {
 	if i.HeapTimeframe.IsStatusChanged() {
 		i.WebSocket.SendHeapTimeframeStatus(i.HeapTimeframe)
 	}
+	if i.IsBalanceChanged() {
+		i.WebSocket.SendCurrentPrice(i)
+	}
 	return
 }
 
@@ -93,5 +98,25 @@ func (i *Investor) getContext() (ctx context.Context) {
 	ctx = context.WithValue(ctx, _struct.CtxSetupKey, i)
 	ctx = context.WithValue(ctx, _struct.CtxMainCurrencyKey, i.Config.MainCurrency)
 	ctx = context.WithValue(ctx, _struct.CtxTradeCurrencyKey, i.Config.TradeCurrency)
+	return
+}
+
+func (i *Investor) IsBalanceChanged() (isChanged bool) {
+	availableMain := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
+	availableTrade := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+
+	prevAvailableMain := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
+	prevAvailableTrade := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+
+	if availableMain != prevAvailableMain {
+		isChanged = true
+	}
+	if availableTrade != prevAvailableTrade {
+		isChanged = true
+	}
+	if i.State.CurrentPrice != i.prevState.CurrentPrice {
+		isChanged = true
+	}
+	i.prevState = i.State
 	return
 }

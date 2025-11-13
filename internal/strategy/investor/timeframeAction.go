@@ -134,11 +134,7 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 			return
 		}
 		timeFrame.SetCandles(candles)
-		newPrice := timeFrame.GetCandles()[0].Close
-		if i.State.CurrentPrice != newPrice {
-			i.WebSocket.SendCurrentPrice(newPrice)
-		}
-		i.State.CurrentPrice = newPrice
+		i.State.CurrentPrice = timeFrame.GetCandles()[0].Close
 		time.Sleep(i.Config.RequestDelay)
 	}
 
