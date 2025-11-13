@@ -42,6 +42,7 @@ type ReportTemplateData struct {
 	Timeframes            []_struct.TimeframeItem
 	HeapTimeframe         _struct.HeapTimeframe
 	CurrentPrice          float64
+	IsCurrentPeriod       bool
 }
 
 func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruct.Report, err error) {
@@ -87,6 +88,11 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
 		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
+	isCurrentPeriod := false
+	if from.Before(time.Now()) && to.After(time.Now()) {
+		isCurrentPeriod = true
+	}
+
 	data := ReportTemplateData{
 		PrevPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:        fmt.Sprintf("/report/%s/%s/", i.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
@@ -115,6 +121,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		Timeframes:            i.Timeframes,
 		HeapTimeframe:         i.HeapTimeframe,
 		CurrentPrice:          i.State.CurrentPrice,
+		IsCurrentPeriod:       isCurrentPeriod,
 	}
 
 	var resultBuilder strings.Builder
