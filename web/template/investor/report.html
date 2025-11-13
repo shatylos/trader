@@ -27,7 +27,7 @@
 
     <div class="row align-items-start">
         <div class="col-4">
-            Balance before:<br/>
+            <h5>Balance before:</h5>
             {{ .BalanceMainBefore | moneyFormat .PricePrecision }} {{ .MainCurrency }} ≈
             {{ .BalanceMainBeforeEqv | moneyFormat .QtyPrecision }} {{ .TradeCurrency }}<br/>
             {{ .BalanceTradeBefore | moneyFormat .QtyPrecision }} {{ .TradeCurrency }} ≈
@@ -36,12 +36,13 @@
         </div>
 
         <div class="col-4">
+            <h5>Assets:</h5>
             Deposit amount: {{ .DepoAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}<br/>
             Withdraw amount: {{ .WithdrawAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
         </div>
 
         <div class="col-4">
-            Balance after:<br/>
+            <h5>Balance after:</h5>
             {{ .BalanceMainAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }} ≈
             {{ .BalanceMainAfterEqv | moneyFormat .QtyPrecision }} {{ .TradeCurrency }}<br/>
             {{ .BalanceTradeAfter | moneyFormat .QtyPrecision }} {{ .TradeCurrency }} ≈
