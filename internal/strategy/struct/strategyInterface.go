@@ -28,6 +28,7 @@ type Pnl struct {
 
 type StrategyInterface interface {
 	GetId() string
+	IsEnabled() bool
 	GetTitle() string
 	SetConfig(interface{}, map[string]interface{}) error
 	DoAction() error

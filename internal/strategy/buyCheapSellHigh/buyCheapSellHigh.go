@@ -46,6 +46,10 @@ func (s *BuyCheapSellHigh) GetId() string {
 	return s.Id
 }
 
+func (s *BuyCheapSellHigh) IsEnabled() bool {
+	return s.Enabled
+}
+
 func (s *BuyCheapSellHigh) GetTitle() string {
 	if !s.Enabled {
 		return fmt.Sprintf("Buy Cheap Sell High: %s (%s) (DISABLED)", s.Id, s.CoinPare)

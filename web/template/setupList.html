@@ -35,9 +35,11 @@
 
         <div class="row">
             {{ range .SetupItems }}
+            {{ if .IsEnabled }}
             <div class="row">
                 <p><a href="/report/{{ .SetupId }}/{{ .CurrentPeriod }}">{{ .Title }}</a></p>
             </div>
+            {{ end }}
             {{ else }}
             <div class="row">
                 <p>No setups found.</p>

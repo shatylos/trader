@@ -24,6 +24,7 @@ type SetupItemPage struct {
 	Title         string
 	SetupId       string
 	CurrentPeriod string
+	IsEnabled     bool
 }
 
 func SetupListController(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +38,7 @@ func SetupListController(w http.ResponseWriter, r *http.Request) {
 			Title:         setupItem.Strategy.GetTitle(),
 			SetupId:       setupItem.Strategy.GetId(),
 			CurrentPeriod: time.Now().Format("2006-01"),
+			IsEnabled:     setupItem.Strategy.IsEnabled(),
 		})
 	}
 
