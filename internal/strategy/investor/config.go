@@ -361,6 +361,31 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 		timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
 
+		minHigherTFSlope, exists := tfMap["min_higher_tf_slope"]
+		if exists {
+			timeframe.Config.IsCheckHigherTF = true
+			timeframe.Config.MinHigherTFSlope, err = _type.ToFloat64(minHigherTFSlope)
+			if err != nil {
+				return tools.AppError{
+					Message:     "The field min_higher_tf_slope contains not correct value. Expected float64",
+					ParentError: err,
+				}
+			}
+		} else {
+			timeframe.Config.IsCheckHigherTF = false
+		}
+
+		higherTFResolution, exists := tfMap["higher_tf_resolution"]
+		if exists {
+			timeframe.Config.HigherTFResolution, err = _type.ToString(higherTFResolution)
+			if err != nil {
+				return tools.AppError{
+					Message:     "The field higher_tf_resolution is empty or contains not correct value type",
+					ParentError: err,
+				}
+			}
+		}
+
 		i.Timeframes = append(i.Timeframes, timeframe)
 	}
 

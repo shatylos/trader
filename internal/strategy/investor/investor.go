@@ -31,6 +31,18 @@ type State struct {
 }
 
 func (i *Investor) Init(mux *http.ServeMux) {
+
+	for initKey, initTF := range i.Timeframes {
+		for refKey, refTF := range i.Timeframes {
+			if initTF.Config.HigherTFResolution == refTF.Config.Resolution {
+				i.Timeframes[initKey].HigherTimeframe = &(i.Timeframes[refKey])
+			}
+		}
+		if initTF.Config.HigherTFResolution == i.HeapTimeframe.Config.Resolution {
+			i.Timeframes[initKey].HigherTimeframe = &i.HeapTimeframe
+		}
+	}
+
 	i.WebSocket = WebSocket{
 		Clients:   make(map[*websocket.Conn]bool),
 		Config:    &i.Config,

@@ -79,13 +79,14 @@
                     <div id="timeframe-item-status-{{ .Config.Resolution }}">
                         Resolution: {{ .Config.Resolution }}<br/>
                         {{ if .IsSidewaysState }}
-                        Sideway <br/>
+                        Sideway<br/>
                         {{ else }}
-                        Not sideway <br/>
+                        Not sideway<br/>
                         {{ end }}
-                        Zone: {{ .Zone }} <br/>
-                        Trend: {{ .Trend }} <br/>
-                        Trend slope: {{ .TrendSlope | longFloatShort 2 }}
+                        Zone: {{ .Zone }}<br/>
+                        Trend: {{ .Trend }}<br/>
+                        Trend slope: {{ .TrendSlope | longFloatShort 2 }}<br/>
+                        <span class="text-info">{{ .TradeStateMsg }}</span>
                     </div>
                     {{ end }}
                 </div>

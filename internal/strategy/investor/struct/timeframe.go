@@ -10,6 +10,7 @@ type Timeframe interface {
 	Resolution() string
 	SetCandles(candles []domainStructs.DomainCandle)
 	GetCandles() []domainStructs.DomainCandle
+	GetTrendSlope() float64
 	GetCandleTime() time.Time
 	MinPercentRangeToSell() float64
 	IsHeap() bool

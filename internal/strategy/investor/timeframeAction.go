@@ -52,6 +52,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 		case domainStructs.OrderStatuses.New,
 			domainStructs.OrderStatuses.Open,
 			domainStructs.OrderStatuses.PartiallyFilled:
+			timeFrameItem.TradeStateMsg = "Wait for fill the order"
 			err = i.updateOrder(ctx, dealRelation.Deal, dealOrder, timeFrameItem)
 			if err != nil {
 				return
@@ -77,23 +78,26 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	}
 
 	if !isSideways {
+		timeFrameItem.TradeStateMsg = "Not a sideways market for trading"
 		if i.Config.Verbose {
 			logger.Info(fmt.Sprintf("Timeframe %s is not in sideways", timeFrameItem.Config.Resolution))
 		}
 		return
 	}
 
-	if zone == trading.ZonePremium {
+	switch zone {
+	case trading.ZonePremium:
 		err = i.handlePremium(ctx, dealRelation, timeFrameItem)
 		if err != nil {
 			return
 		}
-	}
-	if zone == trading.ZoneDiscount {
+	case trading.ZoneDiscount:
 		err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
 		if err != nil {
 			return
 		}
+	case trading.ZoneNeutral:
+		timeFrameItem.TradeStateMsg = "Timeframe zone is neutral, no trade"
 	}
 
 	return

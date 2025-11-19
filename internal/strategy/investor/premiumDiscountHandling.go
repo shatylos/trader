@@ -18,6 +18,8 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 		return
 	}
 
+	timeFrameItem.TradeStateMsg = "Handle premium"
+
 	for _, dealOrder := range dealRelation.Orders {
 		if i.isActiveOrder(dealOrder) {
 			if i.Config.Verbose {
@@ -68,6 +70,19 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 }
 
 func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
+
+	if timeFrameItem.Config.IsCheckHigherTF {
+		higherTrendSlope := timeFrameItem.GetHigherTrendSlope()
+		if higherTrendSlope < timeFrameItem.Config.MinHigherTFSlope {
+			if i.Config.Verbose {
+				logger.Info(fmt.Sprintf("Higher trend slope %f is lower then expected trend (%f)", higherTrendSlope, timeFrameItem.Config.MinHigherTFSlope))
+			}
+			timeFrameItem.TradeStateMsg = "Higher-TF slope too low"
+			return
+		}
+	}
+
+	timeFrameItem.TradeStateMsg = "Handle discount"
 
 	if len(dealRelation.Orders) == 0 {
 		var providerOrderId string

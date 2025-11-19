@@ -60,6 +60,10 @@ func (t *HeapTimeframe) IsHeap() bool {
 	return true
 }
 
+func (t *HeapTimeframe) GetTrendSlope() float64 {
+	return t.HeapStatus.TrendSlope
+}
+
 func (t HeapConfig) GetCandleReview() int64 {
 	return t.CandleReview
 }

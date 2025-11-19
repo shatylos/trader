@@ -9,15 +9,18 @@ type TimeframeItem struct {
 	Config          TimeframeItemConfig
 	CandleTime      time.Time
 	Candles         []domainStructs.DomainCandle
+	TrendSlope      float64
+	HigherTimeframe Timeframe
 	IsSidewaysState bool
 	Zone            string
 	Trend           string
-	TrendSlope      float64
+	TradeStateMsg   string
 	prevValues      struct {
 		IsSidewaysState bool
 		Zone            string
 		Trend           string
 		TrendSlope      float64
+		TradeStateMsg   string
 	}
 }
 
@@ -34,6 +37,9 @@ type TimeframeItemConfig struct {
 	MinPercentRangeToSell       float64
 	MinPercentRangeToBuyMore    float64
 	DurationToMoveToHeap        time.Duration
+	IsCheckHigherTF             bool
+	MinHigherTFSlope            float64
+	HigherTFResolution          string
 }
 
 func (t *TimeframeItem) GetConfig() TimeframeConfig {
@@ -65,6 +71,17 @@ func (t *TimeframeItem) IsHeap() bool {
 	return false
 }
 
+func (t *TimeframeItem) GetTrendSlope() float64 {
+	return t.TrendSlope
+}
+
+func (t *TimeframeItem) GetHigherTrendSlope() float64 {
+	if t.HigherTimeframe == nil {
+		return 0
+	}
+	return t.HigherTimeframe.GetTrendSlope()
+}
+
 func (t TimeframeItemConfig) GetCandleReview() int64 {
 	return t.CandleReview
 }
@@ -89,6 +106,10 @@ func (t *TimeframeItem) IsStatusChanged() (isChanged bool) {
 	if t.TrendSlope != t.prevValues.TrendSlope {
 		isChanged = true
 		t.prevValues.TrendSlope = t.TrendSlope
+	}
+	if t.TradeStateMsg != t.prevValues.TradeStateMsg {
+		isChanged = true
+		t.prevValues.TradeStateMsg = t.TradeStateMsg
 	}
 	return
 }
