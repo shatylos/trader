@@ -1,14 +1,18 @@
 package _type
 
 import (
-	"fmt"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"strconv"
 	"time"
 )
 
+var EmptyValueError = apperrors.New("empty value")
+var CanNotBeConvertedError = apperrors.New("value can not be converted")
+
 func ToInt64(value interface{}) (int64, error) {
+	if value == nil {
+		return 0, apperrors.Wrap(EmptyValueError, "the value \"%s\" can not be converted to int64", value)
+	}
 	switch value.(type) {
 	case int:
 		return int64(value.(int)), nil
@@ -19,14 +23,12 @@ func ToInt64(value interface{}) (int64, error) {
 	case string:
 		return strconv.ParseInt(value.(string), 10, 64)
 	}
-	return 0, tools.AppError{
-		Message: "The value can not be converted to int64",
-	}
+	return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to int64", value)
 }
 
 func ToFloat64(value interface{}) (newVal float64, err error) {
 	if value == nil {
-		return 0, tools.EmptyValueError
+		return 0, apperrors.Wrap(EmptyValueError, "the value \"%s\" can not be converted to float64", value)
 	}
 	switch value.(type) {
 	case int:
@@ -41,14 +43,11 @@ func ToFloat64(value interface{}) (newVal float64, err error) {
 	case string:
 		newVal, err = strconv.ParseFloat(value.(string), 64)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Error converting string to float64: %s", err.Error()))
-			return
+			return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64: %+v", value, err)
 		}
 		return
 	}
-	return 0, tools.AppError{
-		Message: "The value can not be converted to float64",
-	}
+	return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64", value)
 }
 
 func ToString(value interface{}) (string, error) {
@@ -63,11 +62,7 @@ func ToString(value interface{}) (string, error) {
 		return strconv.FormatFloat(value.(float64), 'f', -1, 64), nil
 	}
 
-	msg := "The value can not be converted to string"
-	logger.Error(msg)
-	return "", tools.AppError{
-		Message: msg,
-	}
+	return "", apperrors.Wrap(CanNotBeConvertedError, "the value can not be converted to string")
 }
 
 func ToTimeDuration(value interface{}) (time.Duration, error) {
@@ -81,9 +76,7 @@ func ToTimeDuration(value interface{}) (time.Duration, error) {
 	case string:
 		return time.ParseDuration(value.(string))
 	}
-	return 0, tools.AppError{
-		Message: "The value can not be converted to time.Duration",
-	}
+	return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to time.Duration", value)
 }
 
 func ToInt64Slice(value interface{}) ([]int64, error) {
@@ -99,7 +92,5 @@ func ToInt64Slice(value interface{}) ([]int64, error) {
 		}
 		return result, nil
 	}
-	return nil, tools.AppError{
-		Message: "The value can not be converted to []int64",
-	}
+	return nil, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to []int64", value)
 }

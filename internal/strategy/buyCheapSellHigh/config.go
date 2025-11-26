@@ -180,7 +180,7 @@ func (s *BuyCheapSellHigh) SetConfig(strategyConfig interface{}, domainConfig ma
 	}
 
 	s.ManualBuyPriceBeforeStart, err = _type.ToFloat64(configMap["manual_buy_price_before_start"])
-	if err != nil && !errors.Is(err, tools.EmptyValueError) {
+	if err != nil && !errors.Is(err, _type.EmptyValueError) {
 		return tools.AppError{
 			Message:     "The field manual_buy_price_before_start contains not correct value type. Expects float64 value. Can be empty",
 			ParentError: err,

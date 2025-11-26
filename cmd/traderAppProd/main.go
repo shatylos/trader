@@ -13,7 +13,7 @@ import (
 func main() {
 	err := setup.TraderInit()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.PrintError(err)
 		os.Exit(1)
 	}
 

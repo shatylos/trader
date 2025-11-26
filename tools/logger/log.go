@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -23,6 +24,14 @@ var isInit bool
 
 func logInit() {
 	log.SetOutput(os.Stdout)
+	isInit = true
+}
+
+func PrintError(err error) {
+	if !isInit {
+		logInit()
+	}
+	fmt.Printf("%sError%s %v\n\n", colorRed, colorReset, err)
 }
 
 func Error(msg string) {
@@ -48,9 +57,6 @@ func Warning(msg string) {
 	if ok {
 		funcName = runtime.FuncForPC(pc).Name()
 	}
-	//stackTrace := string(debug.Stack())
-	//log.Printf("%sWarning%s %s [%s:%d %s]\nStack Trace:\n%s",
-	//	colorYellow, colorReset, msg, file, line, funcName, stackTrace)
 	log.Printf("%sWarning%s %s [%s:%d %s]\n",
 		colorYellow, colorReset, msg, file, line, funcName)
 }

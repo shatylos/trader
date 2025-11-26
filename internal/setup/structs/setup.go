@@ -3,6 +3,7 @@ package structs
 import (
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
 	"net/http"
@@ -24,11 +25,10 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 
 	err := strategy.DoAction()
 	if err != nil {
-		errorMsg := err.Error()
-		strategyTitle := strategy.GetTitle()
-		logger.Error(fmt.Sprintf("Error DoAction, setup: %s. Error: %s", strategyTitle, errorMsg))
+		err = apperrors.Wrap(err, "error DoAction for setup: %s", s.ID)
+		logger.PrintError(err)
 		s.errorCount++
-		logger.Info(fmt.Sprintf("s.errorCount after error: %d", s.errorCount))
+		logger.Info(fmt.Sprintf("error count: %d", s.errorCount))
 		if s.errorCount == 10 || s.errorCount%100 == 0 {
 			tgNotifier.Notify(fmt.Sprintf("Errors for setup %s. Error count: %d", s.ID, s.errorCount))
 		}
@@ -38,7 +38,7 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 	}
 
 	if s.errorCount > 0 {
-		logger.Info(fmt.Sprintf("Success iteration after %d errors", s.errorCount))
+		logger.Info(fmt.Sprintf("Success iteration for setup %s after %d errors", s.ID, s.errorCount))
 		s.errorCount = 0
 	}
 

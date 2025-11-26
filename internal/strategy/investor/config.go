@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
 	"time"
@@ -57,11 +58,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	var enabled int64
 	enabled, err = _type.ToInt64(configMap["enabled"])
 	if err != nil {
-		logger.Error("The field enabled is empty or contains not correct value type. Expects 1 or 0")
-		err = tools.AppError{
-			Message:     "The field enabled is empty or contains not correct value type. Expects 1 or 0",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field \"enabled\" is empty or contains not correct value type. Expects 1 or 0")
 		return
 	}
 	if enabled == 1 {

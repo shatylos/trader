@@ -6,6 +6,7 @@ import (
 	setupStructs "github.com/shatylos/trader/internal/setup/structs"
 	"github.com/shatylos/trader/internal/strategy"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
@@ -25,6 +26,7 @@ func TraderInit() error {
 
 	setups, err := prepareSetupStrategies(appConfig.StrategyItems, appConfig.DomainItems)
 	if err != nil {
+		err = apperrors.Wrap(err, "unable to init setup")
 		return err
 	}
 
@@ -61,6 +63,7 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]
 		}
 		err = strategyItem.SetConfig(strategyItemConfig, domainItems)
 		if err != nil {
+			err = apperrors.Wrap(err, "error in setup config \"%s\"", itemMap["id"])
 			return nil, err
 		}
 
