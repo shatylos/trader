@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/setup"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
 	"github.com/shatylos/trader/web/helper"
@@ -26,14 +26,16 @@ func AssetFormHandler(w http.ResponseWriter, r *http.Request) {
 
 	template, err := helper.GetTemplate("web/template/assets.html")
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error get template")
+		logger.PrintError(err)
 		return
 	}
 	err = template.Execute(w, AssetResponseData{
 		SetupId: setupInst.ID,
 	})
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error execute template")
+		logger.PrintError(err)
 		return
 	}
 }
@@ -49,14 +51,12 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 
 	amount, err := _type.ToFloat64(r.FormValue("amount"))
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Invalid amount value: %s", err.Error()))
 		http.Error(w, "Invalid amount value", 400)
 		return
 	}
 
 	transactionType := r.FormValue("type")
 	if transactionType != structs.TransactionTypeDeposit && transactionType != structs.TransactionTypeWithdraw {
-		logger.Warning(fmt.Sprintf("Invalid deposit value: %s", transactionType))
 		http.Error(w, "Invalid deposit value", 400)
 		return
 	}
@@ -64,14 +64,12 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 	timezoneOffsetStr := r.FormValue("timezoneOffset")
 	offsetMinutes, err := strconv.Atoi(timezoneOffsetStr)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Invalid timezone value: %s", err.Error()))
 		http.Error(w, "Invalid timezone value", 400)
 		return
 	}
 	loc := time.FixedZone("User Timezone", -offsetMinutes*60)
 	dateTime, err := time.ParseInLocation("2006-01-02T15:04", r.FormValue("datetime"), loc)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Invalid Date/Time value: %s", err.Error()))
 		http.Error(w, "Invalid Date/Time value", 400)
 		return
 	}
@@ -79,13 +77,16 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 	err = setupInst.Strategy.AddAssetTransaction(amount, dateTime, transactionType)
 
 	if err != nil {
+		err = apperrors.Wrap(err, "error adding asset transaction")
+		logger.PrintError(err)
 		http.Error(w, "Error adding the record", 400)
 		return
 	}
 
 	template, err := helper.GetTemplate("web/template/assets.html")
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error get template")
+		logger.PrintError(err)
 		return
 	}
 
@@ -93,4 +94,8 @@ func AssetAddHandler(w http.ResponseWriter, r *http.Request) {
 		Message: "Success",
 		SetupId: setupInst.ID,
 	})
+	if err != nil {
+		err = apperrors.Wrap(err, "error get template")
+		logger.PrintError(err)
+	}
 }

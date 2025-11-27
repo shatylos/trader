@@ -31,7 +31,7 @@ func PrintError(err error) {
 	if !isInit {
 		logInit()
 	}
-	fmt.Printf("%sError%s %v\n\n", colorRed, colorReset, err)
+	fmt.Printf("%serror:%s %v\n\n", colorRed, colorReset, err)
 }
 
 func Error(msg string) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/setup"
 	"github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/web/helper"
 	"net/http"
@@ -48,12 +49,14 @@ func SetupListController(w http.ResponseWriter, r *http.Request) {
 
 	template, err := helper.GetTemplate("web/template/setupList.html")
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error get template")
+		logger.PrintError(err)
 		return
 	}
 	err = template.Execute(w, data)
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error execute template")
+		logger.PrintError(err)
 		return
 	}
 }
@@ -107,7 +110,8 @@ func ReportPeriodHandler(w http.ResponseWriter, r *http.Request) {
 
 	strategyReport, err := strategy.GetReport(from, to)
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error get report")
+		logger.PrintError(err)
 		return
 	}
 
@@ -117,13 +121,15 @@ func ReportPeriodHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := helper.GetTemplate("web/template/report.html")
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error get template")
+		logger.PrintError(err)
 		return
 	}
 
 	err = tmpl.Execute(w, data)
 	if err != nil {
-		logger.Error(err.Error())
+		err = apperrors.Wrap(err, "error execute template")
+		logger.PrintError(err)
 		return
 	}
 }

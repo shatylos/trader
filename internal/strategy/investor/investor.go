@@ -8,6 +8,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
 	"net/http"
@@ -79,6 +80,7 @@ func (i *Investor) DoAction() (err error) {
 	if i.State.Wallet == nil {
 		err = i.updateWalletInfo()
 		if err != nil {
+			err = apperrors.Wrap(err, "error update wallet info")
 			return
 		}
 	}
@@ -86,6 +88,7 @@ func (i *Investor) DoAction() (err error) {
 	for key := range i.Timeframes {
 		err = i.handleTimeframe(ctx, &(i.Timeframes[key]))
 		if err != nil {
+			err = apperrors.Wrap(err, "error handle timeframe")
 			return
 		}
 		if i.Timeframes[key].IsStatusChanged() {
@@ -94,6 +97,7 @@ func (i *Investor) DoAction() (err error) {
 	}
 	err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
 	if err != nil {
+		err = apperrors.Wrap(err, "error handle heap timeframe")
 		return
 	}
 	if i.HeapTimeframe.IsStatusChanged() {
