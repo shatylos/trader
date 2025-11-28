@@ -6,7 +6,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
-	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
@@ -18,14 +18,13 @@ import (
 func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeItem, deal *entity.Deal) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
-		msg := "deal struct must be saved before do buy"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.New("deal struct must be saved before do buy")
 		return
 	}
 
 	err = i.updateWalletInfo()
 	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
@@ -35,18 +34,18 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	var qty, price float64
 	qty, price, err = i.calculateQtyToBuy(timeFrameItem)
 	if err != nil {
+		err = apperrors.Wrap(err, "error calculate qty to buy")
 		return
 	}
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 	if qty > math.Div(available, i.State.CurrentPrice) {
-		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
-		err = tools.AppError{Message: "Insufficient balance"}
+		err = apperrors.New("insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency)
 		return
 	}
 
 	if i.Config.Verbose {
-		logger.Info(fmt.Sprintf("Try to open limit order to buy %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
+		logger.Info(fmt.Sprintf("try to open limit order to buy %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
 	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
@@ -60,6 +59,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 		Type:        domainStructs.OrderTypes.Limit,
 	})
 	if err != nil {
+		err = apperrors.Wrap(err, "error open buy order. qty: %g, price: %g, symbol: %s", qty, price, i.Config.CoinPare)
 		return
 	}
 
@@ -69,6 +69,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	var domainOrder domainStructs.DomainOrder
 	domainOrder, err = i.provider.GetOrder(providerOrderId)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get order. ID: %s", providerOrderId)
 		return
 	}
 
@@ -81,12 +82,14 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
+		err = apperrors.Wrap(err, "error save order")
 		return
 	}
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
 		err = i.updateOrder(ctx, deal, &order, timeFrameItem)
 		if err != nil {
+			err = apperrors.Wrap(err, "error update order")
 			return
 		}
 	}
@@ -97,14 +100,13 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapTimeframe, deal *entity.Deal, qty, price float64) (providerOrderId string, err error) {
 
 	if deal.Id == nil {
-		msg := "deal struct must be saved before do buy"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.Wrap(err, "deal struct must be saved before do buy")
 		return
 	}
 
 	err = i.updateWalletInfo()
 	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
@@ -113,13 +115,12 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 	if qty > math.Div(available, i.State.CurrentPrice) {
-		logger.Warning(fmt.Sprintf("Insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency))
-		err = tools.AppError{Message: "Insufficient balance"}
+		err = apperrors.New("insufficient balance to buy %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.MainCurrency)
 		return
 	}
 
 	if i.Config.Verbose {
-		logger.Info(fmt.Sprintf("Try to open limit order to buy for heap %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
+		logger.Info(fmt.Sprintf("try to open limit order to buy for heap %g%s. Price is %g", qty, i.Config.TradeCurrency, price))
 	}
 
 	providerOrderId, err = i.provider.OpenOrder(domainStructs.DomainOrderRequest{
@@ -133,6 +134,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 		Type:        domainStructs.OrderTypes.Limit,
 	})
 	if err != nil {
+		err = apperrors.Wrap(err, "error open buy order. qty: %g, price: %g, symbol: %s", qty, price, i.Config.CoinPare)
 		return
 	}
 
@@ -142,6 +144,7 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 	var domainOrder domainStructs.DomainOrder
 	domainOrder, err = i.provider.GetOrder(providerOrderId)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get order. ID: %s", providerOrderId)
 		return
 	}
 
@@ -154,12 +157,14 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
+		err = apperrors.Wrap(err, "error save order")
 		return
 	}
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
 		err = i.updateOrder(ctx, deal, &order, heapTimeframe)
 		if err != nil {
+			err = apperrors.Wrap(err, "error update order")
 			return
 		}
 	}
@@ -220,14 +225,13 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	providerOrderId string, err error) {
 
 	if deal.Id == nil {
-		msg := "deal struct must be saved before do sell"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.New("deal struct must be saved before do sell")
 		return
 	}
 
 	err = i.updateWalletInfo()
 	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
@@ -238,13 +242,12 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 	if qty > available {
-		logger.Warning(fmt.Sprintf("Insufficient balance to sell %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.TradeCurrency))
-		err = tools.AppError{Message: "Insufficient balance"}
+		err = apperrors.New("insufficient balance to sell %g%s. Available %g%s", qty, i.Config.TradeCurrency, available, i.Config.TradeCurrency)
 		return
 	}
 
 	if i.Config.Verbose {
-		logger.Info(fmt.Sprintf("Try to open limit order to sell %g%s. Price is %g",
+		logger.Info(fmt.Sprintf("try to open limit order to sell %g%s. Price is %g",
 			qty, i.Config.TradeCurrency, price))
 	}
 
@@ -259,6 +262,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 		Type:        domainStructs.OrderTypes.Limit,
 	})
 	if err != nil {
+		err = apperrors.Wrap(err, "error open sell order. qty: %g, price: %g, symbol: %s", qty, price, i.Config.CoinPare)
 		return
 	}
 
@@ -268,6 +272,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	var domainOrder domainStructs.DomainOrder
 	domainOrder, err = i.provider.GetOrder(providerOrderId)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get order. ID: %s", providerOrderId)
 		return
 	}
 
@@ -280,12 +285,14 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
+		err = apperrors.Wrap(err, "error save order")
 		return
 	}
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
 		err = i.updateOrder(ctx, deal, &order, timeFrame)
 		if err != nil {
+			err = apperrors.Wrap(err, "error update order")
 			return
 		}
 	}
@@ -297,12 +304,14 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 
 	err = i.updateWalletInfo()
 	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
 	var updatedOrder domainStructs.DomainOrder
 	updatedOrder, err = i.provider.GetOrder(order.OrderId)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get order. ID: %s", order.OrderId)
 		return
 	}
 
@@ -310,6 +319,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 
 		err = i.updateWalletInfo()
 		if err != nil {
+			err = apperrors.Wrap(err, "error update wallet info")
 			return
 		}
 
@@ -320,9 +330,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 				deal.SetClose()
 			}
 		} else {
-			msg := fmt.Sprintf("Unexpected order side %s", updatedOrder.Side)
-			logger.Error(msg)
-			err = tools.AppError{Message: msg}
+			err = apperrors.New("unexpected order side %s", updatedOrder.Side)
 			return
 		}
 
@@ -332,10 +340,12 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		order.WalletAfter = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
+			err = apperrors.Wrap(err, "error save order. DomainOrderID: %s, OrderID: %s", order.Id, order.OrderId)
 			return
 		}
 		err = i.Storage.SaveDeal(ctx, deal)
 		if err != nil {
+			err = apperrors.Wrap(err, "error save deal. DealID: %s", deal.Id)
 			return
 		}
 		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
@@ -352,6 +362,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		order.WalletBefore = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
+			err = apperrors.Wrap(err, "error save order. DomainOrderID: %s, OrderID: %s", order.Id, order.OrderId)
 			return
 		}
 	}
@@ -362,21 +373,24 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 func (i *Investor) doCancel(ctx context.Context, order *entity.Order) (err error) {
 	err = i.provider.CancelOrder(order.OrderId, i.Config.CoinPare)
 	if err != nil {
+		err = apperrors.Wrap(err, "error cancel order. OrderID: %s", order.OrderId)
 		return
 	}
 
 	order.OrderStatus = domainStructs.OrderStatuses.Canceled
 	err = i.Storage.SaveOrder(ctx, order)
 	if err != nil {
+		err = apperrors.Wrap(err, "error save order. OrderID: %s", order.OrderId)
 		return
 	}
 
 	err = i.updateWalletInfo()
 	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
-	logger.Warning(fmt.Sprintf("Cancelled %s order for timeframe %s", order.Side, order.Timeframe))
+	logger.Warning(fmt.Sprintf("cancelled %s order for timeframe %s", order.Side, order.Timeframe))
 
 	return
 }

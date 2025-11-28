@@ -1,13 +1,12 @@
 package investor
 
 import (
+	"errors"
 	"github.com/shatylos/trader/internal/domain"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
-	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/apperrors"
-	"github.com/shatylos/trader/tools/logger"
 	_type "github.com/shatylos/trader/tools/type"
 	"time"
 )
@@ -38,20 +37,13 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 
 	configMap, ok := strategyConfig.(map[interface{}]interface{})
 	if !ok {
-		logger.Error("Config for the strategy investor is not valid")
-		err = tools.AppError{
-			Message: "Config for the strategy investor is not valid",
-		}
+		err = apperrors.New("config for the strategy investor is not valid")
 		return
 	}
 
 	i.Config.Id, err = _type.ToString(configMap["id"])
 	if err != nil {
-		logger.Error("The field id is empty or contains not correct value type. Expects string value")
-		err = tools.AppError{
-			Message:     "The field id is empty or contains not correct value type. Expects string value",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field \"id\" is empty or contains not correct value type. Expects string value")
 		return
 	}
 
@@ -70,11 +62,7 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	var verbose int64
 	verbose, err = _type.ToInt64(configMap["verbose"])
 	if err != nil {
-		logger.Error("The field verbose in strategy Config is empty or contains not correct value type. Expects 1 or 0")
-		err = tools.AppError{
-			Message:     "The field verbose in strategy Config is empty or contains not correct value type. Expects 1 or 0",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field \"verbose\" in strategy Config is empty or contains not correct value type. Expects 1 or 0")
 		return
 	}
 	if verbose == 1 {
@@ -83,146 +71,122 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		i.Config.Verbose = false
 	}
 
-	if configMap["telegram_notifier"] != nil {
-		var tgNotifier int64
-		tgNotifier, err = _type.ToInt64(configMap["telegram_notifier"])
-		if err != nil {
-			logger.Error("The field telegram_notifier in strategy Config is empty or contains not correct value type. Expects 1 or 0")
-			err = tools.AppError{
-				Message:     "The field telegram_notifier in strategy Config is empty or contains not correct value type. Expects 1 or 0",
-				ParentError: err,
-			}
-			return
-		}
-		if tgNotifier == 1 {
-			i.Config.TelegramNotifier = true
-		}
+	var tgNotifier int64
+	tgNotifier, err = _type.ToInt64(configMap["telegram_notifier"])
+	if err != nil && !errors.Is(err, _type.EmptyValueError) {
+		err = apperrors.Wrap(err, "the field telegram_notifier in strategy Config contains not correct value type. Expects 1 or 0")
+		return
+	}
+	if tgNotifier == 1 {
+		i.Config.TelegramNotifier = true
 	}
 
 	i.Config.CoinPare, err = _type.ToString(configMap["coin_pare"])
 	if err != nil {
-		err = tools.AppError{
-			Message:     "The field coin_pare is empty or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field coin_pare is empty or contains not correct value type")
 		return
 	}
 
 	i.Config.MainCurrency, err = _type.ToString(configMap["main_currency"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field main_currency is empty or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field main_currency is empty or contains not correct value type")
+		return
 	}
 
 	i.Config.TradeCurrency, err = _type.ToString(configMap["trade_currency"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field trade_currency is empty or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field trade_currency is empty or contains not correct value type")
+		return
 	}
 
 	i.Config.TimeoutDuration, err = _type.ToTimeDuration(configMap["timeout_seconds"])
 	if err != nil {
-		err = tools.AppError{
-			Message:     "The field timeout_seconds is empty or contains not correct value",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field timeout_seconds is empty or contains not correct value")
 		return
 	}
 	i.Config.TimeoutDuration = i.Config.TimeoutDuration * time.Second
 
 	i.Config.QtyPrecision, err = _type.ToInt64(configMap["qty_precision"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field qty_precision is empty or contains not correct value type. Expects int64 value",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field qty_precision is empty or contains not correct value type. Expects int64 value")
+		return
 	}
 
 	i.Config.PricePrecision, err = _type.ToInt64(configMap["price_precision"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field price_precision is empty or contains not correct value type. Expects int64 value",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field price_precision is empty or contains not correct value type. Expects int64 value")
+		return
 	}
 
 	i.Config.CommissionBuy, err = _type.ToFloat64(configMap["commission_buy"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field commission_buy is empty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field commission_buy is empty")
+		return
 	}
 
 	i.Config.CommissionSell, err = _type.ToFloat64(configMap["commission_sell"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field commission_sell is empty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field commission_sell is empty")
+		return
 	}
 
 	i.Config.MinCoinReservePercent, err = _type.ToFloat64(configMap["min_coin_reserve_percent"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field min_coin_reserve_percent is empty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field min_coin_reserve_percent is empty")
+		return
 	}
 
 	i.Config.MinQty, err = _type.ToFloat64(configMap["min_qty"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value min_qty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value min_qty")
+		return
 	}
 
 	var doIncreaseQtyToMinQty int64
-	doIncreaseQtyToMinQty, _ = _type.ToInt64(configMap["do_increase_qty_to_min_qty"])
+	doIncreaseQtyToMinQty, err = _type.ToInt64(configMap["do_increase_qty_to_min_qty"])
+	if err != nil && !errors.Is(err, _type.EmptyValueError) {
+		err = apperrors.Wrap(err, "the field do_increase_qty_to_min_qty in strategy Config contains not correct value type. Expects 1 or 0")
+		return
+	}
 	if doIncreaseQtyToMinQty == 1 {
 		i.Config.DoIncreaseQtyToMinQty = true
 	}
 
 	i.Config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field withdraw_percent is empty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field withdraw_percent is empty")
+		return
 	}
 
 	i.Config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field request_delay is empty",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field request_delay is empty")
+		return
 	}
 	i.Config.RequestDelay = i.Config.RequestDelay * time.Second
 
 	err = i.applyTimeframeConfig(configMap["timeframes"])
 	if err != nil {
+		err = apperrors.Wrap(err, "error apply timeframes config")
 		return
 	}
 
 	err = i.applyHeapConfig(configMap["heap_timeframe"])
 	if err != nil {
+		err = apperrors.Wrap(err, "error apply heap timeframe config")
 		return
 	}
 
 	err = i.applyDomainConfig(configMap, domainConfig)
 	if err != nil {
+		err = apperrors.Wrap(err, "error apply domain config")
 		return
 	}
 
 	i.Storage = storage.Storage{Id: i.Config.Id}
 	err = i.Storage.InitStorage()
 	if err != nil {
+		err = apperrors.Wrap(err, "error init storage")
 		return
 	}
 
@@ -233,20 +197,14 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 
 	rawTimeframes, ok := timeframesConfig.([]interface{})
 	if !ok {
-		logger.Error("Config for the strategy Investor is not valid. \"timeframes\" must be array")
-		err = tools.AppError{
-			Message: "Config for the strategy Investor is not valid. \"timeframes\" must be array",
-		}
+		err = apperrors.New("config for the strategy Investor is not valid. \"timeframes\" must be array")
 		return
 	}
 
 	for _, tf := range rawTimeframes {
 		tfMap, ok := tf.(map[interface{}]interface{})
 		if !ok {
-			logger.Error("Config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value")
-			err = tools.AppError{
-				Message: "Config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value",
-			}
+			err = apperrors.New("config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value")
 			return
 		}
 
@@ -256,105 +214,79 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 
 		timeframe.Config.Resolution, err = _type.ToString(tfMap["resolution"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "The field resolution is empty or contains not correct value type",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "the field resolution is empty or contains not correct value type")
+			return
 		}
 
 		timeframe.Config.QtyPercent, err = _type.ToFloat64(tfMap["qty_percent"])
 		if err != nil || timeframe.Config.QtyPercent == 0 {
-			return tools.AppError{
-				Message:     "Empty value qty_percent",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value qty_percent")
+			return
 		}
 
 		timeframe.Config.CandleReview, err = _type.ToInt64(tfMap["candle_review"])
 		if err != nil || timeframe.Config.CandleReview < 10 {
-			return tools.AppError{
-				Message:     "The field candle_review is empty or contains not correct value type. Expects int64 value more than 10",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "the field candle_review is empty or contains not correct value type. Expects int64 value more than 10")
+			return
 		}
 
 		timeframe.Config.CandleCacheDuration, err = _type.ToTimeDuration(tfMap["candle_cache_seconds"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "The field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "the field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1")
+			return
 		}
 		timeframe.Config.CandleCacheDuration = timeframe.Config.CandleCacheDuration * time.Second
 		if timeframe.Config.CandleCacheDuration < time.Second {
-			return tools.AppError{
-				Message:     "The field candle_cache_seconds contains not correct value. Expects int64 value more than 1",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "the field candle_cache_seconds contains not correct value. Expects int64 value more than 1")
+			return
 		}
 
 		timeframe.Config.SidewaysMinCandlesAmount, err = _type.ToInt64(tfMap["sideways_min_candles_amount"])
 		if err != nil || timeframe.Config.SidewaysMinCandlesAmount == 0 {
-			return tools.AppError{
-				Message:     "Empty value sideways_min_candles_amount",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value sideways_min_candles_amount")
+			return
 		}
 
 		timeframe.Config.MaxNumberOrdersToBuy, err = _type.ToInt64(tfMap["max_number_orders_to_buy"])
 		if err != nil || timeframe.Config.MaxNumberOrdersToBuy == 0 {
-			return tools.AppError{
-				Message:     "Empty value max_number_orders_to_buy",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value max_number_orders_to_buy")
+			return
 		}
 
 		timeframe.Config.SidewaysPercentToPrice, err = _type.ToFloat64(tfMap["sideways_percent_to_price"])
 		if err != nil || timeframe.Config.SidewaysPercentToPrice == 0 {
-			return tools.AppError{
-				Message:     "Empty value sideways_percent_to_price",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value sideways_percent_to_price")
+			return
 		}
 
 		timeframe.Config.SidewaysPremiumCoefficient, err = _type.ToFloat64(tfMap["sideways_premium_coefficient"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "Empty value sideways_premium_coefficient",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value sideways_premium_coefficient")
+			return
 		}
 
 		timeframe.Config.SidewaysDiscountCoefficient, err = _type.ToFloat64(tfMap["sideways_discount_coefficient"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "Empty value sideways_discount_coefficient",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value sideways_discount_coefficient")
+			return
 		}
 
 		timeframe.Config.MinPercentRangeToSell, err = _type.ToFloat64(tfMap["min_percent_range_to_sell"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "Empty value min_percent_range_to_sell",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value min_percent_range_to_sell")
+			return
 		}
 
 		timeframe.Config.MinPercentRangeToBuyMore, err = _type.ToFloat64(tfMap["min_percent_range_to_buy_more"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "Empty value min_percent_range_to_buy_more",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "empty value min_percent_range_to_buy_more")
+			return
 		}
 
 		timeframe.Config.DurationToMoveToHeap, err = _type.ToTimeDuration(tfMap["hours_duration_to_move_to_heap"])
 		if err != nil {
-			return tools.AppError{
-				Message:     "The field hours_duration_to_move_to_heap is empty",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "the field hours_duration_to_move_to_heap is empty")
+			return
 		}
 		timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
 
@@ -363,10 +295,8 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			timeframe.Config.IsCheckHigherTF = true
 			timeframe.Config.MinHigherTFSlope, err = _type.ToFloat64(minHigherTFSlope)
 			if err != nil {
-				return tools.AppError{
-					Message:     "The field min_higher_tf_slope contains not correct value. Expected float64",
-					ParentError: err,
-				}
+				err = apperrors.Wrap(err, "the field min_higher_tf_slope contains not correct value. Expected float64")
+				return
 			}
 		} else {
 			timeframe.Config.IsCheckHigherTF = false
@@ -376,10 +306,8 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		if exists {
 			timeframe.Config.HigherTFResolution, err = _type.ToString(higherTFResolution)
 			if err != nil {
-				return tools.AppError{
-					Message:     "The field higher_tf_resolution is empty or contains not correct value type",
-					ParentError: err,
-				}
+				err = apperrors.Wrap(err, "the field higher_tf_resolution is empty or contains not correct value type")
+				return
 			}
 		}
 
@@ -392,10 +320,7 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 func (i *Investor) applyHeapConfig(heapTimeframesConfig interface{}) (err error) {
 	tfMap, ok := heapTimeframesConfig.(map[interface{}]interface{})
 	if !ok {
-		logger.Error("Config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value")
-		err = tools.AppError{
-			Message: "Config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value",
-		}
+		err = apperrors.New("config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value")
 		return
 	}
 
@@ -406,146 +331,118 @@ func (i *Investor) applyHeapConfig(heapTimeframesConfig interface{}) (err error)
 
 	heapTimeframe.Config.Resolution, err = _type.ToString(tfMap["resolution"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field resolution is empty or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field resolution is empty or contains not correct value type")
+		return
 	}
 
 	heapTimeframe.Config.QtyPercent, err = _type.ToFloat64(tfMap["qty_percent"])
 	if err != nil || heapTimeframe.Config.QtyPercent == 0 {
-		return tools.AppError{
-			Message:     "Empty value qty_percent",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value qty_percent")
+		return
 	}
 
 	heapTimeframe.Config.CandleReview, err = _type.ToInt64(tfMap["candle_review"])
 	if err != nil || heapTimeframe.Config.CandleReview < 10 {
-		return tools.AppError{
-			Message:     "The field candle_review is empty or contains not correct value type. Expects int64 value more than 10",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field candle_review is empty or contains not correct value type. Expects int64 value more than 10")
+		return
 	}
 
 	heapTimeframe.Config.CandleCacheDuration, err = _type.ToTimeDuration(tfMap["candle_cache_seconds"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1")
+		return
 	}
 	heapTimeframe.Config.CandleCacheDuration = heapTimeframe.Config.CandleCacheDuration * time.Second
 	if heapTimeframe.Config.CandleCacheDuration < time.Second {
-		return tools.AppError{
-			Message:     "The field candle_cache_seconds contains not correct value. Expects int64 value more than 1",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field candle_cache_seconds contains not correct value. Expects int64 value more than 1")
+		return
 	}
 
 	heapTimeframe.Config.SidewaysMinCandlesAmount, err = _type.ToInt64(tfMap["sideways_min_candles_amount"])
 	if err != nil || heapTimeframe.Config.SidewaysMinCandlesAmount == 0 {
-		return tools.AppError{
-			Message:     "Empty value sideways_min_candles_amount",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value sideways_min_candles_amount")
+		return
 	}
 
 	heapTimeframe.Config.MaxNumberOrdersToBuy, err = _type.ToInt64(tfMap["max_number_orders_to_buy"])
 	if err != nil || heapTimeframe.Config.MaxNumberOrdersToBuy == 0 {
-		return tools.AppError{
-			Message:     "Empty value max_number_orders_to_buy",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value max_number_orders_to_buy")
+		return
 	}
 
 	heapTimeframe.Config.SidewaysPercentToPrice, err = _type.ToFloat64(tfMap["sideways_percent_to_price"])
 	if err != nil || heapTimeframe.Config.SidewaysPercentToPrice == 0 {
-		return tools.AppError{
-			Message:     "Empty value sideways_percent_to_price",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value sideways_percent_to_price")
+		return
 	}
 
 	heapTimeframe.Config.SidewaysPremiumCoefficient, err = _type.ToFloat64(tfMap["sideways_premium_coefficient"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value sideways_premium_coefficient",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value sideways_premium_coefficient")
+		return
 	}
 
 	heapTimeframe.Config.SidewaysDiscountCoefficient, err = _type.ToFloat64(tfMap["sideways_discount_coefficient"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value sideways_discount_coefficient",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value sideways_discount_coefficient")
+		return
 	}
 
 	heapTimeframe.Config.MinPercentRangeToSell, err = _type.ToFloat64(tfMap["min_percent_range_to_sell"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value min_percent_range_to_sell",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value min_percent_range_to_sell")
+		return
 	}
 
 	heapTimeframe.Config.MinPercentRangeToBuyMore, err = _type.ToFloat64(tfMap["min_percent_range_to_buy_more"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value min_percent_range_to_buy_more",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value min_percent_range_to_buy_more")
+		return
 	}
 
 	heapTimeframe.Config.QtyPercentOnMaxPrice, err = _type.ToFloat64(tfMap["qty_percent_on_max_price"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value qty_percent_on_max_price for heap config",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value qty_percent_on_max_price for heap config")
+		return
 	}
 	heapTimeframe.Config.QtyPercentOnMinPrice, err = _type.ToFloat64(tfMap["qty_percent_on_min_price"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "Empty value qty_percent_on_min_price for heap config",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "empty value qty_percent_on_min_price for heap config")
+		return
 	}
 
 	i.HeapTimeframe = heapTimeframe
 	return
 }
 
-func (i *Investor) applyDomainConfig(configMap map[interface{}]interface{}, domainConfig map[string]interface{}) error {
-	domainId, err := _type.ToString(configMap["domain"])
+func (i *Investor) applyDomainConfig(configMap map[interface{}]interface{}, domainConfig map[string]interface{}) (err error) {
+	var domainId string
+	domainId, err = _type.ToString(configMap["domain"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field domain is empty or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field domain is empty or contains not correct value type")
+		return
 	}
 	domainConfigItem, ok := domainConfig[domainId].(map[interface{}]interface{})
 	if !ok {
-		return tools.AppError{
-			Message: "The domain Config is not valid. Domain value should be related to the domain Config item",
-		}
+		err = apperrors.New("the domain Config is not valid. Domain value should be related to the domain Config item")
+		return
 	}
-	domainCode, err := _type.ToString(domainConfigItem["code"])
+	var domainCode string
+	domainCode, err = _type.ToString(domainConfigItem["code"])
 	if err != nil {
-		return tools.AppError{
-			Message:     "The field code is empty in domain Config or contains not correct value type",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field code is empty in domain Config or contains not correct value type")
+		return
 	}
-	domainItem, err := domain.GetSpotDomain(domainCode)
+	var domainItem domain.SpotDomainInterface
+	domainItem, err = domain.GetSpotDomain(domainCode)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot domain with code %s", domainCode)
 		return err
 	}
 
 	err = domainItem.SetConfig(domainConfigItem)
 	if err != nil {
+		err = apperrors.Wrap(err, "error set config with code %s", domainCode)
 		return err
 	}
 	i.provider = domainItem

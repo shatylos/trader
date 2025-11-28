@@ -6,6 +6,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
@@ -52,6 +53,7 @@ func (i *Investor) handleHeapPremium(ctx context.Context, heapTimeframe *_struct
 				logger.Warning(msg)
 				tgNotifier.Notify(msg)
 			}
+			err = apperrors.Wrap(err, "error do sell")
 			return
 		}
 	}
@@ -92,6 +94,7 @@ func (i *Investor) handleHeapDiscount(ctx context.Context, heapTimeframe *_struc
 				logger.Warning(msg)
 				tgNotifier.Notify(msg)
 			}
+			err = apperrors.Wrap(err, "error do buy on heap")
 			return
 		}
 	}
@@ -131,6 +134,7 @@ func (i *Investor) moveToHeap(ctx context.Context, dealRelation *entity.DealRela
 	dealRelation.Deal.SetClose()
 	err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
 	if err != nil {
+		err = apperrors.Wrap(err, "error save deal")
 		return
 	}
 	msg := fmt.Sprintf("Deal for timeframe %s moved to heap", dealRelation.Deal.Timeframe)
@@ -145,6 +149,7 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 	var dealRelations []*entity.DealRelation
 	dealRelations, err = i.Storage.GetDealRelationsOnHeap(ctx)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get deal relations on heap")
 		return
 	}
 
@@ -187,6 +192,7 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 	var deal *entity.Deal
 	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, &i.HeapTimeframe)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get active deal by timeframe")
 		return
 	}
 
