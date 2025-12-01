@@ -6,6 +6,7 @@ import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
@@ -14,18 +15,21 @@ import (
 func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.TimeframeItem) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
+		err = apperrors.Wrap(err, "error load candles")
 		return
 	}
 
 	var deal *entity.Deal
 	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get active deal by timeframe %s", timeFrameItem.Config.Resolution)
 		return
 	}
 
 	var dealRelation *entity.DealRelation
 	dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get deal relation")
 		return
 	}
 
@@ -55,6 +59,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 			timeFrameItem.TradeStateMsg = "Wait for fill the order"
 			err = i.updateOrder(ctx, dealRelation.Deal, dealOrder, timeFrameItem)
 			if err != nil {
+				err = apperrors.Wrap(err, "error update order")
 				return
 			}
 			if dealOrder.OrderStatus != domainStructs.OrderStatuses.Filled {
@@ -64,6 +69,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 
 					err = i.doCancel(ctx, dealOrder)
 					if err != nil {
+						err = apperrors.Wrap(err, "error do cancel")
 						return
 					}
 					return
@@ -89,11 +95,13 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	case trading.ZonePremium:
 		err = i.handlePremium(ctx, dealRelation, timeFrameItem)
 		if err != nil {
+			err = apperrors.Wrap(err, "error handle premium")
 			return
 		}
 	case trading.ZoneDiscount:
 		err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
 		if err != nil {
+			err = apperrors.Wrap(err, "error handle discount")
 			return
 		}
 	case trading.ZoneNeutral:
@@ -106,23 +114,27 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_struct.HeapTimeframe) (err error) {
 	err = i.loadCandles(timeFrameItem)
 	if err != nil {
+		err = apperrors.Wrap(err, "error load candles")
 		return
 	}
 
 	err = i.UpdateHeapStatus(ctx)
 	if err != nil {
+		err = apperrors.Wrap(err, "error update heap status")
 		return
 	}
 
 	if i.HeapTimeframe.HeapStatus.Zone == trading.ZonePremium {
 		err = i.handleHeapPremium(ctx, timeFrameItem)
 		if err != nil {
+			err = apperrors.Wrap(err, "error handle heap premium")
 			return
 		}
 	}
 	if i.HeapTimeframe.HeapStatus.Zone == trading.ZoneDiscount {
 		err = i.handleHeapDiscount(ctx, timeFrameItem)
 		if err != nil {
+			err = apperrors.Wrap(err, "error handle heap discount")
 			return
 		}
 	}
@@ -135,6 +147,7 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 		var candles []domainStructs.DomainCandle
 		candles, err = i.provider.LoadCandleHistory(i.Config.CoinPare, timeFrame.Resolution(), timeFrame.GetConfig().GetCandleReview())
 		if err != nil {
+			err = apperrors.Wrap(err, "error load candle history")
 			return
 		}
 		timeFrame.SetCandles(candles)

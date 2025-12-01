@@ -2,6 +2,7 @@ package storage
 
 import (
 	appStorage "github.com/shatylos/trader/internal/storage"
+	"github.com/shatylos/trader/tools/apperrors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -16,6 +17,7 @@ func (s *Storage) InitStorage() (err error) {
 	var db *mongo.Database
 	db, err = appStorage.GetDocumentDB()
 	if err != nil {
+		err = apperrors.Wrap(err, "error get document DB: %s", s.Id)
 		return
 	}
 	s.orderCollection = db.Collection("investor_" + s.Id + "_orders")

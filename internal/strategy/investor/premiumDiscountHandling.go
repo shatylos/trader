@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
@@ -23,7 +24,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 	for _, dealOrder := range dealRelation.Orders {
 		if i.isActiveOrder(dealOrder) {
 			if i.Config.Verbose {
-				logger.Info(fmt.Sprintf("There is active order to %s. Waiting for the filling of the order", dealOrder.Side))
+				logger.Info(fmt.Sprintf("there is active order to %s. Waiting for the filling of the order", dealOrder.Side))
 			}
 			return
 		}
@@ -48,6 +49,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 			dealRelation.Deal.SetClose()
 			err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
 			if err != nil {
+				err = apperrors.Wrap(err, "error save deal. DealID: %s", dealRelation.Deal.Id)
 				return
 			}
 			return
@@ -62,6 +64,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 				logger.Warning(msg)
 				tgNotifier.Notify(msg)
 			}
+			err = apperrors.Wrap(err, "error do sell")
 			return
 		}
 	}
@@ -94,6 +97,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 				logger.Warning(msg)
 				tgNotifier.Notify(msg)
 			}
+			err = apperrors.Wrap(err, "error do buy")
 			return
 		}
 	} else if len(dealRelation.Orders) > 0 {
@@ -130,11 +134,13 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 					logger.Warning(msg)
 					tgNotifier.Notify(msg)
 				}
+				err = apperrors.Wrap(err, "error do buy")
 				return
 			}
 		} else if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
 			err = i.moveToHeap(ctx, dealRelation)
 			if err != nil {
+				err = apperrors.Wrap(err, "error move to heap")
 				return
 			}
 		}

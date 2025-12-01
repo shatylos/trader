@@ -2,12 +2,14 @@ package investor
 
 import (
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/tools/apperrors"
 )
 
 func (i *Investor) updateWalletInfo() (err error) {
 	var wallet domainStructs.DomainWallet
 	wallet, err = i.provider.GetWallet()
 	if err != nil {
+		err = apperrors.Wrap(err, "error get wallet")
 		return
 	}
 	i.State.Wallet = &wallet

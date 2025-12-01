@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	strategyStruct "github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
@@ -55,12 +56,14 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
 	if err != nil {
+		err = apperrors.Wrap(err, "error get template")
 		return
 	}
 
 	var deals, closedDeals, activeDeals []*entity.Deal
 	closedDeals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get deals by period. From %s, to %s", from, to)
 		return
 	}
 
@@ -68,6 +71,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 	if from.Year() == now.Year() && from.Month() == now.Month() {
 		activeDeals, err = i.Storage.GetActiveDeals(ctx)
 		if err != nil {
+			err = apperrors.Wrap(err, "error get active deals")
 			return
 		}
 		deals = append(deals, activeDeals...)
@@ -79,6 +83,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		var dealRelation *entity.DealRelation
 		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
 		if err != nil {
+			err = apperrors.Wrap(err, "error get deal relation")
 			return
 		}
 		dealRelations = append(dealRelations, dealRelation)
@@ -86,6 +91,9 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 
 	var assets []*structs.AssetTransaction
 	assets, err = i.Storage.GetAssetTransactions(ctx, from, to)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get asset transactions")
+	}
 	totalPnl, totalPnlPercent,
 		balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
 		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
@@ -136,6 +144,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 	var resultBuilder strings.Builder
 	err = tmpl.Execute(&resultBuilder, data)
 	if err != nil {
+		err = apperrors.Wrap(err, "error execute template")
 		return
 	}
 

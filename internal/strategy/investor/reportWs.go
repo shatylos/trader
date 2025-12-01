@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"github.com/shatylos/trader/web/helper"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -26,7 +26,8 @@ func (ws *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Web Socket Handler Error: %v", err))
+		err = apperrors.Wrap(err, "web socket handler error")
+		logger.PrintError(err)
 		return
 	}
 	defer conn.Close()
@@ -48,7 +49,8 @@ func (ws *WebSocket) SendCurrentPrice(i *Investor) {
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error getting template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error getting template for web socket")
+		logger.PrintError(err)
 		return
 	}
 	availableMain := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
@@ -65,14 +67,14 @@ func (ws *WebSocket) SendCurrentPrice(i *Investor) {
 		QtyPrecision:       int(i.Config.QtyPrecision),
 	})
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error executing 'current-price' template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error executing 'current-price' template for web socket")
+		logger.PrintError(err)
 		return
 	}
 
 	for client := range ws.Clients {
 		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
 		if err != nil {
-			log.Println("write:", err)
 			client.Close()
 			delete(ws.Clients, client)
 		}
@@ -84,20 +86,21 @@ func (ws *WebSocket) SendTimeframeItemStatus(timeframe _struct.TimeframeItem) {
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error getting template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error getting template for web socket")
+		logger.PrintError(err)
 		return
 	}
 	var buf bytes.Buffer
 	err = tmpl.ExecuteTemplate(&buf, "timeframe-item-status", timeframe)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error executing 'timeframe-item-status' template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error executing 'timeframe-item-status' template for web socket")
+		logger.PrintError(err)
 		return
 	}
 
 	for client := range ws.Clients {
 		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
 		if err != nil {
-			log.Println("write:", err)
 			client.Close()
 			delete(ws.Clients, client)
 		}
@@ -109,20 +112,21 @@ func (ws *WebSocket) SendHeapTimeframeStatus(heapTimeframe _struct.HeapTimeframe
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error getting template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error getting template for web socket")
+		logger.PrintError(err)
 		return
 	}
 	var buf bytes.Buffer
 	err = tmpl.ExecuteTemplate(&buf, "heap-timeframe-status", heapTimeframe)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error executing 'heap-timeframe-status' template for web socket: %v", err))
+		err = apperrors.Wrap(err, "error executing 'heap-timeframe-status' template for web socket")
+		logger.PrintError(err)
 		return
 	}
 
 	for client := range ws.Clients {
 		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
 		if err != nil {
-			log.Println("write:", err)
 			client.Close()
 			delete(ws.Clients, client)
 		}

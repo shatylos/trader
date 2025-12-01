@@ -3,8 +3,7 @@ package storage
 import (
 	"context"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,16 +21,11 @@ func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error
 		var inserted *mongo.InsertOneResult
 		inserted, err = s.orderCollection.InsertOne(ctx, order)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Error inserting new order",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "error insert one")
 		}
 		primObjectID, ok = inserted.InsertedID.(primitive.ObjectID)
 		if !ok {
-			err = tools.AppError{
-				Message: "Can not convert InsertedID to ObjectID inserting order",
-			}
+			err = apperrors.New("can not convert InsertedID to ObjectID inserting order")
 			return
 		}
 		orderId := primObjectID.Hex()
@@ -39,10 +33,7 @@ func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error
 	} else {
 		primObjectID, err = primitive.ObjectIDFromHex(*order.Id)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Can not convert Object ID from Hex updating order",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not convert Object ID from Hex updating order")
 			return
 		}
 		filter := bson.D{{"_id", primObjectID}}
@@ -51,23 +42,13 @@ func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error
 		var updateDoc []byte
 		updateDoc, err = bson.Marshal(order)
 		if err != nil {
-			msg := "Can not marshal order document to update"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message:     msg,
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not marshal order document to update")
 			return
 		}
 		var m bson.M
 		err = bson.Unmarshal(updateDoc, &m)
 		if err != nil {
-			msg := "Can not unmarshal order update document"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message:     msg,
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not unmarshal order update document")
 			return
 		}
 		delete(m, "_id")
@@ -75,10 +56,7 @@ func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error
 
 		_, err = s.orderCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Error updating order",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "error updating order")
 		}
 	}
 
@@ -92,6 +70,7 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 		options.Find().SetSort(bson.D{{"CreatedTime", 1}}),
 	)
 	if err != nil {
+		err = apperrors.Wrap(err, "error find by dealId: %s", dealId)
 		return
 	}
 	defer cursor.Close(ctx)
@@ -99,6 +78,7 @@ func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersR
 	orders := make([]entity.Order, 0)
 	err = cursor.All(ctx, &orders)
 	if err != nil {
+		err = apperrors.Wrap(err, "error map found orders")
 		return
 	}
 

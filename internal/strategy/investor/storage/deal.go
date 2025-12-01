@@ -5,8 +5,7 @@ import (
 	"errors"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,16 +24,12 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 		var inserted *mongo.InsertOneResult
 		inserted, err = s.dealCollection.InsertOne(ctx, deal)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Error inserting new deal",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "error inserting new deal")
+			return
 		}
 		primObjectID, ok = inserted.InsertedID.(primitive.ObjectID)
 		if !ok {
-			err = tools.AppError{
-				Message: "Can not convert InsertedID to ObjectID inserting deal",
-			}
+			err = apperrors.New("can not convert InsertedID to ObjectID inserting deal")
 			return
 		}
 		dealId := primObjectID.Hex()
@@ -42,10 +37,7 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 	} else {
 		primObjectID, err = primitive.ObjectIDFromHex(*deal.Id)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Can not convert Object ID from Hex updating deal",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not convert Object ID from Hex updating deal")
 			return
 		}
 		filter := bson.D{{"_id", primObjectID}}
@@ -54,23 +46,13 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 		var updateDoc []byte
 		updateDoc, err = bson.Marshal(deal)
 		if err != nil {
-			msg := "Can not marshal deal document to update"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message:     msg,
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not marshal deal document to update")
 			return
 		}
 		var m bson.M
 		err = bson.Unmarshal(updateDoc, &m)
 		if err != nil {
-			msg := "Can not unmarshal deal update document"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message:     msg,
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "can not unmarshal deal update document")
 			return
 		}
 		delete(m, "_id")
@@ -78,10 +60,8 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 
 		_, err = s.dealCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
-			err = tools.AppError{
-				Message:     "Error updating deal",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "error updating deal")
+			return
 		}
 	}
 
@@ -101,6 +81,7 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 		err = nil
 	}
 	if err != nil {
+		err = apperrors.Wrap(err, "error find one, resolution: %s", timeFrame.Resolution())
 		return
 	}
 
@@ -115,6 +96,7 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 		}
 		err = s.SaveDeal(ctx, deal)
 		if err != nil {
+			err = apperrors.Wrap(err, "error save deal")
 			return
 		}
 	}
@@ -143,12 +125,7 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 		bson.D{{"ClosedTime", -1}},
 	))
 	if err != nil {
-		msg := "Error getting cursor deals by period"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting cursor deals by period")
 		return
 	}
 	defer cursor.Close(ctx)
@@ -156,12 +133,7 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 	var deals []entity.Deal
 	err = cursor.All(ctx, &deals)
 	if err != nil {
-		msg := "Error getting all deals by period"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting all deals by period")
 		return
 	}
 	for _, deal := range deals {
@@ -183,12 +155,7 @@ func (s *Storage) GetDealsOnHeap(ctx context.Context) (dealPointers []*entity.De
 		bson.D{{"ClosedTime", -1}},
 	))
 	if err != nil {
-		msg := "Error getting cursor deals for heap"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting cursor deals for heap")
 		return
 	}
 	defer cursor.Close(ctx)
@@ -196,12 +163,7 @@ func (s *Storage) GetDealsOnHeap(ctx context.Context) (dealPointers []*entity.De
 	var deals []entity.Deal
 	err = cursor.All(ctx, &deals)
 	if err != nil {
-		msg := "Error getting all deals for heap"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting all deals for heap")
 		return
 	}
 	for _, deal := range deals {
@@ -222,12 +184,7 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*entity.De
 		bson.D{{"UpdatedTime", -1}},
 	))
 	if err != nil {
-		msg := "Error getting cursor active deals"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting cursor active deals")
 		return
 	}
 	defer cursor.Close(ctx)
@@ -235,12 +192,7 @@ func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*entity.De
 	var deals []entity.Deal
 	err = cursor.All(ctx, &deals)
 	if err != nil {
-		msg := "Error getting all active deals"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message:     msg,
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error getting all active deals")
 		return
 	}
 	for _, deal := range deals {

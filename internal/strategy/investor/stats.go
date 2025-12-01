@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
@@ -19,8 +20,20 @@ func (i *Investor) GetStats() (stats _struct.Stats, err error) {
 	startTotal := time.Unix(0, 0)
 
 	stats.PNLLastMonth, err = i.calculatePnl(startOfPrevMonth, startOfCurrentMonth)
+	if err != nil {
+		err = apperrors.Wrap(err, "error calculate PNL from prev month")
+		return
+	}
 	stats.PNL12Months, err = i.calculatePnl(startOfPrev12Month, startOfCurrentMonth)
+	if err != nil {
+		err = apperrors.Wrap(err, "error calculate PNL from prev 12 months")
+		return
+	}
 	stats.PNLTotal, err = i.calculatePnl(startTotal, startOfCurrentMonth)
+	if err != nil {
+		err = apperrors.Wrap(err, "error calculate PNL for total period")
+		return
+	}
 
 	stats.WithdrawablePrevMonth = 0
 	if stats.PNLLastMonth.Amount > 0 {
@@ -35,6 +48,10 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 
 	var dealRelations []*entity.DealRelation
 	dealRelations, err = i.Storage.GetDealRelationsByPeriod(ctx, from, to)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get deal relations by period from %s to %s", from, to)
+		return
+	}
 
 	revPerMonth := make(map[string]float64)
 	startAmounts := make(map[string]float64)

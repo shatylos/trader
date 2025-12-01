@@ -5,8 +5,7 @@ import (
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
@@ -16,6 +15,7 @@ func (s *Storage) GetDealRelationsByPeriod(ctx context.Context, from, to time.Ti
 	var deals []*entity.Deal
 	deals, err = s.GetDealsByPeriod(ctx, from, to)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get deals by period, from: %s, to: %s", from, to)
 		return
 	}
 
@@ -25,6 +25,7 @@ func (s *Storage) GetDealRelationsByPeriod(ctx context.Context, from, to time.Ti
 		var dealRelation *entity.DealRelation
 		dealRelation, err = s.GetDealRelation(ctx, deal)
 		if err != nil {
+			err = apperrors.Wrap(err, "error get deal relation")
 			return
 		}
 		dealRelations[item] = dealRelation
@@ -36,6 +37,7 @@ func (s *Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*
 	var deals []*entity.Deal
 	deals, err = s.GetDealsOnHeap(ctx)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get deals on heap")
 		return
 	}
 
@@ -45,6 +47,7 @@ func (s *Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*
 		var dealRelation *entity.DealRelation
 		dealRelation, err = s.GetDealRelation(ctx, deal)
 		if err != nil {
+			err = apperrors.Wrap(err, "error get deal relation")
 			return
 		}
 		dealRelations[item] = dealRelation
@@ -55,29 +58,24 @@ func (s *Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*
 func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealRelation *entity.DealRelation, err error) {
 	mainCurrency, ok := ctx.Value(_struct.CtxMainCurrencyKey).(string)
 	if !ok {
-		msg := "MainCurrency is not accessible from context"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.New("MainCurrency is not accessible from context")
 		return
 	}
 	tradeCurrency, ok := ctx.Value(_struct.CtxTradeCurrencyKey).(string)
 	if !ok {
-		msg := "TradeCurrency is not accessible from context"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.New("TradeCurrency is not accessible from context")
 		return
 	}
 
 	if deal.Id == nil {
-		msg := "Deal ID is empty. Can not get deal relations"
-		logger.Error(msg)
-		err = tools.AppError{Message: msg}
+		err = apperrors.New("can not get deal relations, deal.ID is empty")
 		return
 	}
 
 	var dealOrders []*entity.Order
 	dealOrders, err = s.GetOrdersByDealId(ctx, *deal.Id)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get orders by deal id: %s", *deal.Id)
 		return
 	}
 
