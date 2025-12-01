@@ -71,7 +71,10 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 
 	revPercAllMonths := 0.0
 	for monthKey, revenue := range revPerMonth {
-		revPercAllMonths += math.Div(revenue, math.Div(startAmounts[monthKey], 100))
+		startAmount := math.Div(startAmounts[monthKey], 100)
+		if startAmount > 0 {
+			revPercAllMonths += math.Div(revenue, startAmount)
+		}
 	}
 	avPercPerMonth := 0.0
 	if revPercAllMonths > 0.0 {
