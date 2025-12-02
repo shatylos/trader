@@ -1,13 +1,10 @@
 package setup
 
 import (
-	"fmt"
 	"github.com/shatylos/trader/internal/config"
 	setupStructs "github.com/shatylos/trader/internal/setup/structs"
 	"github.com/shatylos/trader/internal/strategy"
-	"github.com/shatylos/trader/tools"
 	"github.com/shatylos/trader/tools/apperrors"
-	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
@@ -18,6 +15,7 @@ func TraderInit() error {
 
 	appConfig, err := config.GetConfig()
 	if err != nil {
+		err = apperrors.Wrap(err, "error get config")
 		return err
 	}
 
@@ -42,23 +40,18 @@ func prepareSetupStrategies(strategyItems []interface{}, domainItems map[string]
 	for _, strategyItemConfig := range strategyItems {
 		itemMap, ok := strategyItemConfig.(map[interface{}]interface{})
 		if !ok {
-			return nil, tools.AppError{
-				Message: "Can not parse a strategy config.",
-			}
+			return nil, apperrors.New("Can not parse a strategy config.")
 		}
 		if itemMap["code"] == nil {
-			return nil, tools.AppError{
-				Message: "The strategy config must contain a code field",
-			}
+			return nil, apperrors.New("The strategy config must contain a code field")
 		}
 		if itemMap["id"] == nil {
-			return nil, tools.AppError{
-				Message: "The strategy config must contain a id field",
-			}
+			return nil, apperrors.New("The strategy config must contain a id field")
 		}
 
 		strategyItem, err := strategy.GetStrategyByCode(itemMap["code"].(string))
 		if err != nil {
+			err = apperrors.Wrap(err, "error get strategy by code %s", itemMap["code"])
 			return nil, err
 		}
 		err = strategyItem.SetConfig(strategyItemConfig, domainItems)
@@ -86,11 +79,5 @@ func GetSetupByID(id string) (*setupStructs.Setup, error) {
 			return &setupList[i], nil
 		}
 	}
-	msg := fmt.Sprintf("Setup with ID: \"%s\" not found", id)
-	logger.Warning(msg)
-	return nil, tools.AppError{
-		Message:     msg,
-		ParentError: nil,
-		Code:        404,
-	}
+	return nil, apperrors.New("Setup with ID: \"%s\" not found", id)
 }

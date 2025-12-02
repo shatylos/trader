@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/shatylos/trader/tools/apperrors"
 	"gopkg.in/yaml.v2"
 	"os"
 	"sync"
@@ -23,13 +24,16 @@ func GetConfig() (*Config, error) {
 		return parsedConfig, nil
 	}
 
-	yamlFile, err := os.ReadFile("config.yaml")
+	fileName := "config.yaml"
+	yamlFile, err := os.ReadFile(fileName)
 	if err != nil {
+		err = apperrors.Wrap(err, "error reading config file: %s", fileName)
 		return nil, err
 	}
 
 	err = yaml.Unmarshal(yamlFile, &parsedConfig)
 	if err != nil {
+		err = apperrors.Wrap(err, "error unmarshal config file")
 		return nil, err
 	}
 	return parsedConfig, nil

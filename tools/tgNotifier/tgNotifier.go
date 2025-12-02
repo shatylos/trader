@@ -2,7 +2,7 @@ package tgNotifier
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"net/http"
 )
@@ -34,7 +34,8 @@ func Notify(message string) {
 
 		resp, err := http.Post(notifier.Url, "text/plain", bytes.NewBuffer(data))
 		if err != nil {
-			logger.Error(fmt.Sprintf("Error sending tg bot notification: %s", err.Error()))
+			err = apperrors.Wrap(err, "Error sending tg bot notification")
+			logger.PrintError(err)
 			return
 		}
 		defer resp.Body.Close()

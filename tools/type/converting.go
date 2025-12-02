@@ -21,7 +21,12 @@ func ToInt64(value interface{}) (int64, error) {
 	case float64:
 		return int64(value.(float64)), nil
 	case string:
-		return strconv.ParseInt(value.(string), 10, 64)
+		iVal, err := strconv.ParseInt(value.(string), 10, 64)
+		if err != nil {
+			err = apperrors.Wrap(err, "the value \"%s\" can not be converted to int64", value)
+			return 0, err
+		}
+		return iVal, nil
 	}
 	return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to int64", value)
 }
@@ -43,11 +48,13 @@ func ToFloat64(value interface{}) (newVal float64, err error) {
 	case string:
 		newVal, err = strconv.ParseFloat(value.(string), 64)
 		if err != nil {
-			return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64: %+v", value, err)
+			err = apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64: %+v", value, err)
+			return
 		}
 		return
 	}
-	return 0, apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64", value)
+	err = apperrors.Wrap(CanNotBeConvertedError, "the value \"%s\" can not be converted to float64", value)
+	return
 }
 
 func ToString(value interface{}) (string, error) {
@@ -86,6 +93,7 @@ func ToInt64Slice(value interface{}) ([]int64, error) {
 		for _, item := range value.([]interface{}) {
 			itemInt64, err := ToInt64(item)
 			if err != nil {
+				err = apperrors.Wrap(err, "error converting slice of interfaces to slice of int64")
 				return nil, err
 			}
 			result = append(result, itemInt64)

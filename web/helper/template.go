@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/math"
 	"html/template"
 	"path/filepath"
@@ -30,6 +31,7 @@ func GetTemplate(fileName string) (*template.Template, error) {
 	)
 
 	if err != nil {
+		err = apperrors.Wrap(err, "error parse template for fileName %s", fileName)
 		return nil, err
 	}
 
