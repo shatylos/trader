@@ -1,13 +1,11 @@
 package bybit
 
 import (
-	"fmt"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/mapping"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/type"
 	"sort"
 	"strconv"
@@ -23,57 +21,52 @@ func (d *DomainBybitSpot) GetCode() string {
 	return d.code
 }
 
-func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) error {
+func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) (err error) {
 
 	secretMap, ok := config["secrets"].(map[interface{}]interface{})
 	if !ok {
-		return tools.AppError{
-			Message: "The field secrets is empty or contains not correct value type. In DomainBybitSpot config. Expects a map with \"key\", \"pass\" and \"endpoint\" keys",
-		}
+		err = apperrors.New("the field secrets is empty or contains not correct value type. In DomainBybitSpot config. Expects a map with \"key\", \"pass\" and \"endpoint\" keys")
+		return
 	}
 
-	domainCode, err := _type.ToString(config["code"])
+	var domainCode string
+	domainCode, err = _type.ToString(config["code"])
 	if err != nil {
-		return tools.AppError{
-			Message: "The field code is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
-		}
+		err = apperrors.New("the field code is empty or contains not correct value type. In DomainBybitSpot config. Expects a string")
+		return
 	}
 	d.code = domainCode
 
 	secrets := bybitStructs.Secrets{}
 
-	apiEndpoint, err := _type.ToString(secretMap["endpoint"])
+	var apiEndpoint string
+	apiEndpoint, err = _type.ToString(secretMap["endpoint"])
 	if err != nil {
-		return tools.AppError{
-			Message: "The field secrets.endpoint is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
-		}
+		err = apperrors.Wrap(err, "the field secrets.endpoint is empty or contains not correct value type. In DomainBybitSpot config. Expects a string")
+		return
 	}
 	secrets.ApiEndpoint = apiEndpoint
 
-	key, err := _type.ToString(secretMap["key"])
+	var key string
+	key, err = _type.ToString(secretMap["key"])
 	if err != nil {
-		return tools.AppError{
-			Message: "The field secrets.key is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
-		}
+		err = apperrors.Wrap(err, "the field secrets.key is empty or contains not correct value type. In DomainBybitSpot config. Expects a string")
+		return
 	}
 	secrets.Key = key
 
-	pass, err := _type.ToString(secretMap["pass"])
+	var pass string
+	pass, err = _type.ToString(secretMap["pass"])
 	if err != nil {
-		return tools.AppError{
-			Message: "The field secrets.pass is empty or contains not correct value type. In DomainBybitSpot config. Expects a string",
-		}
+		err = apperrors.Wrap(err, "the field secrets.pass is empty or contains not correct value type. In DomainBybitSpot config. Expects a string")
+		return
 	}
 	secrets.Pass = pass
 
 	var verbose int64
 	verbose, err = _type.ToInt64(secretMap["verbose"])
 	if err != nil {
-		logger.Error("The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0")
-		err = tools.AppError{
-			Message:     "The field verbose in domain config is empty or contains not correct value type. Expects 1 or 0",
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "the field verbose in domain config is empty or contains not correct value type. Expects 1 or 0")
 		return err
 	}
 	if verbose == 1 {
@@ -90,6 +83,7 @@ func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 	var walletBalances *map[string]request.SpotWalletBalance
 	walletBalances, err = request.GetSpotWalletBalance(d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot wallet balance")
 		return
 	}
 
@@ -100,11 +94,13 @@ func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 		var free float64
 		free, err = strconv.ParseFloat(walletBalance.Free, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float walletBalance.Free: %s", walletBalance.Free)
 			return
 		}
 		var locked float64
 		locked, err = strconv.ParseFloat(walletBalance.Locked, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float walletBalance.Locked: %s", walletBalance.Locked)
 			return
 		}
 		availableCoins = append(availableCoins, structs.DomainWalletCoinItem{
@@ -128,10 +124,12 @@ func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {
 	providerResolution, err := mapping.ToBybitInterval(resolution)
 	if err != nil {
+		err = apperrors.Wrap(err, "error mapping resolution \"%s\" to bybit interval", resolution)
 		return nil, err
 	}
 	candles, err := request.GetSpotKlineList(symbol, providerResolution, limit, d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot kline list. Symbol: %s, providerResolution: %s, limit: %d", symbol, providerResolution, limit)
 		return nil, err
 	}
 
@@ -140,22 +138,27 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, li
 	for i, candle := range candles {
 		highPrice, err := strconv.ParseFloat(candle.High, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, candle.High: %s", candle.High)
 			return nil, err
 		}
 		lowPrice, err := strconv.ParseFloat(candle.Low, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, candle.Low: %s", candle.Low)
 			return nil, err
 		}
 		openPrice, err := strconv.ParseFloat(candle.Open, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, candle.Open: %s", candle.Open)
 			return nil, err
 		}
 		closePrice, err := strconv.ParseFloat(candle.Close, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, candle.Close: %s", candle.Close)
 			return nil, err
 		}
 		volume, err := strconv.ParseFloat(candle.Volume, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, candle.Volume: %s", candle.Volume)
 			return nil, err
 		}
 
@@ -180,36 +183,40 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainO
 	var order request.SpotOrderResponseTimeStr
 	order, err = request.GetSpotOrder(domainId, d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot order. DomainId: %s", domainId)
 		return
 	}
 
 	if order.Symbol == "" {
-		msg := fmt.Sprintf("Order with ID (%s) not found", domainId)
-		err = tools.AppError{Message: msg}
-		logger.Warning(msg)
+		err = apperrors.New("Order with ID (%s) not found", domainId)
 		return
 	}
 
 	filledPrice, err := strconv.ParseFloat(order.AvgPrice, 64)
 	if err != nil {
+		err = apperrors.Wrap(err, "error parse float, order.AvgPrice: %s", order.AvgPrice)
 		return
 	}
 	filledQty, err := strconv.ParseFloat(order.ExecQty, 64)
 	if err != nil {
+		err = apperrors.Wrap(err, "error parse float, order.ExecQty: %s", order.ExecQty)
 		return
 	}
 	createTime, err := strconv.ParseInt(order.CreateTime, 10, 64)
 	if err != nil {
+		err = apperrors.Wrap(err, "error parse float, order.CreateTime: %s", order.CreateTime)
 		return
 	}
 	updateTime, err := strconv.ParseInt(order.UpdateTime, 10, 64)
 	if err != nil {
+		err = apperrors.Wrap(err, "error parse float, order.UpdateTime: %s", order.UpdateTime)
 		return
 	}
 
 	var side string
 	side, err = mapping.ToDomainOrderSide(order.Side)
 	if err != nil {
+		err = apperrors.Wrap(err, "error mapping to domain order side: %s", order.Side)
 		return
 	}
 
@@ -233,6 +240,7 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainO
 func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
 	orders, err := request.GetSpotOpenOrderList(coinPare, d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot open order list. coinPare: %s", coinPare)
 		return nil, err
 	}
 
@@ -241,18 +249,22 @@ func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrd
 	for key, order := range orders {
 		orderPrice, err := strconv.ParseFloat(order.OrderPrice, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.OrderPrice: %s", order.OrderPrice)
 			return nil, err
 		}
 		orderQty, err := strconv.ParseFloat(order.OrderQty, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.OrderQty: %s", order.OrderQty)
 			return nil, err
 		}
 		createTime, err := _type.ToInt64(order.CreateTime)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse int64, order.CreateTime: %s", order.CreateTime)
 			return nil, err
 		}
 		updateTime, err := _type.ToInt64(order.UpdateTime)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse int64, order.UpdateTime: %s", order.UpdateTime)
 			return nil, err
 		}
 
@@ -283,6 +295,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 	var orderType string
 	orderType, err = mapping.ToBybitOrderType(orderRequest.Type)
 	if err != nil {
+		err = apperrors.Wrap(err, "error mapping to bybit order type, orderRequest.Type: %s", orderRequest.Type)
 		return
 	}
 
@@ -294,6 +307,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 	var side string
 	side, err = mapping.ToBybitOrderSide(orderRequest.Side)
 	if err != nil {
+		err = apperrors.Wrap(err, "error mapping to bybit order side, orderRequest.Side: %s", orderRequest.Side)
 		return
 	}
 
@@ -310,6 +324,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 	var order request.CreateSpotOrderResponse
 	order, err = request.CreateSpotOrder(domainOrderRequest, d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error create spot order, domainOrderRequest: %s", domainOrderRequest)
 		return
 	}
 	orderId = order.OrderId
@@ -319,6 +334,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
 	err := request.CancelSpotOrder(orderId, d.secrets, coinPare)
 	if err != nil {
+		err = apperrors.Wrap(err, "error cancel spot order, orderId: %s", orderId)
 		return err
 	}
 	return nil
@@ -327,6 +343,7 @@ func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
 func (d *DomainBybitSpot) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
 	orders, err := request.GetSpotOrderHistory(limit, d.secrets, coinPare)
 	if err != nil {
+		err = apperrors.Wrap(err, "error get spot order history, limit: %s, coinPare: %s", limit, coinPare)
 		return nil, err
 	}
 
@@ -335,10 +352,12 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64, coinPare string) ([]stru
 	for key, order := range orders {
 		orderPrice, err := strconv.ParseFloat(order.OrderPrice, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.OrderPrice: %s", order.OrderPrice)
 			return nil, err
 		}
 		avgPrice, err := strconv.ParseFloat(order.AvgPrice, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.AvgPrice: %s", order.AvgPrice)
 			return nil, err
 		}
 		price := float64(0)
@@ -349,14 +368,17 @@ func (d *DomainBybitSpot) GetHistoryOrders(limit int64, coinPare string) ([]stru
 		}
 		orderQty, err := strconv.ParseFloat(order.OrderQty, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.OrderQty: %s", order.OrderQty)
 			return nil, err
 		}
 		createTime, err := strconv.ParseInt(order.CreateTime, 10, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse float, order.CreateTime: %s", order.CreateTime)
 			return nil, err
 		}
 		updateTime, err := strconv.ParseInt(order.UpdateTime, 10, 64)
 		if err != nil {
+			err = apperrors.Wrap(err, "error parse int64, order.UpdateTime: %s", order.UpdateTime)
 			return nil, err
 		}
 
