@@ -9,6 +9,7 @@ import (
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"io"
 	"net/http"
@@ -21,6 +22,9 @@ import (
 type ApiParams map[string]interface{}
 
 var httpClient *http.Client
+
+var RequestApiError = apperrors.New("request api error")
+var LeverageNotModifiedApiError = apperrors.New("leverage has not been modified")
 
 func getClient() *http.Client {
 	if httpClient == nil {
@@ -35,14 +39,15 @@ func getClient() *http.Client {
 	return httpClient
 }
 
-func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
-	return apiQuery(uri, params, secrets, "GET",
-		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
+func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (result interface{}, err error) {
+	result, err = apiQuery(uri, params, secrets, "GET",
+		func(params ApiParams, apiEndpoint string, uri string) (requestUrl string, buffer *bytes.Buffer, err error) {
 			queryParams := url.Values{}
 			for key, value := range params {
 				v, ok := value.(string)
 				if !ok {
-					return "", nil, tools.AppError{Message: "ByBit request parameter is not a string"}
+					err = apperrors.New("ByBit request parameter is not a string, key: %s, value: %s", key, value)
+					return
 				}
 				queryParams.Add(key, v)
 			}
@@ -52,43 +57,53 @@ func apiQueryGet(uri string, params ApiParams, secrets bybitStructs.Secrets) (in
 			builder.WriteString(uri)
 			builder.WriteByte('?')
 			builder.WriteString(queryParams.Encode())
-			requestUrl := builder.String()
+			requestUrl = builder.String()
 
 			queryParams = nil
-			buffer := bytes.NewBuffer(nil)
-			return requestUrl, buffer, nil
+			buffer = bytes.NewBuffer(nil)
+			return
 		})
+	if err != nil {
+		err = apperrors.Wrap(err, "error sending bybit GET request, uri: %s, params: %s", uri, params)
+		return
+	}
+	return
 }
 
-func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (interface{}, error) {
-	return apiQuery(uri, params, secrets, "POST",
-		func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error) {
-			postContent, err := json.Marshal(params)
+func apiQueryPost(uri string, params ApiParams, secrets bybitStructs.Secrets) (result interface{}, err error) {
+	result, err = apiQuery(uri, params, secrets, "POST",
+		func(params ApiParams, apiEndpoint string, uri string) (requestUrl string, buffer *bytes.Buffer, err error) {
+			var postContent []byte
+			postContent, err = json.Marshal(params)
 			if err != nil {
-				return "", nil, err
+				err = apperrors.Wrap(err, "error marshal params: %s", params)
+				return
 			}
-			buffer := bytes.NewBuffer(postContent)
+			buffer = bytes.NewBuffer(postContent)
 
 			var builder strings.Builder
 			builder.WriteString(apiEndpoint)
 			builder.WriteString(uri)
 			builder.WriteByte('?')
-			requestUrl := builder.String()
+			requestUrl = builder.String()
 
-			return requestUrl, buffer, nil
+			return
 		})
+	if err != nil {
+		err = apperrors.Wrap(err, "error sending bybit POST request, uri: %s, params: %s", uri, params)
+		return
+	}
+	return
 }
 
-func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (interface{}, error) {
+func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method string, getRequestData func(params ApiParams, apiEndpoint string, uri string) (string, *bytes.Buffer, error)) (result interface{}, err error) {
 
 	if secrets.Verbose {
-		paramsJsonBytes, err := json.Marshal(params)
+		var paramsJsonBytes []byte
+		paramsJsonBytes, err = json.Marshal(params)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Error marshalling params to JSON: %s", err))
-			return nil, tools.AppError{
-				Message:     "Error marshalling params to JSON",
-				ParentError: err,
-			}
+			err = apperrors.Wrap(err, "error marshalling params to JSON, params: %s", params)
+			return
 		}
 		logger.Info(fmt.Sprintf("Send %s request to: URI: %s. Params: %s", method, uri, paramsJsonBytes))
 	}
@@ -97,12 +112,12 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().UnixMilli())
 	params["sign"] = getSignature(params, secrets.Pass)
 
-	requestUrl, requestBody, err := getRequestData(params, secrets.ApiEndpoint, uri)
+	var requestUrl string
+	var requestBody *bytes.Buffer
+	requestUrl, requestBody, err = getRequestData(params, secrets.ApiEndpoint, uri)
 	if err != nil {
-		return nil, tools.AppError{
-			Message:     fmt.Sprintf("ByBit API error prepare request query: %s", err.Error()),
-			ParentError: err,
-		}
+		err = apperrors.Wrap(err, "error get request data, uri: %s, params: %s", uri, params)
+		return
 	}
 
 	req, _ := http.NewRequest(method, requestUrl, requestBody)
@@ -111,10 +126,8 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	client := getClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, tools.AppError{
-			Message:     fmt.Sprintf("ByBit API error get request: %s", err.Error()),
-			ParentError: err,
-		}
+		err = apperrors.New("ByBit API error get request")
+		return
 	}
 	defer resp.Body.Close()
 
@@ -144,13 +157,17 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	}
 
 	if retCode, ok := dat["retCode"]; ok && retCode.(float64) != 0 {
-		return nil, tools.AppError{
-			Message: fmt.Sprintf("ByBit API error: %s", dat["retMsg"].(string)),
-			Code:    retCode.(float64),
+		switch retCode {
+		case 110043:
+			err = apperrors.Wrap(LeverageNotModifiedApiError, "ByBit API error: %s", dat["retMsg"])
+		default:
+			err = apperrors.Wrap(RequestApiError, "ByBit API error: %s", dat["retMsg"])
 		}
+		return nil, err
 	}
 
-	return dat["result"].(interface{}), nil
+	result = dat["result"].(interface{})
+	return
 }
 
 func getSignature(params ApiParams, key string) string {
