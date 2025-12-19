@@ -14,13 +14,13 @@ const (
 // PremiumDiscount calculate if the current price in premium or discount.
 // maximum premium: pdKoef 100
 // maximum discount: pdKoef -100
-func PremiumDiscount(klines []domainStructs.DomainCandle) (pdKoef float64) {
+func PremiumDiscount(klines []domainStructs.DomainCandle) (pdKoef, minPrice, maxPrice float64) {
 	if len(klines) == 0 {
 		return
 	}
 	price := klines[0].Close
-	maxPrice := klines[0].High
-	minPrice := klines[0].Low
+	maxPrice = klines[0].High
+	minPrice = klines[0].Low
 
 	for _, kline := range klines {
 		if kline.High > maxPrice {
@@ -44,5 +44,17 @@ func PremiumDiscount(klines []domainStructs.DomainCandle) (pdKoef float64) {
 	}
 	// else middle pdKoef = 0
 
+	return
+}
+
+func PremiumDiscountLowHighBarriers(minPrice, maxPrice, SidewaysPremiumCoeff, SidewaysDiscountCoeff float64) (lowBarrier, highBarrier float64) {
+	middlePrice := math.Div(maxPrice-minPrice, 2) + minPrice
+	halfRange := math.Div(maxPrice-minPrice, 2)
+
+	premiumRange := math.Mul(math.Div(halfRange, 100), SidewaysPremiumCoeff)
+	highBarrier = middlePrice + premiumRange
+
+	discountRange := math.Mul(math.Div(halfRange, 100), SidewaysDiscountCoeff)
+	lowBarrier = middlePrice + discountRange
 	return
 }

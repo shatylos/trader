@@ -6,21 +6,25 @@ import (
 )
 
 type TimeframeItem struct {
-	Config          TimeframeItemConfig
-	CandleTime      time.Time
-	Candles         []domainStructs.DomainCandle
-	TrendSlope      float64
-	HigherTimeframe Timeframe
-	IsSidewaysState bool
-	Zone            string
-	Trend           string
-	TradeStateMsg   string
-	prevValues      struct {
-		IsSidewaysState bool
-		Zone            string
-		Trend           string
-		TrendSlope      float64
-		TradeStateMsg   string
+	Config            TimeframeItemConfig
+	CandleTime        time.Time
+	Candles           []domainStructs.DomainCandle
+	TrendSlope        float64
+	HigherTimeframe   Timeframe
+	IsSidewaysState   bool
+	Zone              string
+	SidewaysLowPrice  float64
+	SidewaysHighPrice float64
+	Trend             string
+	TradeStateMsg     string
+	prevValues        struct {
+		IsSidewaysState   bool
+		Zone              string
+		SidewaysLowPrice  float64
+		SidewaysHighPrice float64
+		Trend             string
+		TrendSlope        float64
+		TradeStateMsg     string
 	}
 }
 
@@ -98,6 +102,14 @@ func (t *TimeframeItem) IsStatusChanged() (isChanged bool) {
 	if t.Zone != t.prevValues.Zone {
 		isChanged = true
 		t.prevValues.Zone = t.Zone
+	}
+	if t.SidewaysLowPrice != t.prevValues.SidewaysLowPrice {
+		isChanged = true
+		t.prevValues.SidewaysLowPrice = t.SidewaysLowPrice
+	}
+	if t.SidewaysHighPrice != t.prevValues.SidewaysHighPrice {
+		isChanged = true
+		t.prevValues.SidewaysHighPrice = t.SidewaysHighPrice
 	}
 	if t.Trend != t.prevValues.Trend {
 		isChanged = true

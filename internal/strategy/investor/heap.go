@@ -202,7 +202,7 @@ func (i *Investor) UpdateHeapStatus(ctx context.Context) (err error) {
 
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, i.HeapTimeframe.Candles[:sidewaysKLinesAmount])
-	i.HeapTimeframe.HeapStatus.PremiumDiscount = trading.PremiumDiscount(sidewaysKlines)
+	i.HeapTimeframe.HeapStatus.PremiumDiscount, _, _ = trading.PremiumDiscount(sidewaysKlines)
 
 	i.HeapTimeframe.HeapStatus.Qty = qty
 	i.HeapTimeframe.HeapStatus.Price = price

@@ -84,6 +84,8 @@
                         Not sideway<br/>
                         {{ end }}
                         Zone: {{ .Zone }}<br/>
+                        Sideways High Price: {{ .SidewaysHighPrice | longFloatShort 2 }}<br/>
+                        Sideways Low Price: {{ .SidewaysLowPrice | longFloatShort 2 }}<br/>
                         Trend: {{ .Trend }}<br/>
                         Trend slope: {{ .TrendSlope | longFloatShort 2 }}<br/>
                         <span class="text-info">{{ .TradeStateMsg }}</span>

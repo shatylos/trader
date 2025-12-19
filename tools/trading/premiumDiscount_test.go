@@ -21,7 +21,7 @@ func TestPDPremium100(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (5000 - 4250) / ((5000 - 4250) / 100)
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := 100.0
 	if pdKoef != expected {
@@ -45,7 +45,7 @@ func TestPDPremium60(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (4700 - 4250) / ((5000 - 4250) / 100)
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := 60.0
 	if pdKoef != expected {
@@ -69,7 +69,7 @@ func TestPDPremium20(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (4400 - 4250) / ((5000 - 4250) / 100)
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := 20.0
 	if pdKoef != expected {
@@ -93,7 +93,7 @@ func TestPDDiscount100(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (4250 - 3500) / ((4250 - 3500) / 100) * -1
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := -100.0
 	if pdKoef != expected {
@@ -117,7 +117,7 @@ func TestPDDiscount60(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (4250 - 3800) / ((4250 - 3500) / 100) * -1
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := -60.0
 	if pdKoef != expected {
@@ -141,7 +141,7 @@ func TestPDDiscount20(t *testing.T) {
 	// middlePrice = (5000 - 3500) / 2 + 3500 = 4250
 	// pdKoef = (4250 - 4100) / ((4250 - 3500) / 100) * -1
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := -20.0
 	if pdKoef != expected {
@@ -162,7 +162,7 @@ func TestPDMiddle(t *testing.T) {
 	klines[2].High = 4500
 	klines[2].Low = 4000
 
-	pdKoef := PremiumDiscount(klines)
+	pdKoef, _, _ := PremiumDiscount(klines)
 
 	expected := 0.0
 	if pdKoef != expected {

@@ -40,7 +40,14 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
-	premiumDiscount := trading.PremiumDiscount(sidewaysKlines)
+	premiumDiscount, minPrice, maxPrice := trading.PremiumDiscount(sidewaysKlines)
+
+	timeFrameItem.SidewaysLowPrice, timeFrameItem.SidewaysHighPrice = trading.PremiumDiscountLowHighBarriers(
+		minPrice,
+		maxPrice,
+		timeFrameItem.Config.SidewaysPremiumCoefficient,
+		timeFrameItem.Config.SidewaysDiscountCoefficient,
+	)
 
 	zone := trading.ZoneNeutral
 	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
