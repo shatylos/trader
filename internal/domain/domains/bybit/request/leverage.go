@@ -1,8 +1,9 @@
 package request
 
 import (
+	"errors"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
-	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"strconv"
 )
 
@@ -19,12 +20,14 @@ func SetLeverage(leverageRequest LeverageRequest, secrets bybitStructs.Secrets) 
 	params["buyLeverage"] = strconv.FormatInt(leverageRequest.BuyLeverage, 10)
 	params["sellLeverage"] = strconv.FormatInt(leverageRequest.SellLeverage, 10)
 
-	_, err = apiQueryPost("/v5/position/set-leverage", params, secrets)
+	uri := "/v5/position/set-leverage"
+	_, err = apiQueryPost(uri, params, secrets)
 	if err != nil {
-		err2, ok := err.(tools.AppError)
-		// 110043 - set leverage has not been modified
-		if ok && err2.Code == 110043 {
+		if errors.Is(err, LeverageNotModifiedApiError) {
 			err = nil
+		} else {
+			err = apperrors.Wrap(err, "error send api post query, uri: %s, params: %s", uri, params)
+			return
 		}
 	}
 

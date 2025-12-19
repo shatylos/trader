@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
-	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 )
 
 type OrderRequest struct {
@@ -53,7 +53,7 @@ type OrderResponse struct {
 	UpdatedTime    string  `json:"updatedTime"`    // -> 2022-08-17T20:45:45Z
 }
 
-func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*OrderResponse, error) {
+func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (orderResponse *OrderResponse, err error) {
 	params := make(ApiParams, 0)
 	params["category"] = "linear"
 	params["isLeverage"] = "1"
@@ -82,12 +82,20 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (*Orde
 		params["slTriggerBy"] = orderRequest.SlTriggerBy
 	}
 
-	queryResp, err := apiQueryPost("/v5/order/create", params, secrets)
+	uri := "/v5/order/create"
+	var queryResp interface{}
+	queryResp, err = apiQueryPost(uri, params, secrets)
 	if err != nil {
-		return nil, err
+		err = apperrors.Wrap(err, "error sending post request, uri: %s, params: %s", uri, params)
+		return
 	}
 
-	return mapOrderResponse(queryResp)
+	orderResponse, err = mapOrderResponse(queryResp)
+	if err != nil {
+		err = apperrors.Wrap(err, "error mapping order response, query response: %s", queryResp)
+		return
+	}
+	return
 }
 
 func ModifyTpSl(orderRequest TpSlRequest, secrets bybitStructs.Secrets) (err error) {
@@ -105,11 +113,16 @@ func ModifyTpSl(orderRequest TpSlRequest, secrets bybitStructs.Secrets) (err err
 		params["stopLoss"] = fmt.Sprintf("%g", orderRequest.StopLoss)
 	}
 
-	_, err = apiQueryPost("/v5/position/trading-stop", params, secrets)
+	uri := "/v5/position/trading-stop"
+	_, err = apiQueryPost(uri, params, secrets)
+	if err != nil {
+		err = apperrors.Wrap(err, "error sending post request, uri: %s, params: %s", uri, params)
+		return
+	}
 	return
 }
 
-func GetOrderList(coinPare string, orderId string, secrets bybitStructs.Secrets) ([]*OrderResponse, error) {
+func GetOrderList(coinPare string, orderId string, secrets bybitStructs.Secrets) (orders []*OrderResponse, err error) {
 	params := make(ApiParams, 0)
 	params["category"] = "linear"
 	if coinPare != "" {
@@ -119,54 +132,58 @@ func GetOrderList(coinPare string, orderId string, secrets bybitStructs.Secrets)
 		params["orderId"] = orderId
 	}
 	params["openOnly"] = "0"
-	orders := make([]*OrderResponse, 0)
 
-	queryResp, er := apiQueryGet("/v5/order/realtime", params, secrets)
-	if er != nil {
-		return nil, er
+	uri := "/v5/order/realtime"
+	var queryResp interface{}
+	queryResp, err = apiQueryGet(uri, params, secrets)
+	if err != nil {
+		err = apperrors.Wrap(err, "error sending get request, uri: %s, params: %s", uri, params)
+		return
 	}
 
 	queryRespMap, ok := queryResp.(map[string]interface{})
 	if !ok {
-		return nil, tools.AppError{Message: "Can not parse order list query response"}
+		err = apperrors.New("Can not parse order list query response, queryResp: %s", queryResp)
+		return
 	}
 
 	if queryRespMap["list"] == nil {
-		return orders, nil
+		return
 	}
 
 	queryRespData, ok := queryRespMap["list"].([]interface{})
 	if !ok {
-		return nil, tools.AppError{Message: "Can not parse order list data values"}
+		err = apperrors.New("Can not parse order list data values, queryRespMap: %s", queryRespMap)
+		return
 	}
 
 	for _, queryRespOrderItem := range queryRespData {
-		order, err := mapOrderResponse(queryRespOrderItem)
+		var order *OrderResponse
+		order, err = mapOrderResponse(queryRespOrderItem)
 		if err != nil {
-			return nil, err
+			err = apperrors.Wrap(err, "error map order response, queryRespOrderItem: %s", queryRespOrderItem)
+			return
 		}
 		orders = append(orders, order)
 	}
 
-	return orders, nil
+	return
 }
 
-func mapOrderResponse(queryResp interface{}) (*OrderResponse, error) {
+func mapOrderResponse(queryResp interface{}) (orderResponse *OrderResponse, err error) {
 
-	orderResponseBytes, err := json.Marshal(queryResp)
+	var orderResponseBytes []byte
+	orderResponseBytes, err = json.Marshal(queryResp)
 	if err != nil {
-		return nil, tools.AppError{
-			Message: "Can not Marshal order response for ByBit",
-		}
+		err = apperrors.Wrap(err, "can not marshal order response for ByBit, queryResp: %s", queryResp)
+		return
 	}
 
-	orderResponse := OrderResponse{}
-	err = json.Unmarshal(orderResponseBytes, &orderResponse)
+	err = json.Unmarshal(orderResponseBytes, orderResponse)
 	if err != nil {
-		return nil, tools.AppError{
-			Message: fmt.Sprintf("[mapOrderResponse] Can not Unmarshal order response for ByBit: %s", err.Error()),
-		}
+		err = apperrors.Wrap(err, "can not unmarshal order response for ByBit, orderResponseBytes: %s", orderResponseBytes)
+		return
 	}
 
-	return &orderResponse, nil
+	return
 }

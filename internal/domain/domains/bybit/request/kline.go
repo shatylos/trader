@@ -1,10 +1,8 @@
 package request
 
 import (
-	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 	"strconv"
 )
 
@@ -18,39 +16,39 @@ type Candle struct {
 	Turnover   string `json:"6"`
 }
 
-func GetKlineList(symbol string, resolution string, limit int64, secrets bybitStructs.Secrets) ([]Candle, error) {
+func GetKlineList(symbol string, resolution string, limit int64, secrets bybitStructs.Secrets) (candles []Candle, err error) {
 	params := make(ApiParams, 0)
 	params["symbol"] = symbol
 	params["interval"] = resolution
 	params["limit"] = strconv.FormatInt(limit, 10)
 
-	queryResp, er := apiQueryGet("/v5/market/kline", params, secrets)
-	if er != nil {
-		return nil, er
+	var queryResp interface{}
+	uri := "/v5/market/kline"
+	queryResp, err = apiQueryGet(uri, params, secrets)
+	if err != nil {
+		err = apperrors.Wrap(err, "error Bybit api query get %s", uri)
+		return
 	}
 
-	return mapCandleHistory(queryResp)
+	candles, err = mapCandleHistory(queryResp)
+	if err != nil {
+		err = apperrors.Wrap(err, "error mapping candle history, queryResp: %s", queryResp)
+		return
+	}
+	return
 }
 
 func mapCandleHistory(source interface{}) (res []Candle, err error) {
 
 	sourceMap, ok := source.(map[string]interface{})
 	if ok == false {
-		msg := "Error parse public kline response for ByBit"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message: msg,
-		}
+		err = apperrors.New("error parse public kline response for ByBit")
 		return
 	}
 
 	listSlice, ok := sourceMap["list"].([]interface{})
 	if ok == false {
-		msg := "Error parsing public kline list response for ByBit"
-		logger.Error(msg)
-		err = tools.AppError{
-			Message: msg,
-		}
+		err = apperrors.New("error parsing public kline list response for ByBit")
 		return
 	}
 
@@ -58,83 +56,47 @@ func mapCandleHistory(source interface{}) (res []Candle, err error) {
 	for i, sourceCandle := range listSlice {
 		sourceCandleArr, ok := sourceCandle.([]interface{})
 		if !ok {
-			msg := "Error parsing public kline item for ByBit"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("error parsing public kline item for ByBit")
 			return
 		}
 		if len(sourceCandleArr) != 7 {
-			msg := fmt.Sprintf("Count of items in kline is %d. Expected 7 items", len(sourceCandleArr))
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("count of items in kline is %d. Expected 7 items", len(sourceCandleArr))
 			return
 		}
 
 		startTime, ok := sourceCandleArr[0].(string)
 		if !ok {
-			msg := "kline item 0 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 0 is not a string")
 			return
 		}
 		openPrice, ok := sourceCandleArr[1].(string)
 		if !ok {
-			msg := "kline item 1 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 1 is not a string")
 			return
 		}
 		highPrice, ok := sourceCandleArr[2].(string)
 		if !ok {
-			msg := "kline item 2 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 2 is not a string")
 			return
 		}
 		lowPrice, ok := sourceCandleArr[3].(string)
 		if !ok {
-			msg := "kline item 3 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 3 is not a string")
 			return
 		}
 		closePrice, ok := sourceCandleArr[4].(string)
 		if !ok {
-			msg := "kline item 4 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 4 is not a string")
 			return
 		}
 		volume, ok := sourceCandleArr[5].(string)
 		if !ok {
-			msg := "kline item 5 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 5 is not a string")
 			return
 		}
 		turnover, ok := sourceCandleArr[6].(string)
 		if !ok {
-			msg := "kline item 6 is not a string"
-			logger.Error(msg)
-			err = tools.AppError{
-				Message: msg,
-			}
+			err = apperrors.New("kline item 6 is not a string")
 			return
 		}
 

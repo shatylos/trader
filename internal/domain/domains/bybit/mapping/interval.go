@@ -1,10 +1,8 @@
 package mapping
 
 import (
-	"fmt"
 	"github.com/shatylos/trader/internal/trading/constant"
-	"github.com/shatylos/trader/tools"
-	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/apperrors"
 )
 
 var bybitIntervals = map[string]string{
@@ -24,11 +22,7 @@ func ToBybitInterval(domainInterval string) (bybitInterval string, err error) {
 	var ok bool
 	bybitInterval, ok = bybitIntervals[domainInterval]
 	if ok == false {
-		msg := fmt.Sprintf("Unexpected value (%s) to map Bybit interval", domainInterval)
-		logger.Error(msg)
-		err = tools.AppError{
-			Message: msg,
-		}
+		err = apperrors.New("Unexpected value (%s) to map Bybit interval", domainInterval)
 		return
 	}
 	return

@@ -2,9 +2,8 @@ package request
 
 import (
 	"encoding/json"
-	"fmt"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
-	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 )
 
 type Position struct {
@@ -32,41 +31,54 @@ func GetPosition(coinPare string, secrets bybitStructs.Secrets) (position Positi
 	params["symbol"] = coinPare
 
 	var queryResp interface{}
-	queryResp, err = apiQueryGet("/v5/position/list", params, secrets)
+	uri := "/v5/position/list"
+	queryResp, err = apiQueryGet(uri, params, secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error sending get request, uri: %s, params: %s", uri, params)
 		return
 	}
 
 	queryRespMap, ok := queryResp.(map[string]interface{})
 	if ok == false {
-		return position, tools.AppError{Message: "[Bybit Position List] Can not parse broker response."}
+		err = apperrors.Wrap(err, "can not parse broker response, queryResp: %s", queryResp)
+		return
 	}
 
-	return extractPosition(coinPare, queryRespMap["list"])
+	position, err = extractPosition(coinPare, queryRespMap["list"])
+	if err != nil {
+		err = apperrors.Wrap(err, "error extract position, coinPare: %s, queryRespMap list: %s", coinPare, queryRespMap["list"])
+		return
+	}
+	return
 }
 
 func extractPosition(coinPare string, source interface{}) (resultPosition Position, err error) {
 
 	sourceSlice, ok := source.([]interface{})
 	if ok == false {
-		return resultPosition, tools.AppError{Message: "[Bybit Position] Can not parse broker response. Expected slice of positions."}
+		err = apperrors.Wrap(err, "can not parse broker response. Expected slice of positions. Source: %s", source)
+		return
 	}
 
 	for _, sourcePosition := range sourceSlice {
 		var positionBytes []byte
 		positionBytes, err = json.Marshal(sourcePosition)
 		if err != nil {
+			err = apperrors.Wrap(err, "error marshal source position: %s", sourcePosition)
 			return
 		}
 		position := Position{}
 		err = json.Unmarshal(positionBytes, &position)
 		if err != nil {
+			err = apperrors.Wrap(err, "error unmarshal position: %s", positionBytes)
 			return
 		}
 		if position.Symbol == coinPare {
-			return position, nil
+			resultPosition = position
+			return
 		}
 	}
 
-	return resultPosition, tools.AppError{Message: fmt.Sprintf("[Bybit Position] Position not found for the symbol (%s).", coinPare)}
+	err = apperrors.New("position not found for the symbol %s", coinPare)
+	return
 }
