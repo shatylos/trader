@@ -74,7 +74,7 @@
             <h5>Timeframes:</h5>
             <div class="row align-items-start">
                 {{ range $i, $timeframe := .Timeframes }}
-                <div class="col-4 mb-3">
+                <div class="col-6 mb-3">
                     {{ block "timeframe-item-status" . }}
                     <div id="timeframe-item-status-{{ .Config.Resolution }}">
                         Resolution: {{ .Config.Resolution }}<br/>
