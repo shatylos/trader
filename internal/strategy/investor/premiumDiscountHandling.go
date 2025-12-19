@@ -49,7 +49,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 			dealRelation.Deal.SetClose()
 			err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
 			if err != nil {
-				err = apperrors.Wrap(err, "error save deal. DealID: %s", dealRelation.Deal.Id)
+				err = apperrors.Wrap(err, "error save deal. DealID: %v", dealRelation.Deal.Id)
 				return
 			}
 			return

@@ -8,6 +8,7 @@ import (
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
@@ -42,18 +43,21 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
 	premiumDiscount, minPrice, maxPrice := trading.PremiumDiscount(sidewaysKlines)
 
+	trendModifiedSidewaysPremiumCoeff := i.modifySidewaysCoeff(timeFrameItem.Config.SidewaysPremiumCoefficient, timeFrameItem.TrendSlope)
+	trendModifiedSidewaysDiscountCoeff := i.modifySidewaysCoeff(timeFrameItem.Config.SidewaysDiscountCoefficient, timeFrameItem.TrendSlope)
+
 	timeFrameItem.SidewaysLowPrice, timeFrameItem.SidewaysHighPrice = trading.PremiumDiscountLowHighBarriers(
 		minPrice,
 		maxPrice,
-		timeFrameItem.Config.SidewaysPremiumCoefficient,
-		timeFrameItem.Config.SidewaysDiscountCoefficient,
+		trendModifiedSidewaysPremiumCoeff,
+		trendModifiedSidewaysDiscountCoeff,
 	)
 
 	zone := trading.ZoneNeutral
-	if premiumDiscount > timeFrameItem.Config.SidewaysPremiumCoefficient {
+	if premiumDiscount > trendModifiedSidewaysPremiumCoeff {
 		zone = trading.ZonePremium
 	}
-	if premiumDiscount < timeFrameItem.Config.SidewaysDiscountCoefficient {
+	if premiumDiscount < trendModifiedSidewaysDiscountCoeff {
 		zone = trading.ZoneDiscount
 	}
 	timeFrameItem.Zone = zone
@@ -162,5 +166,17 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 		time.Sleep(i.Config.RequestDelay)
 	}
 
+	return
+}
+
+func (i *Investor) modifySidewaysCoeff(origCoeff, percentage float64) (modifiedCoeff float64) {
+	if origCoeff == 0 {
+		return
+	}
+	addValue := math.Mul(math.Div(origCoeff, 100), percentage)
+	if origCoeff < 0 {
+		addValue = math.Mul(addValue, -1)
+	}
+	modifiedCoeff = origCoeff + addValue
 	return
 }

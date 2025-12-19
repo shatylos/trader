@@ -340,12 +340,12 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		order.WalletAfter = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
-			err = apperrors.Wrap(err, "error save order. DomainOrderID: %s, OrderID: %s", order.Id, order.OrderId)
+			err = apperrors.Wrap(err, "error save order. DomainOrderID: %v, OrderID: %s", order.Id, order.OrderId)
 			return
 		}
 		err = i.Storage.SaveDeal(ctx, deal)
 		if err != nil {
-			err = apperrors.Wrap(err, "error save deal. DealID: %s", deal.Id)
+			err = apperrors.Wrap(err, "error save deal. DealID: %v", deal.Id)
 			return
 		}
 		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
@@ -362,7 +362,7 @@ func (i *Investor) updateOrder(ctx context.Context, deal *entity.Deal, order *en
 		order.WalletBefore = *i.State.Wallet
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
-			err = apperrors.Wrap(err, "error save order. DomainOrderID: %s, OrderID: %s", order.Id, order.OrderId)
+			err = apperrors.Wrap(err, "error save order. DomainOrderID: %v, OrderID: %s", order.Id, order.OrderId)
 			return
 		}
 	}
