@@ -127,6 +127,7 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 			if err != nil {
 				if errors.Is(err, domains.OrderNotFoundError) {
 					logger.PrintError(err)
+					logger.Warning(fmt.Sprintf("Remove order %s from the storage", historyOrder.DomainOrderId))
 					err = storage.RemoveOrder(historyOrder.DomainOrderId)
 					if err != nil {
 						err = apperrors.Wrap(err, "Can not remove order with ID %s from storage", historyOrder.DomainOrderId)
