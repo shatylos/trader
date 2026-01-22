@@ -1,6 +1,7 @@
 package bybit
 
 import (
+	"github.com/shatylos/trader/internal/domain/domains"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/mapping"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
@@ -188,7 +189,7 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainO
 	}
 
 	if order.Symbol == "" {
-		err = apperrors.New("Order with ID (%s) not found", domainId)
+		err = apperrors.Wrap(domains.OrderNotFoundError, "Order with ID (%s) not found", domainId)
 		return
 	}
 

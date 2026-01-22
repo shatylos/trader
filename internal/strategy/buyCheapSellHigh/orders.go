@@ -1,12 +1,15 @@
 package buyCheapSellHigh
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dustin/go-humanize"
+	"github.com/shatylos/trader/internal/domain/domains"
 	"github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage"
 	storageStructs "github.com/shatylos/trader/internal/strategy/buyCheapSellHigh/storage/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"strconv"
@@ -122,7 +125,17 @@ func (s *BuyCheapSellHigh) fillPrices() error {
 		if historyOrder.FilledPrice == 0 || historyOrder.FilledQty == 0 || historyOrder.Side == "" {
 			order, err := s.Domain.GetOrder(historyOrder.DomainOrderId)
 			if err != nil {
-				return err
+				if errors.Is(err, domains.OrderNotFoundError) {
+					logger.PrintError(err)
+					err = storage.RemoveOrder(historyOrder.DomainOrderId)
+					if err != nil {
+						err = apperrors.Wrap(err, "Can not remove order with ID %s from storage", historyOrder.DomainOrderId)
+						return err
+					}
+					continue
+				} else {
+					return err
+				}
 			}
 
 			if order.OrderStatus == structs.OrderStatuses.Filled || order.OrderStatus == structs.OrderStatuses.PartiallyFilled {
