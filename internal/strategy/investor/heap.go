@@ -103,9 +103,12 @@ func (i *Investor) handleHeapDiscount(ctx context.Context, heapTimeframe *_struc
 }
 
 func (i *Investor) isTimeToMoveToHeap(timeframeItem *_struct.TimeframeItem, dealRelation *entity.DealRelation) (result bool) {
+	logger.Info("Check if time to move to heap")
+
 	var lastOrder *entity.Order
 	for _, order := range dealRelation.Orders {
 		if order.OrderStatus == domainStructs.OrderStatuses.New || order.OrderStatus == domainStructs.OrderStatuses.Open {
+			logger.Info(fmt.Sprintf("result %t", result))
 			return
 		}
 		if lastOrder == nil {
@@ -117,6 +120,7 @@ func (i *Investor) isTimeToMoveToHeap(timeframeItem *_struct.TimeframeItem, deal
 	}
 
 	if lastOrder == nil {
+		logger.Info(fmt.Sprintf("lastOrder == nil. result %t", result))
 		return
 	}
 
@@ -127,6 +131,7 @@ func (i *Investor) isTimeToMoveToHeap(timeframeItem *_struct.TimeframeItem, deal
 	if time.Now().After(timeToMove) {
 		result = true
 	}
+	logger.Info(fmt.Sprintf("result %t", result))
 	return
 }
 
