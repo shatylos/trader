@@ -132,7 +132,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		minAmountRange := math.Mul(math.Div(currentPrice, 100), timeFrameItem.Config.MinPercentRangeToBuyMore)
 		currentPriceRange := minOrderPrice - currentPrice
 		if currentPriceRange < minAmountRange {
-			timeFrameItem.TradeStateMsg = fmt.Sprintf("Expect lower price (%.2f) to handle discount", currentPrice-minOrderPrice)
+			timeFrameItem.TradeStateMsg = fmt.Sprintf("Expect lower price (%.2f) to handle discount", minOrderPrice)
 			return
 		}
 		if !timeFrameItem.Config.CanOpenNewOrder {
