@@ -127,9 +127,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		minAmountRange := math.Mul(math.Div(currentPrice, 100), timeFrameItem.Config.MinPercentRangeToBuyMore)
 		currentPriceRange := minOrderPrice - currentPrice
 		if currentPriceRange < minAmountRange {
-			if i.Config.Verbose {
-				logger.Info(fmt.Sprintf("Too low price range to handle discount action (%g). Expected range: %g", currentPriceRange, minAmountRange))
-			}
+			timeFrameItem.TradeStateMsg = fmt.Sprintf("Too low price range to handle discount action (%g). Expected range: %g", currentPriceRange, minAmountRange)
 			return
 		}
 		if countBuyOrders < timeFrameItem.Config.MaxNumberOrdersToBuy {
