@@ -87,10 +87,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 
 	timeFrameItem.TradeStateMsg = "Handle discount"
 
-	logger.Info("Handle discount")
-
 	if len(dealRelation.Orders) == 0 {
-		logger.Info("dealRelation.Orders = 0")
 		var providerOrderId string
 		providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
 		if err != nil {
@@ -104,7 +101,6 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 			return
 		}
 	} else if len(dealRelation.Orders) > 0 {
-		logger.Info("Handle discount: dealRelation.Orders > 0")
 		var minOrderPrice float64
 		var countBuyOrders int64
 		for _, dealOrder := range dealRelation.Orders {
@@ -123,13 +119,12 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		minAmountRange := math.Mul(math.Div(currentPrice, 100), timeFrameItem.Config.MinPercentRangeToBuyMore)
 		currentPriceRange := minOrderPrice - currentPrice
 		if currentPriceRange < minAmountRange {
-			//if i.Config.Verbose {
-			logger.Info(fmt.Sprintf("Too low price range to handle discount action (%g). Expected range: %g", currentPriceRange, minAmountRange))
-			//}
+			if i.Config.Verbose {
+				logger.Info(fmt.Sprintf("Too low price range to handle discount action (%g). Expected range: %g", currentPriceRange, minAmountRange))
+			}
 			return
 		}
 		if countBuyOrders < timeFrameItem.Config.MaxNumberOrdersToBuy {
-			logger.Info("Handle discount: countBuyOrders < MaxNumberOrdersToBuy")
 			var providerOrderId string
 			providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
 			if err != nil {
@@ -143,7 +138,6 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 				return
 			}
 		} else {
-			logger.Info("Check if time to mo")
 			if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
 				err = i.moveToHeap(ctx, dealRelation)
 				if err != nil {
