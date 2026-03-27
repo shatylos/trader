@@ -122,6 +122,8 @@ func (i *Investor) isTimeToMoveToHeap(timeframeItem *_struct.TimeframeItem, deal
 
 	timeToMove := lastOrder.CreatedTime.Add(timeframeItem.Config.DurationToMoveToHeap)
 
+	logger.Info(fmt.Sprintf("Time to move to heap: %s", timeToMove))
+
 	if time.Now().After(timeToMove) {
 		result = true
 	}
