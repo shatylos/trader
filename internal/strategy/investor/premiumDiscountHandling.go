@@ -89,6 +89,10 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 
 	if len(dealRelation.Orders) == 0 {
 		var providerOrderId string
+		if !timeFrameItem.Config.CanOpenNewOrder {
+			timeFrameItem.TradeStateMsg = "Open new order disabled in config"
+			return
+		}
 		providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
 		if err != nil {
 			if providerOrderId != "" {
@@ -105,6 +109,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		var countBuyOrders int64
 		for _, dealOrder := range dealRelation.Orders {
 			if i.isActiveOrder(dealOrder) {
+				timeFrameItem.TradeStateMsg = "There is an active order"
 				return
 			}
 			if dealOrder.Side == structs.OrderSideBuy && dealOrder.OrderStatus != structs.OrderStatuses.Canceled {
@@ -128,6 +133,10 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		currentPriceRange := minOrderPrice - currentPrice
 		if currentPriceRange < minAmountRange {
 			timeFrameItem.TradeStateMsg = fmt.Sprintf("Too low price range to handle discount action (%g). Expected range: %g", currentPriceRange, minAmountRange)
+			return
+		}
+		if !timeFrameItem.Config.CanOpenNewOrder {
+			timeFrameItem.TradeStateMsg = "Open new order disabled in config"
 			return
 		}
 		if countBuyOrders < timeFrameItem.Config.MaxNumberOrdersToBuy {

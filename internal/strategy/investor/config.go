@@ -218,6 +218,18 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
+		var canOpenNewOrder int64
+		canOpenNewOrder, err = _type.ToInt64(tfMap["can_open_new_order"])
+		if err != nil {
+			err = apperrors.Wrap(err, "the field \"can_open_new_order\" is empty or contains not correct value type. Expects 1 or 0")
+			return
+		}
+		if canOpenNewOrder == 1 {
+			timeframe.Config.CanOpenNewOrder = true
+		} else {
+			timeframe.Config.CanOpenNewOrder = false
+		}
+
 		timeframe.Config.QtyPercent, err = _type.ToFloat64(tfMap["qty_percent"])
 		if err != nil || timeframe.Config.QtyPercent == 0 {
 			err = apperrors.Wrap(err, "empty value qty_percent")
