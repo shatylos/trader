@@ -115,6 +115,14 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 			}
 		}
 
+		if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
+			err = i.moveToHeap(ctx, dealRelation)
+			if err != nil {
+				err = apperrors.Wrap(err, "error move to heap")
+				return
+			}
+		}
+
 		currentPrice := timeFrameItem.Candles[0].Close
 		minAmountRange := math.Mul(math.Div(currentPrice, 100), timeFrameItem.Config.MinPercentRangeToBuyMore)
 		currentPriceRange := minOrderPrice - currentPrice
@@ -136,14 +144,6 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 				}
 				err = apperrors.Wrap(err, "error do buy")
 				return
-			}
-		} else {
-			if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
-				err = i.moveToHeap(ctx, dealRelation)
-				if err != nil {
-					err = apperrors.Wrap(err, "error move to heap")
-					return
-				}
 			}
 		}
 	}
