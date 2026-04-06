@@ -12,7 +12,6 @@ type Timeframe interface {
 	GetCandles() []domainStructs.DomainCandle
 	GetTrendSlope() float64
 	GetCandleTime() time.Time
-	MinPercentRangeToSell() float64
 	IsHeap() bool
 }
 

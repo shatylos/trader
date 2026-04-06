@@ -10,6 +10,7 @@ type DealRelation struct {
 	Deal            *Deal
 	Orders          []*Order
 	AverageBuyPrice float64
+	PriceToBuy      float64
 	PriceToSell     float64
 	RevenueMainCur  float64
 	RevenueTradeCur float64

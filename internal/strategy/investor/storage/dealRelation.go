@@ -109,22 +109,26 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 	revenueTotal = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, lastPrice)
 
 	averageBuyPrice := 0.0
-	priceToSell := 0.0
 	if spentAmount > 0 && boughtQty > 0 {
 		averageBuyPrice = math.Div(spentAmount, boughtQty)
-		minAmountRange := math.Mul(math.Div(averageBuyPrice, 100), deal.MinPercentRangeToSell)
-		priceToSell = averageBuyPrice + minAmountRange
 	}
 
-	dealRelation = &entity.DealRelation{
-		Deal:            deal,
-		Orders:          dealOrders,
-		AverageBuyPrice: averageBuyPrice,
-		PriceToSell:     priceToSell,
-		RevenueMainCur:  revenueMainCur,
-		RevenueTradeCur: revenueTradeCur,
-		RevenueTotal:    revenueTotal,
-		QtyInTrade:      boughtQty - soldQty,
+	if s.activeDealRelations[*deal.Id] != nil {
+		dealRelation = s.activeDealRelations[*deal.Id]
+	} else {
+		dealRelation = &entity.DealRelation{}
 	}
+
+	dealRelation.Deal = deal
+	dealRelation.Orders = dealOrders
+	dealRelation.AverageBuyPrice = averageBuyPrice
+	dealRelation.RevenueMainCur = revenueMainCur
+	dealRelation.RevenueTradeCur = revenueTradeCur
+	dealRelation.RevenueTotal = revenueTotal
+	dealRelation.QtyInTrade = boughtQty - soldQty
+	if deal.Status != entity.DealStatusClosed {
+		s.activeDealRelations[*deal.Id] = dealRelation
+	}
+
 	return
 }

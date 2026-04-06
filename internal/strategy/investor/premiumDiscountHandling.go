@@ -8,65 +8,68 @@ import (
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
-	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
 	"github.com/shatylos/trader/tools/trading"
 )
 
 func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
+	currentPrice := timeFrameItem.Candles[0].Close
+	priceToSell := dealRelation.PriceToSell
 
 	if dealRelation.Deal.Status != entity.DealStatusActive {
+		timeFrameItem.TradeStateMsg = "Handle premium. Deal is not active"
 		return
 	}
 
-	timeFrameItem.TradeStateMsg = "Handle premium"
+	if dealRelation.PriceToSell == 0 {
+		timeFrameItem.TradeStateMsg = "Handle premium. Will not sell"
+		return
+	}
 
 	for _, dealOrder := range dealRelation.Orders {
 		if i.isActiveOrder(dealOrder) {
-			if i.Config.Verbose {
-				logger.Info(fmt.Sprintf("there is active order to %s. Waiting for the filling of the order", dealOrder.Side))
-			}
+			timeFrameItem.TradeStateMsg = "There is an active order. Wait for fill the order"
 			return
 		}
 	}
 
-	if dealRelation.QtyInTrade > 0 && dealRelation.PriceToSell > 0 {
-		price := timeFrameItem.Candles[0].Close
-		priceToSell := dealRelation.PriceToSell
-		if price < priceToSell {
-			if i.Config.Verbose {
-				logger.Info(fmt.Sprintf("Too low price to sell (%g). Expected price: %g", price, priceToSell))
-			}
-			return
-		}
+	if currentPrice < priceToSell {
+		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle premium. Expect higher price (%.2f) to sell", priceToSell)
+		return
+	}
 
-		qty := dealRelation.QtyInTrade
-		avQty := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
-		if avQty < qty {
-			qty = avQty
-		}
-		if qty < i.Config.MinQty {
-			dealRelation.Deal.SetClose()
-			err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
-			if err != nil {
-				err = apperrors.Wrap(err, "error save deal. DealID: %v", dealRelation.Deal.Id)
-				return
-			}
-			return
-		}
+	if dealRelation.QtyInTrade == 0 {
+		timeFrameItem.TradeStateMsg = "Handle premium. Qty in trade is 0. Will not sell"
+		return
+	}
 
-		var providerOrderId string
-		providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation.Deal, qty, price)
+	qty := dealRelation.QtyInTrade
+	avQty := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
+	if avQty < qty {
+		qty = avQty
+	}
+	if qty < i.Config.MinQty {
+		dealRelation.Deal.SetClose()
+		err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
 		if err != nil {
-			if providerOrderId != "" {
-				i.Config.Enabled = false
-				msg := fmt.Sprintf("[%s] Order for sell was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
-				logger.Warning(msg)
-				tgNotifier.Notify(msg)
-			}
-			err = apperrors.Wrap(err, "error do sell")
+			err = apperrors.Wrap(err, "error save deal. DealID: %v", dealRelation.Deal.Id)
 			return
 		}
+		timeFrameItem.TradeStateMsg = "Handle premium. Not enough qty to sell. Deal closed."
+		return
+	}
+
+	var providerOrderId string
+	providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation.Deal, qty, currentPrice)
+	if err != nil {
+		if providerOrderId != "" {
+			i.Config.Enabled = false
+			msg := fmt.Sprintf("[%s] Order for sell was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
+			logger.Warning(msg)
+			tgNotifier.Notify(msg)
+		}
+		err = apperrors.Wrap(err, "error do sell")
+		return
 	}
 
 	return
@@ -74,85 +77,48 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 
 func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
 
-	if timeFrameItem.Config.IsCheckHigherTF {
-		higherTrendSlope := timeFrameItem.GetHigherTrendSlope()
-		if higherTrendSlope < timeFrameItem.Config.MinHigherTFSlope {
-			if i.Config.Verbose {
-				logger.Info(fmt.Sprintf("Higher trend slope %f is lower then expected trend (%f)", higherTrendSlope, timeFrameItem.Config.MinHigherTFSlope))
-			}
-			timeFrameItem.TradeStateMsg = "Higher-TF slope too low"
+	if !timeFrameItem.Config.CanOpenNewOrder {
+		timeFrameItem.TradeStateMsg = "Open new order disabled in config"
+		return
+	}
+
+	currentPrice := timeFrameItem.Candles[0].Close
+	if dealRelation.PriceToBuy == 0 {
+		timeFrameItem.TradeStateMsg = "Handle discount. Will not buy more"
+		return
+	}
+
+	if currentPrice > dealRelation.PriceToBuy {
+		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle discount. Expect lower price (%.2f) to buy", dealRelation.PriceToBuy)
+		return
+	}
+
+	for _, dealOrder := range dealRelation.Orders {
+		if i.isActiveOrder(dealOrder) {
+			timeFrameItem.TradeStateMsg = "There is an active order"
 			return
 		}
 	}
 
-	timeFrameItem.TradeStateMsg = "Handle discount"
-
-	if len(dealRelation.Orders) == 0 {
-		var providerOrderId string
-		if !timeFrameItem.Config.CanOpenNewOrder {
-			timeFrameItem.TradeStateMsg = "Open new order disabled in config"
-			return
-		}
-		providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
+	if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
+		err = i.moveToHeap(ctx, dealRelation)
 		if err != nil {
-			if providerOrderId != "" {
-				i.Config.Enabled = false
-				msg := fmt.Sprintf("[%s] Order for buy was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
-				logger.Warning(msg)
-				tgNotifier.Notify(msg)
-			}
-			err = apperrors.Wrap(err, "error do buy")
+			err = apperrors.Wrap(err, "error move to heap")
 			return
 		}
-	} else if len(dealRelation.Orders) > 0 {
-		var minOrderPrice float64
-		var countBuyOrders int64
-		for _, dealOrder := range dealRelation.Orders {
-			if i.isActiveOrder(dealOrder) {
-				timeFrameItem.TradeStateMsg = "There is an active order"
-				return
-			}
-			if dealOrder.Side == structs.OrderSideBuy && dealOrder.OrderStatus != structs.OrderStatuses.Canceled {
-				countBuyOrders++
-				if minOrderPrice == 0 || minOrderPrice > dealOrder.Price {
-					minOrderPrice = dealOrder.Price
-				}
-			}
-		}
+	}
 
-		if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
-			err = i.moveToHeap(ctx, dealRelation)
-			if err != nil {
-				err = apperrors.Wrap(err, "error move to heap")
-				return
-			}
+	var providerOrderId string
+	providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
+	if err != nil {
+		if providerOrderId != "" {
+			i.Config.Enabled = false
+			msg := fmt.Sprintf("[%s] Order for buy was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
+			logger.Warning(msg)
+			tgNotifier.Notify(msg)
 		}
-
-		currentPrice := timeFrameItem.Candles[0].Close
-		minAmountRange := math.Mul(math.Div(currentPrice, 100), timeFrameItem.Config.MinPercentRangeToBuyMore)
-		nextBuyPrice := minOrderPrice - minAmountRange
-		if currentPrice > nextBuyPrice {
-			timeFrameItem.TradeStateMsg = fmt.Sprintf("Expect lower price (%.2f) to handle discount", nextBuyPrice)
-			return
-		}
-		if !timeFrameItem.Config.CanOpenNewOrder {
-			timeFrameItem.TradeStateMsg = "Open new order disabled in config"
-			return
-		}
-		if countBuyOrders < timeFrameItem.Config.MaxNumberOrdersToBuy {
-			var providerOrderId string
-			providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
-			if err != nil {
-				if providerOrderId != "" {
-					i.Config.Enabled = false
-					msg := fmt.Sprintf("[%s] Order for buy was created at the provider's side but error happened. Configuration disabled.", i.Config.Id)
-					logger.Warning(msg)
-					tgNotifier.Notify(msg)
-				}
-				err = apperrors.Wrap(err, "error do buy")
-				return
-			}
-		}
+		err = apperrors.Wrap(err, "error do buy")
+		return
 	}
 
 	return

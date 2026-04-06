@@ -259,39 +259,9 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
-		timeframe.Config.MaxNumberOrdersToBuy, err = _type.ToInt64(tfMap["max_number_orders_to_buy"])
-		if err != nil || timeframe.Config.MaxNumberOrdersToBuy == 0 {
-			err = apperrors.Wrap(err, "empty value max_number_orders_to_buy")
-			return
-		}
-
 		timeframe.Config.SidewaysPercentToPrice, err = _type.ToFloat64(tfMap["sideways_percent_to_price"])
 		if err != nil || timeframe.Config.SidewaysPercentToPrice == 0 {
 			err = apperrors.Wrap(err, "empty value sideways_percent_to_price")
-			return
-		}
-
-		timeframe.Config.SidewaysPremiumCoefficient, err = _type.ToFloat64(tfMap["sideways_premium_coefficient"])
-		if err != nil {
-			err = apperrors.Wrap(err, "empty value sideways_premium_coefficient")
-			return
-		}
-
-		timeframe.Config.SidewaysDiscountCoefficient, err = _type.ToFloat64(tfMap["sideways_discount_coefficient"])
-		if err != nil {
-			err = apperrors.Wrap(err, "empty value sideways_discount_coefficient")
-			return
-		}
-
-		timeframe.Config.MinPercentRangeToSell, err = _type.ToFloat64(tfMap["min_percent_range_to_sell"])
-		if err != nil {
-			err = apperrors.Wrap(err, "empty value min_percent_range_to_sell")
-			return
-		}
-
-		timeframe.Config.MinPercentRangeToBuyMore, err = _type.ToFloat64(tfMap["min_percent_range_to_buy_more"])
-		if err != nil {
-			err = apperrors.Wrap(err, "empty value min_percent_range_to_buy_more")
 			return
 		}
 
@@ -302,25 +272,36 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 		timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
 
-		minHigherTFSlope, exists := tfMap["min_higher_tf_slope"]
-		if exists {
-			timeframe.Config.IsCheckHigherTF = true
-			timeframe.Config.MinHigherTFSlope, err = _type.ToFloat64(minHigherTFSlope)
+		rawVwapDeviationsBuy, ok := tfMap["vwap_deviations_buy"].([]interface{})
+		if !ok {
+			err = apperrors.New("config is not valid. \"vwap_deviations_buy\" must be array")
+			return
+		}
+		timeframe.Config.VwapDeviationsBuy = make([]float64, len(rawVwapDeviationsBuy))
+		for i, val := range rawVwapDeviationsBuy {
+			var deviation float64
+			deviation, err = _type.ToFloat64(val)
 			if err != nil {
-				err = apperrors.Wrap(err, "the field min_higher_tf_slope contains not correct value. Expected float64")
+				err = apperrors.Wrap(err, "config is not valid. \"vwap_deviations_buy\" must be array of float64. Given value: %s", val)
 				return
 			}
-		} else {
-			timeframe.Config.IsCheckHigherTF = false
+			timeframe.Config.VwapDeviationsBuy[i] = deviation
 		}
 
-		higherTFResolution, exists := tfMap["higher_tf_resolution"]
-		if exists {
-			timeframe.Config.HigherTFResolution, err = _type.ToString(higherTFResolution)
+		rawVwapDeviationsSell, ok := tfMap["vwap_deviations_sell"].([]interface{})
+		if !ok {
+			err = apperrors.New("config is not valid. \"vwap_deviations_sell\" must be array")
+			return
+		}
+		timeframe.Config.VwapDeviationsSell = make([]float64, len(rawVwapDeviationsSell))
+		for i, val := range rawVwapDeviationsSell {
+			var deviation float64
+			deviation, err = _type.ToFloat64(val)
 			if err != nil {
-				err = apperrors.Wrap(err, "the field higher_tf_resolution is empty or contains not correct value type")
+				err = apperrors.Wrap(err, "config is not valid. \"vwap_deviations_sell\" must be array of float64. Given value: %s", val)
 				return
 			}
+			timeframe.Config.VwapDeviationsSell[i] = deviation
 		}
 
 		i.Timeframes = append(i.Timeframes, timeframe)

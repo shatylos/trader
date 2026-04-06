@@ -65,6 +65,10 @@ func (s *Storage) SaveDeal(ctx context.Context, deal *entity.Deal) (err error) {
 		}
 	}
 
+	if deal.Status == entity.DealStatusClosed && deal.Id != nil {
+		delete(s.activeDealRelations, *deal.Id)
+	}
+
 	return
 }
 
@@ -87,9 +91,8 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 
 	if deal == nil {
 		deal = &entity.Deal{
-			Timeframe:             timeFrame.Resolution(),
-			Status:                entity.DealStatusNew,
-			MinPercentRangeToSell: timeFrame.MinPercentRangeToSell(),
+			Timeframe: timeFrame.Resolution(),
+			Status:    entity.DealStatusNew,
 		}
 		if timeFrame.IsHeap() {
 			deal.IsHeap = true
@@ -101,10 +104,6 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 		}
 	}
 
-	// @TODO: Remove it after fill the values in DB
-	if deal.MinPercentRangeToSell == 0 {
-		deal.MinPercentRangeToSell = timeFrame.MinPercentRangeToSell()
-	}
 	// @TODO: Remove it after fill the values in DB
 	if timeFrame.IsHeap() {
 		deal.IsHeap = true

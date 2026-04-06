@@ -41,23 +41,25 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 
 	sidewaysKlines := make([]domainStructs.DomainCandle, sidewaysKLinesAmount)
 	copy(sidewaysKlines, timeFrameItem.Candles[:sidewaysKLinesAmount])
-	premiumDiscount, minPrice, maxPrice := trading.PremiumDiscount(sidewaysKlines)
 
-	trendModifiedSidewaysPremiumCoeff := i.modifySidewaysCoeff(timeFrameItem.Config.SidewaysPremiumCoefficient, timeFrameItem.TrendSlope)
-	trendModifiedSidewaysDiscountCoeff := i.modifySidewaysCoeff(timeFrameItem.Config.SidewaysDiscountCoefficient, timeFrameItem.TrendSlope)
+	if len(sidewaysKlines) == 0 {
+		timeFrameItem.TradeStateMsg = "Not enough sideways candles to trade"
+		if i.Config.Verbose {
+			logger.Info(fmt.Sprintf("Timeframe %s is not in sideways. Not enough candles", timeFrameItem.Config.Resolution))
+		}
+		return
+	}
 
-	timeFrameItem.SidewaysLowPrice, timeFrameItem.SidewaysHighPrice = trading.PremiumDiscountLowHighBarriers(
-		minPrice,
-		maxPrice,
-		trendModifiedSidewaysPremiumCoeff,
-		trendModifiedSidewaysDiscountCoeff,
-	)
+	currentPrice := sidewaysKlines[0].Close
+	vwap := trading.CreateVWAP(sidewaysKlines)
+
+	i.calculateNextPrices(timeFrameItem, dealRelation, &vwap)
 
 	zone := trading.ZoneNeutral
-	if premiumDiscount > trendModifiedSidewaysPremiumCoeff {
+	if currentPrice > vwap.AncVWAP {
 		zone = trading.ZonePremium
 	}
-	if premiumDiscount < trendModifiedSidewaysDiscountCoeff {
+	if currentPrice < vwap.AncVWAP {
 		zone = trading.ZoneDiscount
 	}
 	timeFrameItem.Zone = zone
@@ -164,6 +166,31 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 		timeFrame.SetCandles(candles)
 		i.State.CurrentPrice = timeFrame.GetCandles()[0].Close
 		time.Sleep(i.Config.RequestDelay)
+	}
+
+	return
+}
+
+func (i *Investor) calculateNextPrices(timeFrameItem *_struct.TimeframeItem, dealRelation *entity.DealRelation, vwap *trading.VWAP) {
+
+	countOrders := len(dealRelation.Orders)
+
+	if countOrders < len(timeFrameItem.Config.VwapDeviationsBuy) {
+		_, dealRelation.PriceToBuy = vwap.CalcDeviation(timeFrameItem.Config.VwapDeviationsBuy[countOrders])
+	} else {
+		dealRelation.PriceToBuy = 0
+	}
+
+	if countOrders > 0 {
+		var key int
+		if countOrders < len(timeFrameItem.Config.VwapDeviationsSell) {
+			key = countOrders - 1
+		} else {
+			key = len(timeFrameItem.Config.VwapDeviationsSell) - 1
+		}
+		dealRelation.PriceToSell, _ = vwap.CalcDeviation(timeFrameItem.Config.VwapDeviationsSell[key])
+	} else {
+		dealRelation.PriceToSell = 0
 	}
 
 	return

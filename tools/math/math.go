@@ -21,6 +21,10 @@ func Div(a, b float64) float64 {
 	return resultFloat
 }
 
+func Sqrt(value float64) float64 {
+	return math.Sqrt(value)
+}
+
 func Round(value float64, precision int64) float64 {
 	roundNum := math.Pow(10, float64(precision))
 	return Div(math.Round(Mul(value, roundNum)), roundNum)

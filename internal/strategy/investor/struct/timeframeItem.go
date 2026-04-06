@@ -6,45 +6,35 @@ import (
 )
 
 type TimeframeItem struct {
-	Config            TimeframeItemConfig
-	CandleTime        time.Time
-	Candles           []domainStructs.DomainCandle
-	TrendSlope        float64
-	HigherTimeframe   Timeframe
-	IsSidewaysState   bool
-	Zone              string
-	SidewaysLowPrice  float64
-	SidewaysHighPrice float64
-	Trend             string
-	TradeStateMsg     string
-	prevValues        struct {
-		IsSidewaysState   bool
-		Zone              string
-		SidewaysLowPrice  float64
-		SidewaysHighPrice float64
-		Trend             string
-		TrendSlope        float64
-		TradeStateMsg     string
+	Config          TimeframeItemConfig
+	CandleTime      time.Time
+	Candles         []domainStructs.DomainCandle
+	TrendSlope      float64
+	HigherTimeframe Timeframe
+	IsSidewaysState bool
+	Zone            string
+	Trend           string
+	TradeStateMsg   string
+	prevValues      struct {
+		IsSidewaysState bool
+		Zone            string
+		Trend           string
+		TrendSlope      float64
+		TradeStateMsg   string
 	}
 }
 
 type TimeframeItemConfig struct {
-	Resolution                  string
-	CanOpenNewOrder             bool
-	QtyPercent                  float64
-	CandleReview                int64
-	CandleCacheDuration         time.Duration
-	SidewaysMinCandlesAmount    int64
-	MaxNumberOrdersToBuy        int64
-	SidewaysPercentToPrice      float64
-	SidewaysPremiumCoefficient  float64
-	SidewaysDiscountCoefficient float64
-	MinPercentRangeToSell       float64
-	MinPercentRangeToBuyMore    float64
-	DurationToMoveToHeap        time.Duration
-	IsCheckHigherTF             bool
-	MinHigherTFSlope            float64
-	HigherTFResolution          string
+	Resolution               string
+	CanOpenNewOrder          bool
+	QtyPercent               float64
+	CandleReview             int64
+	CandleCacheDuration      time.Duration
+	SidewaysMinCandlesAmount int64
+	SidewaysPercentToPrice   float64
+	DurationToMoveToHeap     time.Duration
+	VwapDeviationsBuy        []float64
+	VwapDeviationsSell       []float64
 }
 
 func (t *TimeframeItem) GetConfig() TimeframeConfig {
@@ -66,10 +56,6 @@ func (t *TimeframeItem) GetCandles() []domainStructs.DomainCandle {
 
 func (t *TimeframeItem) GetCandleTime() time.Time {
 	return t.CandleTime
-}
-
-func (t *TimeframeItem) MinPercentRangeToSell() float64 {
-	return t.Config.MinPercentRangeToSell
 }
 
 func (t *TimeframeItem) IsHeap() bool {
@@ -103,14 +89,6 @@ func (t *TimeframeItem) IsStatusChanged() (isChanged bool) {
 	if t.Zone != t.prevValues.Zone {
 		isChanged = true
 		t.prevValues.Zone = t.Zone
-	}
-	if t.SidewaysLowPrice != t.prevValues.SidewaysLowPrice {
-		isChanged = true
-		t.prevValues.SidewaysLowPrice = t.SidewaysLowPrice
-	}
-	if t.SidewaysHighPrice != t.prevValues.SidewaysHighPrice {
-		isChanged = true
-		t.prevValues.SidewaysHighPrice = t.SidewaysHighPrice
 	}
 	if t.Trend != t.prevValues.Trend {
 		isChanged = true

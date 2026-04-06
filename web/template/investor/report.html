@@ -84,8 +84,6 @@
                         Not sideway<br/>
                         {{ end }}
                         Zone: {{ .Zone }}<br/>
-                        Sideways High Price: {{ .SidewaysHighPrice | longFloatShort 2 }}<br/>
-                        Sideways Low Price: {{ .SidewaysLowPrice | longFloatShort 2 }}<br/>
                         Trend: {{ .Trend }}<br/>
                         Trend slope: {{ .TrendSlope | longFloatShort 2 }}<br/>
                         <span class="text-info">{{ .TradeStateMsg }}</span>
@@ -157,7 +155,7 @@
                     <th>Timeframe</th>
                     <th>Status</th>
                     <th>Average<br/> Buy Price</th>
-                    <th>Min. Price To Sell</th>
+                    <th>Price To Sell/Buy</th>
                     <th>Revenue</th>
                     <th>Created Time</th>
                     <th>Closed Time</th>
@@ -171,7 +169,7 @@
                     <td class="">{{ .Deal.Timeframe }}</td>
                     <td class="">{{ .Deal.Status }}</td>
                     <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
-                    <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}</td>
+                    <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}<br/>{{ .PriceToBuy | moneyFormat $.PricePrecision }}</td>
                     <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
                         {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
                         {{ if gt .RevenueTotal 0.0 }}
