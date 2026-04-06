@@ -84,14 +84,14 @@ func (i *Investor) DoAction() (err error) {
 			i.WebSocket.SendTimeframeItemStatus(i.Timeframes[key])
 		}
 	}
-	err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
-	if err != nil {
-		err = apperrors.Wrap(err, "error handle heap timeframe")
-		return
-	}
-	if i.HeapTimeframe.IsStatusChanged() {
-		i.WebSocket.SendHeapTimeframeStatus(i.HeapTimeframe)
-	}
+	//err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
+	//if err != nil {
+	//	err = apperrors.Wrap(err, "error handle heap timeframe")
+	//	return
+	//}
+	//if i.HeapTimeframe.IsStatusChanged() {
+	//	i.WebSocket.SendHeapTimeframeStatus(i.HeapTimeframe)
+	//}
 	if i.IsBalanceChanged() {
 		i.WebSocket.SendCurrentPrice(i)
 	}
