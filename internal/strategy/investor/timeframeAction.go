@@ -50,6 +50,8 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 		return
 	}
 
+	timeFrameItem.SidewaysFrom = time.Unix(sidewaysKlines[len(sidewaysKlines)-1].Time, 0)
+
 	currentPrice := sidewaysKlines[0].Close
 	vwap := trading.CreateVWAP(sidewaysKlines)
 

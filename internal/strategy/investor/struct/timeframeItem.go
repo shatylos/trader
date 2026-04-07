@@ -12,11 +12,13 @@ type TimeframeItem struct {
 	TrendSlope      float64
 	HigherTimeframe Timeframe
 	IsSidewaysState bool
+	SidewaysFrom    time.Time
 	Zone            string
 	Trend           string
 	TradeStateMsg   string
 	prevValues      struct {
 		IsSidewaysState bool
+		SidewaysFrom    time.Time
 		Zone            string
 		Trend           string
 		TrendSlope      float64
@@ -85,6 +87,10 @@ func (t *TimeframeItem) IsStatusChanged() (isChanged bool) {
 	if t.IsSidewaysState != t.prevValues.IsSidewaysState {
 		isChanged = true
 		t.prevValues.IsSidewaysState = t.IsSidewaysState
+	}
+	if !t.SidewaysFrom.Equal(t.prevValues.SidewaysFrom) {
+		isChanged = true
+		t.prevValues.SidewaysFrom = t.SidewaysFrom
 	}
 	if t.Zone != t.prevValues.Zone {
 		isChanged = true

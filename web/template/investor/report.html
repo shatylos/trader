@@ -79,7 +79,7 @@
                     <div id="timeframe-item-status-{{ .Config.Resolution }}">
                         Resolution: {{ .Config.Resolution }}<br/>
                         {{ if .IsSidewaysState }}
-                        Sideway<br/>
+                        Sideway from: {{ .SidewaysFrom.Format "2006-01-02 15:04:05" }}<br/>
                         {{ else }}
                         Not sideway<br/>
                         {{ end }}
