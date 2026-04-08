@@ -272,6 +272,16 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 		timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
 
+		var equalAllOrders int64
+		equalAllOrders, err = _type.ToInt64(tfMap["equal_all_orders"])
+		if err != nil {
+			err = apperrors.Wrap(err, "the field \"equal_all_orders\" is empty or contains not correct value type. Expects 1 or 0")
+			return
+		}
+		if equalAllOrders == 1 {
+			timeframe.Config.IsEqualAllOrders = true
+		}
+
 		rawVwapDeviationsBuy, ok := tfMap["vwap_deviations_buy"].([]interface{})
 		if !ok {
 			err = apperrors.New("config is not valid. \"vwap_deviations_buy\" must be array")

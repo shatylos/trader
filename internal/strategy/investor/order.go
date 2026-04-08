@@ -32,10 +32,18 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	walletBefore = *i.State.Wallet
 
 	var qty, price float64
-	qty, price, err = i.calculateQtyToBuy(timeFrameItem)
+	qty, price, err = i.calculateQtyToBuy(timeFrameItem, deal)
 	if err != nil {
 		err = apperrors.Wrap(err, "error calculate qty to buy")
 		return
+	}
+	if timeFrameItem.Config.IsEqualAllOrders && deal.EqualOrdersQty == 0 {
+		deal.EqualOrdersQty = qty
+		err = i.Storage.SaveDeal(ctx, deal)
+		if err != nil {
+			err = apperrors.Wrap(err, "error save deal")
+			return
+		}
 	}
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
@@ -172,13 +180,19 @@ func (i *Investor) doBuyOnHeap(ctx context.Context, heapTimeframe *_struct.HeapT
 	return
 }
 
-func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.TimeframeItem) (qty float64, currentPrice float64, err error) {
+func (i *Investor) calculateQtyToBuy(timeFrameItem *_struct.TimeframeItem, deal *entity.Deal) (qty float64, currentPrice float64, err error) {
 	mainCurrencyAvailable := i.getMainCurrencyAvailable()
 	if mainCurrencyAvailable == 0 {
 		return
 	}
 
 	currentPrice = timeFrameItem.Candles[0].Close
+
+	if timeFrameItem.Config.IsEqualAllOrders && deal.EqualOrdersQty > 0 {
+		qty = deal.EqualOrdersQty
+		return
+	}
+
 	qtyPercent := timeFrameItem.Config.QtyPercent
 	minQty := i.Config.MinQty
 	doIncreaseQtyToMinQty := i.Config.DoIncreaseQtyToMinQty

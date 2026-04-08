@@ -35,6 +35,7 @@ type TimeframeItemConfig struct {
 	SidewaysMinCandlesAmount int64
 	SidewaysPercentToPrice   float64
 	DurationToMoveToHeap     time.Duration
+	IsEqualAllOrders         bool
 	VwapDeviationsBuy        []float64
 	VwapDeviationsSell       []float64
 }
