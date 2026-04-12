@@ -29,6 +29,7 @@ type TimeframeItem struct {
 type TimeframeItemConfig struct {
 	Resolution               string
 	CanOpenNewOrder          bool
+	FullAmountPercent        float64
 	QtyPercent               float64
 	CandleReview             int64
 	CandleCacheDuration      time.Duration
