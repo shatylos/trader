@@ -3,7 +3,6 @@ package investor
 import (
 	"errors"
 	"github.com/shatylos/trader/internal/domain"
-	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
@@ -171,12 +170,6 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		return
 	}
 
-	err = i.applyHeapConfig(configMap["heap_timeframe"])
-	if err != nil {
-		err = apperrors.Wrap(err, "error apply heap timeframe config")
-		return
-	}
-
 	err = i.applyDomainConfig(configMap, domainConfig)
 	if err != nil {
 		err = apperrors.Wrap(err, "error apply domain config")
@@ -265,13 +258,6 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
-		timeframe.Config.DurationToMoveToHeap, err = _type.ToTimeDuration(tfMap["hours_duration_to_move_to_heap"])
-		if err != nil {
-			err = apperrors.Wrap(err, "the field hours_duration_to_move_to_heap is empty")
-			return
-		}
-		timeframe.Config.DurationToMoveToHeap = timeframe.Config.DurationToMoveToHeap * time.Hour
-
 		var equalAllOrders int64
 		equalAllOrders, err = _type.ToInt64(tfMap["equal_all_orders"])
 		if err != nil {
@@ -317,104 +303,6 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		i.Timeframes = append(i.Timeframes, timeframe)
 	}
 
-	return
-}
-
-func (i *Investor) applyHeapConfig(heapTimeframesConfig interface{}) (err error) {
-	tfMap, ok := heapTimeframesConfig.(map[interface{}]interface{})
-	if !ok {
-		err = apperrors.New("config for the strategy Investor is not valid. Item of \"timeframes\" must be map ok key value")
-		return
-	}
-
-	heapTimeframe := _struct.HeapTimeframe{
-		Config:     _struct.HeapConfig{},
-		HeapStatus: entity.HeapStatus{},
-	}
-
-	heapTimeframe.Config.Resolution, err = _type.ToString(tfMap["resolution"])
-	if err != nil {
-		err = apperrors.Wrap(err, "the field resolution is empty or contains not correct value type")
-		return
-	}
-
-	heapTimeframe.Config.QtyPercent, err = _type.ToFloat64(tfMap["qty_percent"])
-	if err != nil || heapTimeframe.Config.QtyPercent == 0 {
-		err = apperrors.Wrap(err, "empty value qty_percent")
-		return
-	}
-
-	heapTimeframe.Config.CandleReview, err = _type.ToInt64(tfMap["candle_review"])
-	if err != nil || heapTimeframe.Config.CandleReview < 10 {
-		err = apperrors.Wrap(err, "the field candle_review is empty or contains not correct value type. Expects int64 value more than 10")
-		return
-	}
-
-	heapTimeframe.Config.CandleCacheDuration, err = _type.ToTimeDuration(tfMap["candle_cache_seconds"])
-	if err != nil {
-		err = apperrors.Wrap(err, "the field candle_cache_seconds is empty or contains not correct value type. Expects int64 value more than 1")
-		return
-	}
-	heapTimeframe.Config.CandleCacheDuration = heapTimeframe.Config.CandleCacheDuration * time.Second
-	if heapTimeframe.Config.CandleCacheDuration < time.Second {
-		err = apperrors.Wrap(err, "the field candle_cache_seconds contains not correct value. Expects int64 value more than 1")
-		return
-	}
-
-	heapTimeframe.Config.SidewaysMinCandlesAmount, err = _type.ToInt64(tfMap["sideways_min_candles_amount"])
-	if err != nil || heapTimeframe.Config.SidewaysMinCandlesAmount == 0 {
-		err = apperrors.Wrap(err, "empty value sideways_min_candles_amount")
-		return
-	}
-
-	heapTimeframe.Config.MaxNumberOrdersToBuy, err = _type.ToInt64(tfMap["max_number_orders_to_buy"])
-	if err != nil || heapTimeframe.Config.MaxNumberOrdersToBuy == 0 {
-		err = apperrors.Wrap(err, "empty value max_number_orders_to_buy")
-		return
-	}
-
-	heapTimeframe.Config.SidewaysPercentToPrice, err = _type.ToFloat64(tfMap["sideways_percent_to_price"])
-	if err != nil || heapTimeframe.Config.SidewaysPercentToPrice == 0 {
-		err = apperrors.Wrap(err, "empty value sideways_percent_to_price")
-		return
-	}
-
-	heapTimeframe.Config.SidewaysPremiumCoefficient, err = _type.ToFloat64(tfMap["sideways_premium_coefficient"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value sideways_premium_coefficient")
-		return
-	}
-
-	heapTimeframe.Config.SidewaysDiscountCoefficient, err = _type.ToFloat64(tfMap["sideways_discount_coefficient"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value sideways_discount_coefficient")
-		return
-	}
-
-	heapTimeframe.Config.MinPercentRangeToSell, err = _type.ToFloat64(tfMap["min_percent_range_to_sell"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value min_percent_range_to_sell")
-		return
-	}
-
-	heapTimeframe.Config.MinPercentRangeToBuyMore, err = _type.ToFloat64(tfMap["min_percent_range_to_buy_more"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value min_percent_range_to_buy_more")
-		return
-	}
-
-	heapTimeframe.Config.QtyPercentOnMaxPrice, err = _type.ToFloat64(tfMap["qty_percent_on_max_price"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value qty_percent_on_max_price for heap config")
-		return
-	}
-	heapTimeframe.Config.QtyPercentOnMinPrice, err = _type.ToFloat64(tfMap["qty_percent_on_min_price"])
-	if err != nil {
-		err = apperrors.Wrap(err, "empty value qty_percent_on_min_price for heap config")
-		return
-	}
-
-	i.HeapTimeframe = heapTimeframe
 	return
 }
 

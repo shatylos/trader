@@ -126,37 +126,6 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	return
 }
 
-func (i *Investor) handleHeapTimeframe(ctx context.Context, timeFrameItem *_struct.HeapTimeframe) (err error) {
-	err = i.loadCandles(timeFrameItem)
-	if err != nil {
-		err = apperrors.Wrap(err, "error load candles")
-		return
-	}
-
-	err = i.UpdateHeapStatus(ctx)
-	if err != nil {
-		err = apperrors.Wrap(err, "error update heap status")
-		return
-	}
-
-	if i.HeapTimeframe.HeapStatus.Zone == trading.ZonePremium {
-		err = i.handleHeapPremium(ctx, timeFrameItem)
-		if err != nil {
-			err = apperrors.Wrap(err, "error handle heap premium")
-			return
-		}
-	}
-	if i.HeapTimeframe.HeapStatus.Zone == trading.ZoneDiscount {
-		err = i.handleHeapDiscount(ctx, timeFrameItem)
-		if err != nil {
-			err = apperrors.Wrap(err, "error handle heap discount")
-			return
-		}
-	}
-
-	return
-}
-
 func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 	if timeFrame.GetCandleTime().Before(time.Now().Add(-timeFrame.GetConfig().GetCandleCacheDuration())) {
 		var candles []domainStructs.DomainCandle

@@ -100,14 +100,6 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		}
 	}
 
-	if i.isTimeToMoveToHeap(timeFrameItem, dealRelation) {
-		err = i.moveToHeap(ctx, dealRelation)
-		if err != nil {
-			err = apperrors.Wrap(err, "error move to heap")
-			return
-		}
-	}
-
 	var providerOrderId string
 	providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
 	if err != nil {
