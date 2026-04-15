@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools/trading"
 	"time"
 )
@@ -12,6 +13,8 @@ type DealRelation struct {
 	AverageBuyPrice float64
 	PriceToBuy      float64
 	PriceToSell     float64
+	QtyToBuy        float64
+	QtyToSell       float64
 	RevenueMainCur  float64
 	RevenueTradeCur float64
 	RevenueTotal    float64
@@ -35,5 +38,24 @@ func (d *DealRelation) GetTotalAmountBefore(mainCurrency, tradeCurrency string) 
 			amount = mainCurr + trading.TradeCurrencyToMain(tradeCurr, order.Price)
 		}
 	}
+	return
+}
+
+func (d *DealRelation) CalcQtyInTrade() (qtyInTrade float64) {
+	var boughtQty, soldQty float64
+
+	for _, order := range d.Orders {
+		if order.OrderStatus != structs.OrderStatuses.Filled {
+			continue
+		}
+
+		if order.Side == structs.OrderSideBuy {
+			boughtQty += order.Qty
+		}
+		if order.Side == structs.OrderSideSell {
+			soldQty += order.Qty
+		}
+	}
+	qtyInTrade = boughtQty - soldQty
 	return
 }

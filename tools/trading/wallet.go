@@ -32,3 +32,8 @@ func TradeCurrencyToMain(tradeAmount, price float64) (mainAmount float64) {
 	mainAmount = math.Mul(tradeAmount, price)
 	return
 }
+
+func MainCurrencyToTrade(mainAmount, price float64) (tradeAmount float64) {
+	tradeAmount = math.Div(mainAmount, price)
+	return
+}

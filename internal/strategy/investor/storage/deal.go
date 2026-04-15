@@ -104,11 +104,6 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 		}
 	}
 
-	// @TODO: Remove it after fill the values in DB
-	if timeFrame.IsHeap() {
-		deal.IsHeap = true
-	}
-
 	return
 }
 

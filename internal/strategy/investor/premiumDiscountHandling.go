@@ -9,7 +9,6 @@ import (
 	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
-	"github.com/shatylos/trader/tools/trading"
 )
 
 func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
@@ -43,12 +42,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 		return
 	}
 
-	qty := dealRelation.QtyInTrade
-	avQty := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
-	if avQty < qty {
-		qty = avQty
-	}
-	if qty < i.Config.MinQty {
+	if dealRelation.QtyInTrade < i.Config.MinQty {
 		dealRelation.Deal.SetClose()
 		err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
 		if err != nil {
@@ -60,7 +54,7 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 	}
 
 	var providerOrderId string
-	providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation.Deal, qty, currentPrice)
+	providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation)
 	if err != nil {
 		if providerOrderId != "" {
 			i.Config.Enabled = false
@@ -82,12 +76,12 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		return
 	}
 
-	currentPrice := timeFrameItem.Candles[0].Close
 	if dealRelation.PriceToBuy == 0 {
 		timeFrameItem.TradeStateMsg = "Handle discount. Will not buy more"
 		return
 	}
 
+	currentPrice := timeFrameItem.Candles[0].Close
 	if currentPrice > dealRelation.PriceToBuy {
 		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle discount. Expect lower price (%.2f) to buy", dealRelation.PriceToBuy)
 		return
@@ -101,7 +95,7 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 	}
 
 	var providerOrderId string
-	providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation.Deal)
+	providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation)
 	if err != nil {
 		if providerOrderId != "" {
 			i.Config.Enabled = false

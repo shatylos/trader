@@ -35,9 +35,13 @@ type TimeframeItemConfig struct {
 	CandleCacheDuration      time.Duration
 	SidewaysMinCandlesAmount int64
 	SidewaysPercentToPrice   float64
-	IsEqualAllOrders         bool
-	VwapDeviationsBuy        []float64
-	VwapDeviationsSell       []float64
+	SellOrders               []OrderParams
+	BuyOrders                []OrderParams
+}
+
+type OrderParams struct {
+	VwapDeviations float64
+	Percentage     float64
 }
 
 func (t *TimeframeItem) GetConfig() TimeframeConfig {

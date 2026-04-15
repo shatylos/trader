@@ -55,7 +55,22 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	currentPrice := sidewaysKlines[0].Close
 	vwap := trading.CreateVWAP(sidewaysKlines)
 
-	i.calculateNextPrices(timeFrameItem, dealRelation, &vwap)
+	err = i.calculateNextQtyAndPrices(ctx, timeFrameItem, dealRelation, &vwap)
+	if err != nil {
+		err = apperrors.Wrap(err, "error calculate next qty and prices")
+		return
+	}
+
+	if dealRelation.QtyToBuy == 0 && dealRelation.QtyToSell == 0 {
+		logger.Info("qty to buy and sell are 0. Close the deal")
+		deal.SetClose()
+		err = i.Storage.SaveDeal(ctx, deal)
+		if err != nil {
+			err = apperrors.Wrap(err, "error saving deal when try to close it")
+			return
+		}
+		return
+	}
 
 	zone := trading.ZoneNeutral
 	if currentPrice > vwap.AncVWAP {
@@ -72,7 +87,7 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 			domainStructs.OrderStatuses.Open,
 			domainStructs.OrderStatuses.PartiallyFilled:
 			timeFrameItem.TradeStateMsg = "Wait for fill the order"
-			err = i.updateOrder(ctx, dealRelation.Deal, dealOrder, timeFrameItem)
+			err = i.updateOrder(ctx, dealRelation, dealOrder, timeFrameItem)
 			if err != nil {
 				err = apperrors.Wrap(err, "error update order")
 				return
@@ -137,31 +152,6 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 		timeFrame.SetCandles(candles)
 		i.State.CurrentPrice = timeFrame.GetCandles()[0].Close
 		time.Sleep(i.Config.RequestDelay)
-	}
-
-	return
-}
-
-func (i *Investor) calculateNextPrices(timeFrameItem *_struct.TimeframeItem, dealRelation *entity.DealRelation, vwap *trading.VWAP) {
-
-	countOrders := len(dealRelation.Orders)
-
-	if countOrders < len(timeFrameItem.Config.VwapDeviationsBuy) {
-		_, dealRelation.PriceToBuy = vwap.CalcDeviation(timeFrameItem.Config.VwapDeviationsBuy[countOrders])
-	} else {
-		dealRelation.PriceToBuy = 0
-	}
-
-	if countOrders > 0 {
-		var key int
-		if countOrders < len(timeFrameItem.Config.VwapDeviationsSell) {
-			key = countOrders - 1
-		} else {
-			key = len(timeFrameItem.Config.VwapDeviationsSell) - 1
-		}
-		dealRelation.PriceToSell, _ = vwap.CalcDeviation(timeFrameItem.Config.VwapDeviationsSell[key])
-	} else {
-		dealRelation.PriceToSell = 0
 	}
 
 	return

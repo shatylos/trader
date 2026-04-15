@@ -264,46 +264,36 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
-		var equalAllOrders int64
-		equalAllOrders, err = _type.ToInt64(tfMap["equal_all_orders"])
-		if err != nil {
-			err = apperrors.Wrap(err, "the field \"equal_all_orders\" is empty or contains not correct value type. Expects 1 or 0")
-			return
-		}
-		if equalAllOrders == 1 {
-			timeframe.Config.IsEqualAllOrders = true
-		}
-
-		rawVwapDeviationsBuy, ok := tfMap["vwap_deviations_buy"].([]interface{})
+		rawSellOrders, ok := tfMap["sell_orders"].([]interface{})
 		if !ok {
-			err = apperrors.New("config is not valid. \"vwap_deviations_buy\" must be array")
+			err = apperrors.New("config is not valid. \"sell_orders\" must be array")
 			return
 		}
-		timeframe.Config.VwapDeviationsBuy = make([]float64, len(rawVwapDeviationsBuy))
-		for i, val := range rawVwapDeviationsBuy {
-			var deviation float64
-			deviation, err = _type.ToFloat64(val)
+		timeframe.Config.SellOrders = make([]_struct.OrderParams, len(rawSellOrders))
+		for i, item := range rawSellOrders {
+			var orderParams _struct.OrderParams
+			orderParams, err = parseOrderParams(item)
 			if err != nil {
-				err = apperrors.Wrap(err, "config is not valid. \"vwap_deviations_buy\" must be array of float64. Given value: %s", val)
+				err = apperrors.Wrap(err, "invalid sell_orders config")
 				return
 			}
-			timeframe.Config.VwapDeviationsBuy[i] = deviation
+			timeframe.Config.SellOrders[i] = orderParams
 		}
 
-		rawVwapDeviationsSell, ok := tfMap["vwap_deviations_sell"].([]interface{})
+		rawBuyOrders, ok := tfMap["buy_orders"].([]interface{})
 		if !ok {
-			err = apperrors.New("config is not valid. \"vwap_deviations_sell\" must be array")
+			err = apperrors.New("config is not valid. \"buy_orders\" must be array")
 			return
 		}
-		timeframe.Config.VwapDeviationsSell = make([]float64, len(rawVwapDeviationsSell))
-		for i, val := range rawVwapDeviationsSell {
-			var deviation float64
-			deviation, err = _type.ToFloat64(val)
+		timeframe.Config.BuyOrders = make([]_struct.OrderParams, len(rawBuyOrders))
+		for i, item := range rawBuyOrders {
+			var orderParams _struct.OrderParams
+			orderParams, err = parseOrderParams(item)
 			if err != nil {
-				err = apperrors.Wrap(err, "config is not valid. \"vwap_deviations_sell\" must be array of float64. Given value: %s", val)
+				err = apperrors.Wrap(err, "invalid buy_orders config")
 				return
 			}
-			timeframe.Config.VwapDeviationsSell[i] = deviation
+			timeframe.Config.BuyOrders[i] = orderParams
 		}
 
 		i.Timeframes = append(i.Timeframes, timeframe)
@@ -345,4 +335,30 @@ func (i *Investor) applyDomainConfig(configMap map[interface{}]interface{}, doma
 	i.provider = domainItem
 
 	return nil
+}
+
+func parseOrderParams(val interface{}) (orderParams _struct.OrderParams, err error) {
+	valMap, ok := val.(map[interface{}]interface{})
+	if !ok {
+		err = apperrors.New("invalid order param: %v", val)
+		return
+	}
+
+	vwap, er := _type.ToFloat64(valMap["vwap_deviations"])
+	if er != nil {
+		err = apperrors.Wrap(er, "invalid vwap_deviations: %v", valMap["vwap_deviations"])
+		return
+	}
+
+	percentage, er := _type.ToFloat64(valMap["percentage"])
+	if er != nil {
+		err = apperrors.Wrap(er, "invalid percentage: %v", valMap["percentage"])
+		return
+	}
+
+	orderParams = _struct.OrderParams{
+		VwapDeviations: vwap,
+		Percentage:     percentage,
+	}
+	return
 }
