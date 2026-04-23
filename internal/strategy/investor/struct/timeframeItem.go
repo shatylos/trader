@@ -42,6 +42,7 @@ type TimeframeItemConfig struct {
 type OrderParams struct {
 	VwapDeviations float64
 	Percentage     float64
+	ConfigKey      int
 }
 
 func (t *TimeframeItem) GetConfig() TimeframeConfig {

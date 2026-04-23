@@ -14,6 +14,7 @@ type Order struct {
 	UpdatedTime               time.Time                  `bson:"UpdatedTime"`
 	WalletBefore              domainStructs.DomainWallet `bson:"WalletBefore"`
 	WalletAfter               domainStructs.DomainWallet `bson:"WalletAfter"`
+	ConfigKey                 int                        `bson:"ConfigKey"`
 }
 
 func (o *Order) Amount() float64 {

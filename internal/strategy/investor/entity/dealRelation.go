@@ -15,6 +15,8 @@ type DealRelation struct {
 	PriceToSell     float64
 	QtyToBuy        float64
 	QtyToSell       float64
+	KeyOrderToBuy   int
+	KeyOrderToSell  int
 	RevenueMainCur  float64
 	RevenueTradeCur float64
 	RevenueTotal    float64

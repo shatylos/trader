@@ -25,7 +25,6 @@ type Config struct {
 	CommissionSell        float64
 	MinCoinReservePercent float64
 	MinQty                float64
-	DoIncreaseQtyToMinQty bool
 	WithdrawPercent       float64
 	RequestDelay          time.Duration
 }
@@ -139,16 +138,6 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 	if err != nil {
 		err = apperrors.Wrap(err, "empty value min_qty")
 		return
-	}
-
-	var doIncreaseQtyToMinQty int64
-	doIncreaseQtyToMinQty, err = _type.ToInt64(configMap["do_increase_qty_to_min_qty"])
-	if err != nil && !errors.Is(err, _type.EmptyValueError) {
-		err = apperrors.Wrap(err, "the field do_increase_qty_to_min_qty in strategy Config contains not correct value type. Expects 1 or 0")
-		return
-	}
-	if doIncreaseQtyToMinQty == 1 {
-		i.Config.DoIncreaseQtyToMinQty = true
 	}
 
 	i.Config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
@@ -270,14 +259,15 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 		timeframe.Config.SellOrders = make([]_struct.OrderParams, len(rawSellOrders))
-		for i, item := range rawSellOrders {
+		for ii, item := range rawSellOrders {
 			var orderParams _struct.OrderParams
 			orderParams, err = parseOrderParams(item)
 			if err != nil {
 				err = apperrors.Wrap(err, "invalid sell_orders config")
 				return
 			}
-			timeframe.Config.SellOrders[i] = orderParams
+			orderParams.ConfigKey = ii
+			timeframe.Config.SellOrders[ii] = orderParams
 		}
 
 		rawBuyOrders, ok := tfMap["buy_orders"].([]interface{})
@@ -286,14 +276,15 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 		timeframe.Config.BuyOrders = make([]_struct.OrderParams, len(rawBuyOrders))
-		for i, item := range rawBuyOrders {
+		for ii, item := range rawBuyOrders {
 			var orderParams _struct.OrderParams
 			orderParams, err = parseOrderParams(item)
 			if err != nil {
 				err = apperrors.Wrap(err, "invalid buy_orders config")
 				return
 			}
-			timeframe.Config.BuyOrders[i] = orderParams
+			orderParams.ConfigKey = ii
+			timeframe.Config.BuyOrders[ii] = orderParams
 		}
 
 		i.Timeframes = append(i.Timeframes, timeframe)
