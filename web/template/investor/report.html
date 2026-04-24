@@ -125,8 +125,8 @@
                     <th>Timeframe</th>
                     <th>Status</th>
                     <th>Average<br/> Buy Price</th>
-                    <th>Price To Buy/Sell</th>
-                    <th>Upper/Lower TF num</th>
+                    <th>Price To Sell<br/>Price To Buy</th>
+                    <th>Upper TF num<br/>Lower TF num</th>
                     <th>Revenue</th>
                     <th>Created Time</th>
                     <th>Closed Time</th>
@@ -141,7 +141,7 @@
                     <td class="">{{ .Deal.Status }}</td>
                     <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
                     <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}<br/>{{ .PriceToBuy | moneyFormat $.PricePrecision }}</td>
-                    <td class="">{{ .NumOrderToBuy }}/{{ .NumOrderToSell }}</td>
+                    <td class="">{{ .NumOrderToSell }}<br/>{{ .NumOrderToBuy }}</td>
                     <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
                         {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
                         {{ if gt .RevenueTotal 0.0 }}
