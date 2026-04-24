@@ -33,28 +33,6 @@ func (s *Storage) GetDealRelationsByPeriod(ctx context.Context, from, to time.Ti
 	return
 }
 
-func (s *Storage) GetDealRelationsOnHeap(ctx context.Context) (dealRelations []*entity.DealRelation, err error) {
-	var deals []*entity.Deal
-	deals, err = s.GetDealsOnHeap(ctx)
-	if err != nil {
-		err = apperrors.Wrap(err, "error get deals on heap")
-		return
-	}
-
-	dealRelations = make([]*entity.DealRelation, len(deals))
-
-	for item, deal := range deals {
-		var dealRelation *entity.DealRelation
-		dealRelation, err = s.GetDealRelation(ctx, deal)
-		if err != nil {
-			err = apperrors.Wrap(err, "error get deal relation")
-			return
-		}
-		dealRelations[item] = dealRelation
-	}
-	return
-}
-
 func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealRelation *entity.DealRelation, err error) {
 	mainCurrency, ok := ctx.Value(_struct.CtxMainCurrencyKey).(string)
 	if !ok {

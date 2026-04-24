@@ -16,14 +16,13 @@ import (
 )
 
 type Investor struct {
-	Config        Config
-	provider      domain.SpotDomainInterface
-	Timeframes    []_struct.TimeframeItem
-	HeapTimeframe _struct.HeapTimeframe
-	State         State
-	prevState     State
-	Storage       storage.Storage
-	WebSocket     WebSocket
+	Config     Config
+	provider   domain.SpotDomainInterface
+	Timeframes []_struct.TimeframeItem
+	State      State
+	prevState  State
+	Storage    storage.Storage
+	WebSocket  WebSocket
 }
 
 type State struct {
@@ -84,14 +83,7 @@ func (i *Investor) DoAction() (err error) {
 			i.WebSocket.SendTimeframeItemStatus(i.Timeframes[key])
 		}
 	}
-	//err = i.handleHeapTimeframe(ctx, &i.HeapTimeframe)
-	//if err != nil {
-	//	err = apperrors.Wrap(err, "error handle heap timeframe")
-	//	return
-	//}
-	//if i.HeapTimeframe.IsStatusChanged() {
-	//	i.WebSocket.SendHeapTimeframeStatus(i.HeapTimeframe)
-	//}
+
 	if i.IsBalanceChanged() {
 		i.WebSocket.SendCurrentPrice(i)
 	}

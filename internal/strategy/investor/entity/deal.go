@@ -13,7 +13,6 @@ type Deal struct {
 	CreatedTime time.Time `bson:"CreatedTime"`
 	UpdatedTime time.Time `bson:"UpdatedTime"`
 	ClosedTime  time.Time `bson:"ClosedTime"`
-	IsHeap      bool      `bson:"IsHeap"`
 }
 
 func (d *Deal) SetClose() {

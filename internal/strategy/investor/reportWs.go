@@ -106,29 +106,3 @@ func (ws *WebSocket) SendTimeframeItemStatus(timeframe _struct.TimeframeItem) {
 		}
 	}
 }
-
-func (ws *WebSocket) SendHeapTimeframeStatus(heapTimeframe _struct.HeapTimeframe) {
-	var err error
-	var tmpl *template.Template
-	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
-	if err != nil {
-		err = apperrors.Wrap(err, "error getting template for web socket")
-		logger.PrintError(err)
-		return
-	}
-	var buf bytes.Buffer
-	err = tmpl.ExecuteTemplate(&buf, "heap-timeframe-status", heapTimeframe)
-	if err != nil {
-		err = apperrors.Wrap(err, "error executing 'heap-timeframe-status' template for web socket")
-		logger.PrintError(err)
-		return
-	}
-
-	for client := range ws.Clients {
-		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
-		if err != nil {
-			client.Close()
-			delete(ws.Clients, client)
-		}
-	}
-}

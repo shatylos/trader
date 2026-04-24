@@ -66,10 +66,6 @@ func (t *TimeframeItem) GetCandleTime() time.Time {
 	return t.CandleTime
 }
 
-func (t *TimeframeItem) IsHeap() bool {
-	return false
-}
-
 func (t *TimeframeItem) GetTrendSlope() float64 {
 	return t.TrendSlope
 }

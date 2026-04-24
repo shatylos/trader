@@ -94,9 +94,6 @@ func (s *Storage) GetActiveDealByTimeframe(ctx context.Context, timeFrame _struc
 			Timeframe: timeFrame.Resolution(),
 			Status:    entity.DealStatusNew,
 		}
-		if timeFrame.IsHeap() {
-			deal.IsHeap = true
-		}
 		err = s.SaveDeal(ctx, deal)
 		if err != nil {
 			err = apperrors.Wrap(err, "error save deal")
@@ -128,36 +125,6 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 	err = cursor.All(ctx, &deals)
 	if err != nil {
 		err = apperrors.Wrap(err, "error getting all deals by period")
-		return
-	}
-	for _, deal := range deals {
-		dealPointers = append(dealPointers, &deal)
-	}
-
-	return
-}
-
-func (s *Storage) GetDealsOnHeap(ctx context.Context) (dealPointers []*entity.Deal, err error) {
-	var cursor *mongo.Cursor
-
-	cursor, err = s.dealCollection.Find(ctx, bson.D{{
-		"$and", bson.A{
-			bson.D{{"ClosedTime", bson.D{{"$gt", time.Time{}}}}},
-			bson.D{{"IsHeap", true}},
-		},
-	}}, options.Find().SetSort(
-		bson.D{{"ClosedTime", -1}},
-	))
-	if err != nil {
-		err = apperrors.Wrap(err, "error getting cursor deals for heap")
-		return
-	}
-	defer cursor.Close(ctx)
-
-	var deals []entity.Deal
-	err = cursor.All(ctx, &deals)
-	if err != nil {
-		err = apperrors.Wrap(err, "error getting all deals for heap")
 		return
 	}
 	for _, deal := range deals {

@@ -44,7 +44,6 @@ type ReportTemplateData struct {
 	DepoAmount            float64
 	WithdrawAmount        float64
 	Timeframes            []_struct.TimeframeItem
-	HeapTimeframe         _struct.HeapTimeframe
 	CurrentPrice          float64
 	IsCurrentPeriod       bool
 }
@@ -136,7 +135,6 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		DepoAmount:            depoAmount,
 		WithdrawAmount:        withdrawAmount,
 		Timeframes:            i.Timeframes,
-		HeapTimeframe:         i.HeapTimeframe,
 		CurrentPrice:          i.State.CurrentPrice,
 		IsCurrentPeriod:       isCurrentPeriod,
 	}

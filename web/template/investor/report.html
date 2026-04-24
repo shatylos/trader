@@ -54,7 +54,7 @@
     <hr/>
     {{ if .IsCurrentPeriod }}
     <div class="row align-items-start">
-        <div class="col-6">
+        <div class="col-12">
             <h5>
                 {{ block "current-price" . }}
                 <div id="current-price">
@@ -74,7 +74,7 @@
             <h5>Timeframes:</h5>
             <div class="row align-items-start">
                 {{ range $i, $timeframe := .Timeframes }}
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
                     {{ block "timeframe-item-status" . }}
                     <div id="timeframe-item-status-{{ .Config.Resolution }}">
                         Resolution: {{ .Config.Resolution }}<br/>
@@ -89,30 +89,6 @@
                         <span class="text-info">{{ .TradeStateMsg }}</span>
                     </div>
                     {{ end }}
-                </div>
-                {{ end }}
-            </div>
-        </div>
-        <div class="col-6">
-            <h5>Heap:</h5>
-            <div class="col-12 mb-3">
-                {{ block "heap-timeframe-status" .HeapTimeframe }}
-                <div id="heap-timeframe-status">
-                    Resolution: {{ .Config.Resolution }}<br/>
-                    {{ if .HeapStatus.IsSidewaysState }}
-                    Sideway<br/>
-                    {{ else }}
-                    Not sideway<br/>
-                    {{ end }}
-                    Zone: {{ .HeapStatus.Zone }}<br/>
-                    Trend: {{ .HeapStatus.Trend }}<br/>
-                    Trend slope: {{ .HeapStatus.TrendSlope | longFloatShort 2 }} <br/>
-                    Qty: {{ .HeapStatus.Qty | moneyFormat 6}} BTC<br/> <!-- @TODO Set value from config-->
-                    Price: {{ .HeapStatus.Price | moneyFormat 2 }} USDT<br/> <!-- @TODO Set value from config-->
-                    Purpose Qty: {{ .HeapStatus.PurposeQty | moneyFormat 6}} BTC <!-- @TODO Set value from config-->
-                    ≈ {{ .HeapStatus.PurposeQtyEqv | moneyFormat 2}} USDT<br/> <!-- @TODO Set value from config-->
-                    QTY excess (QTY - purpose QTY): {{ .HeapStatus.QtyExcess | moneyFormat 6}} BTC <!-- @TODO Set value from config-->
-                    ≈ {{ .HeapStatus.QtyExcessEqv | moneyFormat 2}} USDT<br/> <!-- @TODO Set value from config-->
                 </div>
                 {{ end }}
             </div>
@@ -133,12 +109,6 @@
             </button>
         </li>
         {{ end }}
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tf-{{ .HeapTimeframe.Config.Resolution }}-tab" data-bs-toggle="tab"
-                    data-bs-target="#tf-{{ .HeapTimeframe.Config.Resolution }}"
-                    type="button" role="tab">{{ .HeapTimeframe.Config.Resolution }} (Heap)
-            </button>
-        </li>
     </ul>
 
     <!-- Tab content -->
@@ -247,17 +217,6 @@
         }}
         {{ template "timeframe_deal_block" $args }}
         {{ end }}
-
-        {{ $args := dict "isActive" false
-        "timeframe" .HeapTimeframe
-        "DealsRelations" .DealsRelations
-        "PricePrecision" .PricePrecision
-        "MainCurrency" .MainCurrency
-        "QtyPrecision" .QtyPrecision
-        "TradeCurrency" .TradeCurrency
-        }}
-
-        {{ template "timeframe_deal_block" $args }}
     </div>
 
 
