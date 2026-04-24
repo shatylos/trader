@@ -80,7 +80,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
-		ConfigKey:    dealRelation.KeyOrderToBuy,
+		ConfigKey:    dealRelation.NumOrderToBuy - 1,
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
@@ -161,7 +161,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
 		WalletAfter:  walletAfter,
-		ConfigKey:    dealRelation.KeyOrderToSell,
+		ConfigKey:    dealRelation.NumOrderToSell - 1,
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {

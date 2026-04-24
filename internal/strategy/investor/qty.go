@@ -131,9 +131,9 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 	if buyOrderConfig == nil {
 		dealRelation.QtyToBuy = 0
 		dealRelation.PriceToBuy = 0
-		dealRelation.KeyOrderToBuy = 0
+		dealRelation.NumOrderToBuy = 0
 	} else {
-		dealRelation.KeyOrderToBuy = buyOrderConfig.ConfigKey
+		dealRelation.NumOrderToBuy = buyOrderConfig.ConfigKey + 1
 		mainAmountAv := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 		avQtyToBuy := trading.MainCurrencyToTrade(mainAmountAv, currentPrice)
 
@@ -159,9 +159,9 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 	if sellOrderConfig == nil {
 		dealRelation.QtyToSell = 0
 		dealRelation.PriceToSell = 0
-		dealRelation.KeyOrderToSell = 0
+		dealRelation.NumOrderToSell = 0
 	} else {
-		dealRelation.KeyOrderToSell = sellOrderConfig.ConfigKey
+		dealRelation.NumOrderToSell = sellOrderConfig.ConfigKey + 1
 		avQtySell := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 		purposeAmountInTrade := math.Mul(math.Div(timeFrameFullAmount, 100), sellOrderConfig.Percentage)
 		purposeQtyInTrade := trading.MainCurrencyToTrade(purposeAmountInTrade, currentPrice)
