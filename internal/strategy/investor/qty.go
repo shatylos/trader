@@ -145,8 +145,9 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 		if avQtyToBuy >= qtyToBuy {
 			dealRelation.QtyToBuy = qtyToBuy
 		} else if avQtyToBuy >= i.Config.MinQty {
-			dealRelation.QtyToBuy = i.Config.MinQty
-		} else {
+			dealRelation.QtyToBuy = avQtyToBuy - i.Config.MinQty
+		}
+		if dealRelation.QtyToBuy < i.Config.MinQty {
 			dealRelation.QtyToBuy = 0
 		}
 		if dealRelation.QtyToBuy > 0 {
@@ -171,9 +172,10 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 			dealRelation.QtyToSell = qtyToSell
 			dealRelation.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
 		} else if avQtySell >= i.Config.MinQty {
-			dealRelation.QtyToSell = i.Config.MinQty
+			dealRelation.QtyToSell = avQtySell - i.Config.MinQty
 			dealRelation.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
-		} else {
+		}
+		if dealRelation.QtyToSell < i.Config.MinQty {
 			dealRelation.QtyToSell = 0
 			dealRelation.PriceToSell = 0
 		}
