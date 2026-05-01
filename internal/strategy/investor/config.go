@@ -212,12 +212,6 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			timeframe.Config.CanOpenNewOrder = false
 		}
 
-		timeframe.Config.QtyPercent, err = _type.ToFloat64(tfMap["qty_percent"])
-		if err != nil || timeframe.Config.QtyPercent == 0 {
-			err = apperrors.Wrap(err, "empty value qty_percent")
-			return
-		}
-
 		timeframe.Config.FullAmountPercent, err = _type.ToFloat64(tfMap["full_amount_percent"])
 		if err != nil || timeframe.Config.FullAmountPercent == 0 {
 			err = apperrors.Wrap(err, "empty value full_amount_percent")
