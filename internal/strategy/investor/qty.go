@@ -10,11 +10,13 @@ import (
 	"github.com/shatylos/trader/tools/trading"
 )
 
-func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty float64, currentPrice float64, err error) {
+func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty float64, price float64) {
 
 	qty = dealRelation.QtyToBuy
 	qty = i.addCommission(qty, i.Config.CommissionBuy)
 	qty = math.RoundCell(qty, i.Config.QtyPrecision)
+
+	price = dealRelation.PriceToBuy
 
 	return
 }

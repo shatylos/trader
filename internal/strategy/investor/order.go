@@ -33,11 +33,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	walletBefore = *i.State.Wallet
 
 	var qty, price float64
-	qty, price, err = i.getQtyAndPriceToBuy(dealRelation)
-	if err != nil {
-		err = apperrors.Wrap(err, "error calculate qty to buy")
-		return
-	}
+	qty, price = i.getQtyAndPriceToBuy(dealRelation)
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 	if qty > math.Div(available, i.State.CurrentPrice) {
