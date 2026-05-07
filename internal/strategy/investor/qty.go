@@ -16,14 +16,14 @@ func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty f
 	qty = i.addCommission(qty, i.Config.CommissionBuy)
 	qty = math.RoundCell(qty, i.Config.QtyPrecision)
 
-	price = dealRelation.PriceToBuy
+	price = math.Round(dealRelation.PriceToBuy, i.Config.PricePrecision)
 
 	return
 }
 
 func (i *Investor) getQtyAndPriceToSell(dealRelation *entity.DealRelation) (qty, price float64) {
 	qty = dealRelation.QtyToSell
-	price = dealRelation.PriceToSell
+	price = math.Round(dealRelation.PriceToSell, i.Config.PricePrecision)
 
 	tradeAmountAvailable := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 	remainingBalance := tradeAmountAvailable - qty
