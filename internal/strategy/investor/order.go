@@ -202,8 +202,10 @@ func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRel
 
 		if updatedOrder.Side == domainStructs.OrderSideBuy {
 			deal.Status = entity.DealStatusActive
-		} else if updatedOrder.Side == domainStructs.OrderSideSell && dealRelation.CalcQtyInTrade() <= i.Config.MinQty {
-			deal.SetClose()
+		} else if updatedOrder.Side == domainStructs.OrderSideSell {
+			if dealRelation.CalcQtyInTrade() <= i.Config.MinQty {
+				deal.SetClose()
+			}
 		} else {
 			err = apperrors.New("unexpected order side %s", updatedOrder.Side)
 			return
