@@ -17,15 +17,19 @@ func (i *Investor) updateOrderConfigsByPrevOrders(timeFrameItem *_struct.Timefra
 	if lastBuyOrder == nil {
 		buyOrderConfig = &timeFrameItem.Config.BuyOrders[0]
 	} else {
+		if lastBuyOrder.ConfigKey+1 < len(timeFrameItem.Config.BuyOrders) {
+			buyOrderConfig = &timeFrameItem.Config.BuyOrders[lastBuyOrder.ConfigKey+1]
+		} else if lastSellOrder != nil && lastSellOrder.CreatedTime.After(lastBuyOrder.CreatedTime) {
+			// start to buy again if all buy orders configs are used and there is a sell order after last buy order
+			buyOrderConfig = &timeFrameItem.Config.BuyOrders[0]
+		}
+
 		if lastSellOrder == nil {
 			sellOrderConfig = &timeFrameItem.Config.SellOrders[0]
 		} else {
 			if lastSellOrder.ConfigKey+1 < len(timeFrameItem.Config.SellOrders) {
 				sellOrderConfig = &timeFrameItem.Config.SellOrders[lastSellOrder.ConfigKey+1]
 			}
-		}
-		if lastBuyOrder.ConfigKey+1 < len(timeFrameItem.Config.BuyOrders) {
-			buyOrderConfig = &timeFrameItem.Config.BuyOrders[lastBuyOrder.ConfigKey+1]
 		}
 	}
 
