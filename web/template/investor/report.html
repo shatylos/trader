@@ -148,9 +148,9 @@
                     </td>
                     <td class="">
                         {{ if gt .RealizedPNL 0.0 }}
-                        = <strong class="bg-success">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="bg-success">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ else }}
-                        = <strong class="bg-danger">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="bg-danger">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ end }}
                         <br/>
                         {{ if gt .UnrealizedPNL 0.0 }}
