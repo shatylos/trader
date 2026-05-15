@@ -57,7 +57,7 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 		return
 	}
 
-	var revenueMainCur, revenueTradeCur, revenueTotal, lastPrice, boughtQty, spentAmount, soldQty float64
+	var revenueMainCur, revenueTradeCur, realizedPNL, unrealizedPNL, lastPrice, boughtQty, spentAmount, soldQty float64
 
 	for _, order := range dealOrders {
 		if order.OrderStatus != structs.OrderStatuses.Filled {
@@ -84,11 +84,19 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 		}
 	}
 
-	revenueTotal = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, lastPrice)
+	unrealizedPNL = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, lastPrice)
 
 	averageBuyPrice := 0.0
 	if spentAmount > 0 && boughtQty > 0 {
 		averageBuyPrice = math.Div(spentAmount, boughtQty)
+	}
+
+	for _, order := range dealOrders {
+		if order.OrderStatus != structs.OrderStatuses.Filled || order.Side != structs.OrderSideSell {
+			continue
+		}
+		avBuyAmount := math.Mul(order.Qty, averageBuyPrice)
+		realizedPNL += order.Amount() - avBuyAmount
 	}
 
 	if s.activeDealRelations[*deal.Id] != nil {
@@ -102,7 +110,8 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 	dealRelation.AverageBuyPrice = averageBuyPrice
 	dealRelation.RevenueMainCur = revenueMainCur
 	dealRelation.RevenueTradeCur = revenueTradeCur
-	dealRelation.RevenueTotal = revenueTotal
+	dealRelation.RealizedPNL = realizedPNL
+	dealRelation.UnrealizedPNL = unrealizedPNL
 	dealRelation.QtyInTrade = boughtQty - soldQty
 	if deal.Status != entity.DealStatusClosed {
 		s.activeDealRelations[*deal.Id] = dealRelation

@@ -19,7 +19,8 @@ type DealRelation struct {
 	NumOrderToSell  int
 	RevenueMainCur  float64
 	RevenueTradeCur float64
-	RevenueTotal    float64
+	RealizedPNL     float64
+	UnrealizedPNL   float64
 	QtyInTrade      float64
 }
 

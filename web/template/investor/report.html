@@ -127,7 +127,8 @@
                     <th>Average<br/> Buy Price</th>
                     <th>Price To Sell<br/>Price To Buy</th>
                     <th>Sell Conf Num<br/>Buy Conf Num</th>
-                    <th>Revenue</th>
+                    <th>Diff</th>
+                    <th>PNL Realized<br/>PNL Unrealized</th>
                     <th>Created Time</th>
                     <th>Closed Time</th>
                 </tr>
@@ -142,14 +143,20 @@
                     <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
                     <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}<br/>{{ .PriceToBuy | moneyFormat $.PricePrecision }}</td>
                     <td class="">{{ .NumOrderToSell }}<br/>{{ .NumOrderToBuy }}</td>
-                    <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }},
+                    <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}<br/>
                         {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
-                        {{ if gt .RevenueTotal 0.0 }}
-                        = <strong class="bg-success">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{
-                            $.MainCurrency }}</strong>
+                    </td>
+                    <td class="">
+                        {{ if gt .RealizedPNL 0.0 }}
+                        = <strong class="bg-success">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ else }}
-                        = <strong class="bg-danger">{{ .RevenueTotal | moneyFormat $.PricePrecision }} {{ $.MainCurrency
-                            }}</strong>
+                        = <strong class="bg-danger">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        {{ end }}
+                        <br/>
+                        {{ if gt .UnrealizedPNL 0.0 }}
+                        = <strong class="bg-success">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        {{ else }}
+                        = <strong class="bg-danger">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ end }}
                     </td>
                     <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
