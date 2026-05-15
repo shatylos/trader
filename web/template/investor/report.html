@@ -154,9 +154,9 @@
                         {{ end }}
                         <br/>
                         {{ if gt .UnrealizedPNL 0.0 }}
-                        = <strong class="bg-success">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="bg-success">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ else }}
-                        = <strong class="bg-danger">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="bg-danger">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                         {{ end }}
                     </td>
                     <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>

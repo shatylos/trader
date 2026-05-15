@@ -44,6 +44,11 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 		err = apperrors.New("TradeCurrency is not accessible from context")
 		return
 	}
+	currentPrice, ok := ctx.Value(_struct.CtxCurrentPrice).(float64)
+	if !ok {
+		err = apperrors.New("Current price is not accessible from context")
+		return
+	}
 
 	if deal.Id == nil {
 		err = apperrors.New("can not get deal relations, deal.ID is empty")
@@ -84,7 +89,11 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 		}
 	}
 
-	unrealizedPNL = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, lastPrice)
+	price := lastPrice
+	if deal.Status == entity.DealStatusActive {
+		price = currentPrice
+	}
+	unrealizedPNL = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, price)
 
 	averageBuyPrice := 0.0
 	if spentAmount > 0 && boughtQty > 0 {

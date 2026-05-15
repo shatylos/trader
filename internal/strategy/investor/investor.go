@@ -99,6 +99,7 @@ func (i *Investor) getContext() (ctx context.Context) {
 	ctx = context.WithValue(ctx, _struct.CtxSetupKey, i)
 	ctx = context.WithValue(ctx, _struct.CtxMainCurrencyKey, i.Config.MainCurrency)
 	ctx = context.WithValue(ctx, _struct.CtxTradeCurrencyKey, i.Config.TradeCurrency)
+	ctx = context.WithValue(ctx, _struct.CtxCurrentPrice, i.State.CurrentPrice)
 	return
 }
 
