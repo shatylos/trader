@@ -147,17 +147,23 @@
                         {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
                     </td>
                     <td class="">
+                        {{ $classRealPNL := "" }}
                         {{ if gt .RealizedPNL 0.0 }}
-                        <strong class="bg-success">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
-                        {{ else }}
-                        <strong class="bg-danger">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        {{ $classRealPNL = "bg-success" }}
+                        {{ else if lt .RealizedPNL 0.0 }}
+                        {{ $classRealPNL = "bg-danger" }}
                         {{ end }}
-                        <br/>
+
+                        {{ $classUnrPNL := "" }}
                         {{ if gt .UnrealizedPNL 0.0 }}
-                        <strong class="bg-success">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
-                        {{ else }}
-                        <strong class="bg-danger">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        {{ $classUnrPNL = "bg-success" }}
+                        {{ else if lt .UnrealizedPNL 0.0 }}
+                        {{ $classUnrPNL = "bg-danger" }}
                         {{ end }}
+
+                        <strong class="{{ $classRealPNL }}">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <br/>
+                        <strong class="{{ $classUnrPNL }}">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
                     </td>
                     <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
                     <td class="">
