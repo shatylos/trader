@@ -89,24 +89,14 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 		}
 	}
 
-	price := lastPrice
-	if deal.Status == entity.DealStatusActive {
-		price = currentPrice
-	}
-	unrealizedPNL = revenueMainCur + trading.TradeCurrencyToMain(revenueTradeCur, price)
+	qtyInTrade := boughtQty - soldQty
 
 	averageBuyPrice := 0.0
 	if spentAmount > 0 && boughtQty > 0 {
 		averageBuyPrice = math.Div(spentAmount, boughtQty)
 	}
 
-	for _, order := range dealOrders {
-		if order.OrderStatus != structs.OrderStatuses.Filled || order.Side != structs.OrderSideSell {
-			continue
-		}
-		avBuyAmount := math.Mul(order.Qty, averageBuyPrice)
-		realizedPNL += order.Amount() - avBuyAmount
-	}
+	realizedPNL, unrealizedPNL = calculatePNL(deal, dealOrders, qtyInTrade, lastPrice, currentPrice, averageBuyPrice)
 
 	if s.activeDealRelations[*deal.Id] != nil {
 		dealRelation = s.activeDealRelations[*deal.Id]
@@ -121,10 +111,31 @@ func (s *Storage) GetDealRelation(ctx context.Context, deal *entity.Deal) (dealR
 	dealRelation.RevenueTradeCur = revenueTradeCur
 	dealRelation.RealizedPNL = realizedPNL
 	dealRelation.UnrealizedPNL = unrealizedPNL
-	dealRelation.QtyInTrade = boughtQty - soldQty
+	dealRelation.QtyInTrade = qtyInTrade
 	if deal.Status != entity.DealStatusClosed {
 		s.activeDealRelations[*deal.Id] = dealRelation
 	}
 
+	return
+}
+
+func calculatePNL(deal *entity.Deal, dealOrders []*entity.Order, qtyInTrade, lastPrice, currentPrice, averageBuyPrice float64) (realizedPNL, unrealizedPNL float64) {
+	price := lastPrice
+	if deal.Status == entity.DealStatusActive {
+		price = currentPrice
+	}
+
+	for _, order := range dealOrders {
+		if order.OrderStatus != structs.OrderStatuses.Filled {
+			continue
+		}
+		if order.Side == structs.OrderSideSell {
+			avBuyAmount := math.Mul(order.Qty, averageBuyPrice)
+			realizedPNL += order.Amount() - avBuyAmount
+		}
+	}
+	if qtyInTrade > 0 {
+		unrealizedPNL = math.Mul(qtyInTrade, price) - math.Mul(qtyInTrade, averageBuyPrice)
+	}
 	return
 }
