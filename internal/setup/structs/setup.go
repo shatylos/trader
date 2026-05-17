@@ -16,11 +16,16 @@ type Setup struct {
 	Strategy   _struct.StrategyInterface
 }
 
+type SetupDelay struct {
+	Duration time.Duration
+	Setup    *Setup
+}
+
 func (s *Setup) Init(mux *http.ServeMux) {
 	s.Strategy.Init(mux)
 }
 
-func (s *Setup) NextStep(setupChanel chan *Setup) {
+func (s *Setup) NextStep(setupDelayChanel chan *SetupDelay) {
 	strategy := s.Strategy
 
 	err := strategy.DoAction()
@@ -32,8 +37,10 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 		if s.errorCount == 10 || s.errorCount%100 == 0 {
 			tgNotifier.Notify(fmt.Sprintf("Errors for setup %s. Error count: %d", s.ID, s.errorCount))
 		}
-		time.Sleep(time.Second * time.Duration(s.errorCount) * 5)
-		setupChanel <- s
+		setupDelayChanel <- &SetupDelay{
+			Duration: time.Second * time.Duration(s.errorCount) * 5,
+			Setup:    s,
+		}
 		return
 	}
 
@@ -42,6 +49,8 @@ func (s *Setup) NextStep(setupChanel chan *Setup) {
 		s.errorCount = 0
 	}
 
-	strategy.Wait()
-	setupChanel <- s
+	setupDelayChanel <- &SetupDelay{
+		Duration: strategy.WaitDuration(),
+		Setup:    s,
+	}
 }

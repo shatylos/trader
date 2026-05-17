@@ -113,8 +113,8 @@ func (f *Fibonacci) DoAction() (err error) {
 	return
 }
 
-func (f *Fibonacci) Wait() {
-	time.Sleep(time.Second * f.config.TimeoutSeconds)
+func (f *Fibonacci) WaitDuration() time.Duration {
+	return time.Second * f.config.TimeoutSeconds
 }
 
 func (f *Fibonacci) newOrderCondition(internalPosition structs.Position) (condition string) {

@@ -34,7 +34,7 @@ type StrategyInterface interface {
 	DoAction() error
 	GetReport(from time.Time, to time.Time) (Report, error)
 	GetStats() (Stats, error)
-	Wait()
+	WaitDuration() time.Duration
 	AddAssetTransaction(amount float64, dateTime time.Time, transactionType string) error
 	Init(mux *http.ServeMux)
 }

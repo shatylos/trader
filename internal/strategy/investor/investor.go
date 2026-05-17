@@ -90,8 +90,8 @@ func (i *Investor) DoAction() (err error) {
 	return
 }
 
-func (i *Investor) Wait() {
-	time.Sleep(i.Config.TimeoutDuration)
+func (i *Investor) WaitDuration() time.Duration {
+	return i.Config.TimeoutDuration
 }
 
 func (i *Investor) getContext() (ctx context.Context) {

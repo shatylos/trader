@@ -133,6 +133,6 @@ func (s *BuyCheapSellHigh) DoAction() error {
 	return nil
 }
 
-func (s *BuyCheapSellHigh) Wait() {
-	time.Sleep(time.Second * s.TimeoutSeconds)
+func (s *BuyCheapSellHigh) WaitDuration() time.Duration {
+	return time.Second * s.TimeoutSeconds
 }

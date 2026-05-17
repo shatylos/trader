@@ -6,6 +6,7 @@ import (
 	"github.com/shatylos/trader/tools/logger"
 	"net/http"
 	"sync"
+	"time"
 )
 
 func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
@@ -13,6 +14,7 @@ func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
 
 	setupList := setup.GetSetupList()
 	setupChanel := make(chan *setupStructs.Setup, len(*setupList))
+	setupDelayChanel := make(chan *setupStructs.SetupDelay, len(*setupList))
 
 	for i := range *setupList {
 		setupItem := &(*setupList)[i]
@@ -21,7 +23,16 @@ func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
 	}
 	initWg.Done()
 
+	go func() {
+		for setupDelay := range setupDelayChanel {
+			go func() {
+				time.Sleep(setupDelay.Duration)
+				setupChanel <- setupDelay.Setup
+			}()
+		}
+	}()
+
 	for setupItem := range setupChanel {
-		go setupItem.NextStep(setupChanel)
+		go setupItem.NextStep(setupDelayChanel)
 	}
 }
