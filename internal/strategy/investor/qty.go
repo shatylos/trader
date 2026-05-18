@@ -18,6 +18,10 @@ func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty f
 
 	price = math.Round(dealRelation.PriceToBuy, i.Config.PricePrecision)
 
+	if price > 0 && price > i.State.CurrentPrice {
+		price = i.State.CurrentPrice
+	}
+
 	return
 }
 
