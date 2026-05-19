@@ -7,6 +7,7 @@ import (
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/tgNotifier"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -25,7 +26,7 @@ func (s *Setup) Init(mux *http.ServeMux) {
 	s.Strategy.Init(mux)
 }
 
-func (s *Setup) NextStep(setupDelayChanel chan *SetupDelay) {
+func (s *Setup) NextStep(setupDelayChanel chan *SetupDelay, setupWg *sync.WaitGroup) {
 	strategy := s.Strategy
 
 	err := strategy.DoAction()
@@ -41,6 +42,7 @@ func (s *Setup) NextStep(setupDelayChanel chan *SetupDelay) {
 			Duration: time.Second * time.Duration(s.errorCount) * 5,
 			Setup:    s,
 		}
+		setupWg.Done()
 		return
 	}
 
@@ -53,4 +55,5 @@ func (s *Setup) NextStep(setupDelayChanel chan *SetupDelay) {
 		Duration: strategy.WaitDuration(),
 		Setup:    s,
 	}
+	setupWg.Done()
 }

@@ -1,6 +1,8 @@
 package trading
 
 import (
+	"context"
+	"fmt"
 	"github.com/shatylos/trader/internal/setup"
 	setupStructs "github.com/shatylos/trader/internal/setup/structs"
 	"github.com/shatylos/trader/tools/logger"
@@ -9,7 +11,7 @@ import (
 	"time"
 )
 
-func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
+func StartTradingApp(shutdownCtx context.Context, initWg, shutDownWg *sync.WaitGroup, mux *http.ServeMux) {
 	logger.Info("Starting trading app")
 
 	setupList := setup.GetSetupList()
@@ -27,12 +29,21 @@ func StartTradingApp(initWg *sync.WaitGroup, mux *http.ServeMux) {
 		for setupDelay := range setupDelayChanel {
 			go func() {
 				time.Sleep(setupDelay.Duration)
-				setupChanel <- setupDelay.Setup
+				select {
+				case <-shutdownCtx.Done():
+					logger.Info(fmt.Sprintf("shutdown requested. Will not start next step for setup: %s", setupDelay.Setup.ID))
+					return
+				default:
+					setupChanel <- setupDelay.Setup
+				}
 			}()
 		}
 	}()
 
-	for setupItem := range setupChanel {
-		go setupItem.NextStep(setupDelayChanel)
-	}
+	go func() {
+		for setupItem := range setupChanel {
+			shutDownWg.Add(1)
+			go setupItem.NextStep(setupDelayChanel, shutDownWg)
+		}
+	}()
 }
