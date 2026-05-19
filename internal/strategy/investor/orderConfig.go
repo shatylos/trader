@@ -24,12 +24,10 @@ func (i *Investor) updateOrderConfigsByPrevOrders(timeFrameItem *_struct.Timefra
 			buyOrderConfig = &timeFrameItem.Config.BuyOrders[0]
 		}
 
-		if lastSellOrder == nil {
+		if lastSellOrder == nil || lastBuyOrder.CreatedTime.After(lastSellOrder.CreatedTime) {
 			sellOrderConfig = &timeFrameItem.Config.SellOrders[0]
-		} else {
-			if lastSellOrder.ConfigKey+1 < len(timeFrameItem.Config.SellOrders) {
-				sellOrderConfig = &timeFrameItem.Config.SellOrders[lastSellOrder.ConfigKey+1]
-			}
+		} else if lastSellOrder.ConfigKey+1 < len(timeFrameItem.Config.SellOrders) {
+			sellOrderConfig = &timeFrameItem.Config.SellOrders[lastSellOrder.ConfigKey+1]
 		}
 	}
 
