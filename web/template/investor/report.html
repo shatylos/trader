@@ -209,6 +209,7 @@
                                 <div class="col-1">Order:</div>
                                 <div class="col-1">Direction:</div>
                                 <div class="col-1">Status:</div>
+                                <div class="col-1">Config #:</div>
                                 <div class="col-1">Qty:</div>
                                 <div class="col-1">Amount:</div>
                                 <div class="col-1">Price:</div>
@@ -230,6 +231,7 @@
                                 <div class="col-1 bg-danger">{{ $order.Side }}</div>
                                 {{ end }}
                                 <div class="col-1">{{ $order.OrderStatus }}</div>
+                                <div class="col-1">{{ $order.ConfigKey }}</div>
                                 <div class="col-1">{{ $order.Qty | moneyFormat $.QtyPrecision}}</div>
                                 <div class="col-1">{{ mul $order.Qty $order.Price | moneyFormat $.PricePrecision}}</div>
                                 <div class="col-1">{{ $order.Price | moneyFormat $.PricePrecision }}</div>
