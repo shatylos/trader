@@ -29,8 +29,10 @@ type ReportTemplateData struct {
 	TradeCurrency         string
 	PricePrecision        int
 	QtyPrecision          int
-	TotalPnl              float64
-	TotalPnlPercent       float64
+	RealizedPNL           float64
+	RealizedPNLPercent    float64
+	UnrealizedPNL         float64
+	UnrealizedPNLPercent  float64
 	BalanceMainBefore     float64
 	BalanceMainBeforeEqv  float64
 	BalanceTradeBefore    float64
@@ -93,7 +95,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 	if err != nil {
 		err = apperrors.Wrap(err, "error get asset transactions")
 	}
-	totalPnl, totalPnlPercent,
+	realizedPnl, realizedPnlPercent, unrealizedPnl, unrealizedPnlPercent,
 		balanceTotalBefore, balanceMainBefore, balanceTradeBefore, balanceMainBeforeEqv, balanceTradeBeforeEqv,
 		balanceTotalAfter, balanceMainAfter, balanceTradeAfter, balanceMainAfterEqv, balanceTradeAfterEqv,
 		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
@@ -120,8 +122,10 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		TradeCurrency:         i.Config.TradeCurrency,
 		PricePrecision:        int(i.Config.PricePrecision),
 		QtyPrecision:          int(i.Config.QtyPrecision),
-		TotalPnl:              totalPnl,
-		TotalPnlPercent:       totalPnlPercent,
+		RealizedPNL:           realizedPnl,
+		RealizedPNLPercent:    realizedPnlPercent,
+		UnrealizedPNL:         unrealizedPnl,
+		UnrealizedPNLPercent:  unrealizedPnlPercent,
 		BalanceMainBefore:     balanceMainBefore,
 		BalanceMainBeforeEqv:  balanceMainBeforeEqv,
 		BalanceTradeBefore:    balanceTradeBefore,
@@ -156,7 +160,7 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 }
 
 func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRelation, assets []*structs.AssetTransaction) (
-	totalPnl, totalPnlPercent,
+	realizedPnl, realizedPnlPercent, unrealizedPnl, unrealizedPnlPercent,
 	balanceTotalBefore, balanceMainBefore, balanceTradeBefore, balanceMainBeforeEqv, balanceTradeBeforeEqv,
 	balanceTotalAfter, balanceMainAfter, balanceTradeAfter, balanceMainAfterEqv, balanceTradeAfterEqv,
 	depoAmount, withdrawAmount float64) {
@@ -164,6 +168,9 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRel
 	var firstOrder, lastOrder *entity.Order
 
 	for _, dealRelation := range dealRelations {
+		realizedPnl += dealRelation.RealizedPNL
+		unrealizedPnl += dealRelation.UnrealizedPNL
+
 		for _, order := range dealRelation.Orders {
 			if (lastOrder == nil || order.CreatedTime.After(lastOrder.CreatedTime)) &&
 				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
@@ -198,10 +205,9 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRel
 	balanceMainAfterEqv = math.Div(balanceMainAfter, lastPrice)
 	balanceTradeAfterEqv = math.Mul(balanceTradeAfter, lastPrice)
 
-	totalPnl = balanceTotalAfter - balanceTotalBefore
 	if balanceTotalBefore != 0 {
-		//totalPnlPercent = totalPnl / (balanceBefore / 100)
-		totalPnlPercent = math.Div(totalPnl, math.Div(balanceTotalBefore, 100))
+		realizedPnlPercent = math.Div(realizedPnl, math.Div(balanceTotalBefore, 100))
+		unrealizedPnlPercent = math.Div(unrealizedPnl, math.Div(balanceTotalBefore, 100))
 	}
 
 	for _, asset := range assets {

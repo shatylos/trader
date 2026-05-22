@@ -100,6 +100,13 @@ func (i *Investor) getContext() (ctx context.Context) {
 	ctx = context.WithValue(ctx, _struct.CtxMainCurrencyKey, i.Config.MainCurrency)
 	ctx = context.WithValue(ctx, _struct.CtxTradeCurrencyKey, i.Config.TradeCurrency)
 	ctx = context.WithValue(ctx, _struct.CtxCurrentPrice, i.State.CurrentPrice)
+
+	resolutions := make([]string, len(i.Timeframes))
+	for ii, timeFrameItem := range i.Timeframes {
+		resolutions[ii] = timeFrameItem.Config.Resolution
+	}
+	ctx = context.WithValue(ctx, _struct.CtxTimeframeResolutions, resolutions)
+
 	return
 }
 

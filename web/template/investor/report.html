@@ -16,10 +16,34 @@
     <div class="row align-items-start">
         <div class="col-4">
             <h5>
-                Total PNL:
-                {{ .TotalPnl | moneyFormat .PricePrecision }}
-                {{ .MainCurrency }}
-                ({{ .TotalPnlPercent | moneyFormat 2 }}%)
+                {{ $classRealPNL := "" }}
+                {{ if gt .RealizedPNL 0.0 }}
+                {{ $classRealPNL = "text-success" }}
+                {{ else if lt .RealizedPNL 0.0 }}
+                {{ $classRealPNL = "text-danger" }}
+                {{ end }}
+
+                Realized PNL:
+                <span class="{{ $classRealPNL }}">
+                    {{ .RealizedPNL | moneyFormat .PricePrecision }}
+                    {{ .MainCurrency }}
+                    ({{ .RealizedPNLPercent | moneyFormat 2 }}%)
+                </span>
+                <br/>
+
+                {{ $classUnrealPNL := "" }}
+                {{ if gt .UnrealizedPNL 0.0 }}
+                {{ $classUnrealPNL = "text-success" }}
+                {{ else if lt .UnrealizedPNL 0.0 }}
+                {{ $classUnrealPNL = "text-danger" }}
+                {{ end }}
+
+                Unrealized PNL:
+                <span class="{{ $classUnrealPNL }}">
+                    {{ .UnrealizedPNL | moneyFormat .PricePrecision }}
+                    {{ .MainCurrency }}
+                    ({{ .UnrealizedPNLPercent | moneyFormat 2 }}%)
+                </span>
             </h5>
         </div>
     </div>
@@ -141,7 +165,9 @@
                     <td class="">{{ .Deal.Timeframe }}</td>
                     <td class="">{{ .Deal.Status }}</td>
                     <td class="">{{ .AverageBuyPrice | moneyFormat $.PricePrecision }}</td>
-                    <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}<br/>{{ .PriceToBuy | moneyFormat $.PricePrecision }}</td>
+                    <td class="">{{ .PriceToSell | moneyFormat $.PricePrecision }}<br/>{{ .PriceToBuy | moneyFormat
+                        $.PricePrecision }}
+                    </td>
                     <td class="">{{ .NumOrderToSell }}<br/>{{ .NumOrderToBuy }}</td>
                     <td class="">{{ .RevenueMainCur | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}<br/>
                         {{ .RevenueTradeCur | moneyFormat $.QtyPrecision }} {{ $.TradeCurrency }}
@@ -161,9 +187,13 @@
                         {{ $classUnrPNL = "bg-danger" }}
                         {{ end }}
 
-                        <strong class="{{ $classRealPNL }}">{{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="{{ $classRealPNL }}">
+                            {{ .RealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}
+                        </strong>
                         <br/>
-                        <strong class="{{ $classUnrPNL }}">{{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}</strong>
+                        <strong class="{{ $classUnrPNL }}">
+                            {{ .UnrealizedPNL | moneyFormat $.PricePrecision }} {{ $.MainCurrency }}
+                        </strong>
                     </td>
                     <td class="">{{ .Deal.CreatedTime | dateFormat "2006-01-02 15:04:05" }}</td>
                     <td class="">

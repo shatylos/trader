@@ -137,9 +137,20 @@ func (s *Storage) GetDealsByPeriod(ctx context.Context, from time.Time, to time.
 func (s *Storage) GetActiveDeals(ctx context.Context) (dealPointers []*entity.Deal, err error) {
 	var cursor *mongo.Cursor
 
+	resolutions, ok := ctx.Value(_struct.CtxTimeframeResolutions).([]string)
+	if !ok {
+		err = apperrors.New("TimeframeResolutions is not accessible from context")
+		return
+	}
+	resolsBsonA := make(bson.A, len(resolutions))
+	for i, res := range resolutions {
+		resolsBsonA[i] = res
+	}
+
 	cursor, err = s.dealCollection.Find(ctx, bson.D{{
 		"$and", bson.A{
 			bson.D{{"Status", entity.DealStatusActive}},
+			bson.D{{"Timeframe", bson.D{{"$in", resolsBsonA}}}},
 		},
 	}}, options.Find().SetSort(
 		bson.D{{"UpdatedTime", -1}},
