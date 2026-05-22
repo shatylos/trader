@@ -94,8 +94,8 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		err = apperrors.Wrap(err, "error get asset transactions")
 	}
 	totalPnl, totalPnlPercent,
-		balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
-		balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
+		balanceTotalBefore, balanceMainBefore, balanceTradeBefore, balanceMainBeforeEqv, balanceTradeBeforeEqv,
+		balanceTotalAfter, balanceMainAfter, balanceTradeAfter, balanceMainAfterEqv, balanceTradeAfterEqv,
 		depoAmount, withdrawAmount := i.reportAmounts(from, dealRelations, assets)
 
 	isCurrentPeriod := false
@@ -123,15 +123,15 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 		TotalPnl:              totalPnl,
 		TotalPnlPercent:       totalPnlPercent,
 		BalanceMainBefore:     balanceMainBefore,
-		BalanceMainBeforeEqv:  math.Div(balanceMainBefore, i.State.CurrentPrice),
+		BalanceMainBeforeEqv:  balanceMainBeforeEqv,
 		BalanceTradeBefore:    balanceTradeBefore,
-		BalanceTradeBeforeEqv: math.Mul(balanceTradeBefore, i.State.CurrentPrice),
+		BalanceTradeBeforeEqv: balanceTradeBeforeEqv,
 		BalanceTotalBefore:    balanceTotalBefore,
 		BalanceTotalAfter:     balanceTotalAfter,
 		BalanceMainAfter:      balanceMainAfter,
-		BalanceMainAfterEqv:   math.Div(balanceMainAfter, i.State.CurrentPrice),
+		BalanceMainAfterEqv:   balanceMainAfterEqv,
 		BalanceTradeAfter:     balanceTradeAfter,
-		BalanceTradeAfterEqv:  math.Mul(balanceTradeAfter, i.State.CurrentPrice),
+		BalanceTradeAfterEqv:  balanceTradeAfterEqv,
 		DepoAmount:            depoAmount,
 		WithdrawAmount:        withdrawAmount,
 		Timeframes:            i.Timeframes,
@@ -157,17 +157,13 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 
 func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRelation, assets []*structs.AssetTransaction) (
 	totalPnl, totalPnlPercent,
-	balanceTotalBefore, balanceMainBefore, balanceTradeBefore,
-	balanceTotalAfter, balanceMainAfter, balanceTradeAfter,
+	balanceTotalBefore, balanceMainBefore, balanceTradeBefore, balanceMainBeforeEqv, balanceTradeBeforeEqv,
+	balanceTotalAfter, balanceMainAfter, balanceTradeAfter, balanceMainAfterEqv, balanceTradeAfterEqv,
 	depoAmount, withdrawAmount float64) {
 
 	var firstOrder, lastOrder *entity.Order
 
 	for _, dealRelation := range dealRelations {
-		if dealRelation.Deal.Status != entity.DealStatusClosed {
-			continue
-		}
-
 		for _, order := range dealRelation.Orders {
 			if (lastOrder == nil || order.CreatedTime.After(lastOrder.CreatedTime)) &&
 				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
@@ -190,7 +186,17 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRel
 	balanceTradeAfter = trading.CurrencyAmountTotal(&lastOrder.WalletAfter, i.Config.TradeCurrency)
 
 	balanceTotalBefore = balanceMainBefore + trading.TradeCurrencyToMain(balanceTradeBefore, firstOrder.Price)
-	balanceTotalAfter = balanceMainAfter + trading.TradeCurrencyToMain(balanceTradeAfter, lastOrder.Price)
+	lastPrice := lastOrder.Price
+	now := time.Now()
+	if lastOrder.CreatedTime.Year() == now.Year() && lastOrder.CreatedTime.Month() == now.Month() {
+		lastPrice = i.State.CurrentPrice
+	}
+	balanceTotalAfter = balanceMainAfter + trading.TradeCurrencyToMain(balanceTradeAfter, lastPrice)
+
+	balanceMainBeforeEqv = math.Div(balanceMainBefore, firstOrder.Price)
+	balanceTradeBeforeEqv = math.Mul(balanceTradeBefore, firstOrder.Price)
+	balanceMainAfterEqv = math.Div(balanceMainAfter, lastPrice)
+	balanceTradeAfterEqv = math.Mul(balanceTradeAfter, lastPrice)
 
 	totalPnl = balanceTotalAfter - balanceTotalBefore
 	if balanceTotalBefore != 0 {
