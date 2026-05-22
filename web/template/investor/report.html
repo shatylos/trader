@@ -231,7 +231,7 @@
                                 <div class="col-1 bg-danger">{{ $order.Side }}</div>
                                 {{ end }}
                                 <div class="col-1">{{ $order.OrderStatus }}</div>
-                                <div class="col-1">{{ $order.ConfigKey }}</div>
+                                <div class="col-1">{{ add $order.ConfigKey 1 }}</div>
                                 <div class="col-1">{{ $order.Qty | moneyFormat $.QtyPrecision}}</div>
                                 <div class="col-1">{{ mul $order.Qty $order.Price | moneyFormat $.PricePrecision}}</div>
                                 <div class="col-1">{{ $order.Price | moneyFormat $.PricePrecision }}</div>
