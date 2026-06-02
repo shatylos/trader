@@ -14,7 +14,8 @@
     <hr/>
 
     <div class="row align-items-start">
-        <div class="col-4">
+        {{ block "pnl" . }}
+        <div class="col-4" id="pnl{{ if .IsCurrentPeriod }}-ws{{ end }}">
             <h5>
                 {{ $classRealPNL := "" }}
                 {{ if gt .RealizedPNL 0.0 }}
@@ -46,6 +47,7 @@
                 </span>
             </h5>
         </div>
+        {{ end }}
     </div>
     <hr/>
 
@@ -59,13 +61,16 @@
             Total: <strong>{{ .BalanceTotalBefore | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
 
-        <div class="col-4">
+        {{ block "assets" . }}
+        <div class="col-4" id="assets{{ if .IsCurrentPeriod }}-ws{{ end }}">
             <h5>Assets:</h5>
             Deposit amount: {{ .DepoAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}<br/>
             Withdraw amount: {{ .WithdrawAmount | moneyFormat .PricePrecision }} {{ .MainCurrency }}
         </div>
+        {{ end }}
 
-        <div class="col-4">
+        {{ block "balance-after" . }}
+        <div class="col-4" id="balance-after{{ if .IsCurrentPeriod }}-ws{{ end }}">
             <h5>Balance after:</h5>
             {{ .BalanceMainAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }} ≈
             {{ .BalanceMainAfterEqv | moneyFormat .QtyPrecision }} {{ .TradeCurrency }}<br/>
@@ -73,6 +78,7 @@
             {{ .BalanceTradeAfterEqv | moneyFormat .PricePrecision }} {{ .MainCurrency }}<br/>
             Total: <strong>{{ .BalanceTotalAfter | moneyFormat .PricePrecision }} {{ .MainCurrency }}</strong>
         </div>
+        {{ end }}
     </div>
 
     <hr/>

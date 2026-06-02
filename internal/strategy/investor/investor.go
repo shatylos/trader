@@ -86,6 +86,7 @@ func (i *Investor) DoAction() (err error) {
 
 	if i.IsBalanceChanged() {
 		i.WebSocket.SendCurrentPrice(i)
+		i.WebSocket.SendPNL(i)
 	}
 	return
 }
