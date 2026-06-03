@@ -225,7 +225,7 @@ func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRel
 			err = apperrors.Wrap(err, "error save deal. DealID: %v", deal.Id)
 			return
 		}
-		msg := fmt.Sprintf("[%s] Filled the %s order. Qty: %g %s for timeframe %s", i.Config.Id, order.Side, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
+		msg := fmt.Sprintf("[%s] Filled the %s order. Price: %.*f %s Qty: %.*f %s. For timeframe %s", i.Config.Id, order.Side, i.Config.PricePrecision, order.DomainOrder.Price, i.Config.MainCurrency, i.Config.QtyPrecision, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
 		logger.Success(msg)
 		if i.Config.TelegramNotifier {
 			tgNotifier.Notify(msg)
