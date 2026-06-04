@@ -78,6 +78,7 @@ func (ws *WebSocket) SendPNL(i *Investor) {
 		return
 	}
 
+	// @TODO: Check if send the value only to pnl block
 	for client := range ws.Clients {
 		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
 		if err != nil {
@@ -92,10 +93,51 @@ func (ws *WebSocket) SendAssets(i *Investor) {
 }
 
 func (ws *WebSocket) SendBalanceAfter(i *Investor) {
+	if len(ws.Clients) == 0 {
+		return
+	}
+	var err error
+	var tmpl *template.Template
+	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
+	if err != nil {
+		err = apperrors.Wrap(err, "error getting template for web socket")
+		logger.PrintError(err)
+		return
+	}
 
+	now := time.Now()
+	firstDayOfNextMonth := time.Date(now.Year(), now.Month()+1, 1, 23, 59, 59, 0, now.Location())
+	to := firstDayOfNextMonth.AddDate(0, 0, -1)
+	from := time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	var data ReportTemplateData
+	data, err = i.GetReportData(from, to)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get report data")
+		return
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "balance-after", data)
+	if err != nil {
+		err = apperrors.Wrap(err, "error executing 'balance-after' template for web socket")
+		logger.PrintError(err)
+		return
+	}
+
+	for client := range ws.Clients {
+		err = client.WriteMessage(websocket.TextMessage, buf.Bytes())
+		if err != nil {
+			client.Close()
+			delete(ws.Clients, client)
+		}
+	}
 }
 
 func (ws *WebSocket) SendCurrentPrice(i *Investor) {
+	if len(ws.Clients) == 0 {
+		return
+	}
 	var err error
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
@@ -133,6 +175,9 @@ func (ws *WebSocket) SendCurrentPrice(i *Investor) {
 }
 
 func (ws *WebSocket) SendTimeframeItemStatus(timeframe _struct.TimeframeItem) {
+	if len(ws.Clients) == 0 {
+		return
+	}
 	var err error
 	var tmpl *template.Template
 	tmpl, err = helper.GetTemplate("web/template/investor/report.html")
