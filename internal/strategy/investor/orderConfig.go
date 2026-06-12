@@ -66,11 +66,9 @@ func (i *Investor) updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig *_s
 	return
 }
 
-func (i *Investor) updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig *_struct.OrderParams, timeFrameFullAmount float64, timeFrameItem *_struct.TimeframeItem, dealRelation *entity.DealRelation) (resBuyOrderConfig, resSellOrderConfig *_struct.OrderParams) {
+func (i *Investor) updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig *_struct.OrderParams, timeFrameFullAmount float64, timeFrameItem *_struct.TimeframeItem, qtyInTrade float64) (resBuyOrderConfig, resSellOrderConfig *_struct.OrderParams) {
 	currentPrice := i.State.CurrentPrice
 	if buyOrderConfig != nil {
-		qtyInTrade := dealRelation.CalcQtyInTrade()
-
 		for ii := buyOrderConfig.ConfigKey; ii < len(timeFrameItem.Config.BuyOrders); ii++ {
 			tryBuyOrderConfig := timeFrameItem.Config.BuyOrders[ii]
 
@@ -89,7 +87,6 @@ func (i *Investor) updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig *_str
 
 			purposeAmountInTrade := math.Mul(math.Div(timeFrameFullAmount, 100), trySellOrderConfig.Percentage)
 			purposeQtyInTrade := trading.MainCurrencyToTrade(purposeAmountInTrade, currentPrice)
-			qtyInTrade := dealRelation.CalcQtyInTrade()
 			qtyToSell := qtyInTrade - purposeQtyInTrade
 			if qtyToSell >= i.Config.MinQty {
 				resSellOrderConfig = &timeFrameItem.Config.SellOrders[ii]

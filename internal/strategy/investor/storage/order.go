@@ -63,14 +63,46 @@ func (s *Storage) SaveOrder(ctx context.Context, order *entity.Order) (err error
 	return
 }
 
-func (s *Storage) GetOrdersByDealId(ctx context.Context, dealId string) (ordersResult []*entity.Order, err error) {
+// @TODO: investigate how to add limit
+func (s *Storage) GetOrdersByTimeframe(ctx context.Context, timeframe string) (ordersResult []*entity.Order, err error) {
 	var cursor *mongo.Cursor
 	cursor, err = s.orderCollection.Find(ctx,
-		bson.D{{"DealId", dealId}},
+		bson.D{{"Timeframe", timeframe}},
 		options.Find().SetSort(bson.D{{"CreatedTime", 1}}),
 	)
 	if err != nil {
-		err = apperrors.Wrap(err, "error find by dealId: %s", dealId)
+		err = apperrors.Wrap(err, "error find by timeframe: %s", timeframe)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	orders := make([]entity.Order, 0)
+	err = cursor.All(ctx, &orders)
+	if err != nil {
+		err = apperrors.Wrap(err, "error map found orders")
+		return
+	}
+
+	for _, order := range orders {
+		ordersResult = append(ordersResult, &order)
+	}
+
+	return
+}
+
+func (s *Storage) GetOrdersByPeriod(ctx context.Context, from time.Time, to time.Time) (ordersResult []*entity.Order, err error) {
+	var cursor *mongo.Cursor
+	cursor, err = s.orderCollection.Find(ctx,
+		bson.D{{
+			"$and", bson.A{
+				bson.D{{"CreatedTime", bson.D{{"$gt", from}}}},
+				bson.D{{"CreatedTime", bson.D{{"$lt", to}}}},
+			},
+		}},
+		options.Find().SetSort(bson.D{{"CreatedTime", 1}}),
+	)
+	if err != nil {
+		err = apperrors.Wrap(err, "error find orders by period from %s to %s", from, to)
 		return
 	}
 	defer cursor.Close(ctx)

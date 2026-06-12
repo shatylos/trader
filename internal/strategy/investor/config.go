@@ -3,6 +3,7 @@ package investor
 import (
 	"errors"
 	"github.com/shatylos/trader/internal/domain"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
@@ -171,6 +172,8 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		err = apperrors.Wrap(err, "error init storage")
 		return
 	}
+
+	i.TimeframeStates = make(map[string]*entity.TimeframeState)
 
 	return
 }

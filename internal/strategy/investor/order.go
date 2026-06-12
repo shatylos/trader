@@ -15,25 +15,17 @@ import (
 	"time"
 )
 
-func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeItem, dealRelation *entity.DealRelation) (providerOrderId string, err error) {
-	deal := dealRelation.Deal
-
-	if deal.Id == nil {
-		err = apperrors.New("deal struct must be saved before do buy")
-		return
-	}
-
+func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeItem, state *entity.TimeframeState) (providerOrderId string, err error) {
 	err = i.updateWalletInfo()
 	if err != nil {
 		err = apperrors.Wrap(err, "error update wallet info")
 		return
 	}
 
-	var walletBefore, walletAfter domainStructs.DomainWallet
-	walletBefore = *i.State.Wallet
+	walletBefore := *i.State.Wallet
 
 	var qty, price float64
-	qty, price = i.getQtyAndPriceToBuy(dealRelation)
+	qty, price = i.getQtyAndPriceToBuy(state)
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 	if qty > math.Div(available, i.State.CurrentPrice) {
@@ -71,12 +63,10 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	}
 
 	order := entity.Order{
-		DealId:       *deal.Id,
 		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
-		WalletAfter:  walletAfter,
-		ConfigKey:    dealRelation.NumOrderToBuy - 1,
+		ConfigKey:    state.NumOrderToBuy - 1,
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
@@ -84,8 +74,11 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 		return
 	}
 
+	state.ActiveOrder = &order
+	state.LastBuyOrder = &order
+
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, dealRelation, &order, timeFrameItem)
+		err = i.updateOrder(ctx, state, &order, timeFrameItem)
 		if err != nil {
 			err = apperrors.Wrap(err, "error update order")
 			return
@@ -95,14 +88,8 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 	return
 }
 
-func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, dealRelation *entity.DealRelation) (
+func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.TimeframeItem, state *entity.TimeframeState) (
 	providerOrderId string, err error) {
-	deal := dealRelation.Deal
-
-	if deal.Id == nil {
-		err = apperrors.New("deal struct must be saved before do sell")
-		return
-	}
 
 	err = i.updateWalletInfo()
 	if err != nil {
@@ -110,10 +97,9 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 		return
 	}
 
-	var walletBefore, walletAfter domainStructs.DomainWallet
-	walletBefore = *i.State.Wallet
+	walletBefore := *i.State.Wallet
 
-	qty, price := i.getQtyAndPriceToSell(dealRelation)
+	qty, price := i.getQtyAndPriceToSell(state)
 
 	available := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 	if qty > available {
@@ -141,7 +127,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrame.Resolution())
+	msg := fmt.Sprintf("[%s] Placed order to sell %g %s by price %g for timeframe %s", i.Config.Id, qty, i.Config.TradeCurrency, price, timeFrameItem.Config.Resolution)
 	logger.Info(msg)
 
 	var domainOrder domainStructs.DomainOrder
@@ -152,12 +138,10 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	}
 
 	order := entity.Order{
-		DealId:       *deal.Id,
-		Timeframe:    timeFrame.Resolution(),
+		Timeframe:    timeFrameItem.Config.Resolution,
 		DomainOrder:  domainOrder,
 		WalletBefore: walletBefore,
-		WalletAfter:  walletAfter,
-		ConfigKey:    dealRelation.NumOrderToSell - 1,
+		ConfigKey:    state.NumOrderToSell - 1,
 	}
 	err = i.Storage.SaveOrder(ctx, &order)
 	if err != nil {
@@ -165,8 +149,11 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 		return
 	}
 
+	state.ActiveOrder = &order
+	state.LastSellOrder = &order
+
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
-		err = i.updateOrder(ctx, dealRelation, &order, timeFrame)
+		err = i.updateOrder(ctx, state, &order, timeFrameItem)
 		if err != nil {
 			err = apperrors.Wrap(err, "error update order")
 			return
@@ -176,14 +163,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrame _struct.Timeframe, deal
 	return
 }
 
-func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRelation, order *entity.Order, timeFrame _struct.Timeframe) (err error) {
-
-	deal := dealRelation.Deal
-	err = i.updateWalletInfo()
-	if err != nil {
-		err = apperrors.Wrap(err, "error update wallet info")
-		return
-	}
+func (i *Investor) updateOrder(ctx context.Context, state *entity.TimeframeState, order *entity.Order, timeFrame _struct.Timeframe) (err error) {
 
 	var updatedOrder domainStructs.DomainOrder
 	updatedOrder, err = i.provider.GetOrder(order.OrderId)
@@ -192,21 +172,15 @@ func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRel
 		return
 	}
 
+	err = i.updateWalletInfo()
+	if err != nil {
+		err = apperrors.Wrap(err, "error update wallet info")
+		return
+	}
+
 	if updatedOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
 
-		err = i.updateWalletInfo()
-		if err != nil {
-			err = apperrors.Wrap(err, "error update wallet info")
-			return
-		}
-
-		if updatedOrder.Side == domainStructs.OrderSideBuy {
-			deal.Status = entity.DealStatusActive
-		} else if updatedOrder.Side == domainStructs.OrderSideSell {
-			if dealRelation.CalcQtyInTrade() <= i.Config.MinQty {
-				deal.SetClose()
-			}
-		} else {
+		if updatedOrder.Side != domainStructs.OrderSideBuy && updatedOrder.Side != domainStructs.OrderSideSell {
 			err = apperrors.New("unexpected order side %s", updatedOrder.Side)
 			return
 		}
@@ -215,14 +189,13 @@ func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRel
 		order.Price = updatedOrder.Price
 		order.Qty = updatedOrder.Qty
 		order.WalletAfter = *i.State.Wallet
+
+		state.ApplyFilledOrder(order, i.Config.MinQty)
+		state.ActiveOrder = nil
+
 		err = i.Storage.SaveOrder(ctx, order)
 		if err != nil {
 			err = apperrors.Wrap(err, "error save order. DomainOrderID: %v, OrderID: %s", order.Id, order.OrderId)
-			return
-		}
-		err = i.Storage.SaveDeal(ctx, deal)
-		if err != nil {
-			err = apperrors.Wrap(err, "error save deal. DealID: %v", deal.Id)
 			return
 		}
 		msg := fmt.Sprintf("[%s] Filled the %s order. Price: %.*f %s Qty: %.*f %s. For timeframe %s", i.Config.Id, order.Side, i.Config.PricePrecision, order.DomainOrder.Price, i.Config.MainCurrency, i.Config.QtyPrecision, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution())
@@ -247,7 +220,7 @@ func (i *Investor) updateOrder(ctx context.Context, dealRelation *entity.DealRel
 	return
 }
 
-func (i *Investor) doCancel(ctx context.Context, order *entity.Order) (err error) {
+func (i *Investor) doCancel(ctx context.Context, state *entity.TimeframeState, order *entity.Order) (err error) {
 	err = i.provider.CancelOrder(order.OrderId, i.Config.CoinPare)
 	if err != nil {
 		err = apperrors.Wrap(err, "error cancel order. OrderID: %s", order.OrderId)
@@ -260,6 +233,8 @@ func (i *Investor) doCancel(ctx context.Context, order *entity.Order) (err error
 		err = apperrors.Wrap(err, "error save order. OrderID: %s", order.OrderId)
 		return
 	}
+
+	state.ActiveOrder = nil
 
 	err = i.updateWalletInfo()
 	if err != nil {

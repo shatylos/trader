@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shatylos/trader/internal/domain"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	"github.com/shatylos/trader/internal/strategy/investor/storage"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
@@ -16,13 +17,14 @@ import (
 )
 
 type Investor struct {
-	Config     Config
-	provider   domain.SpotDomainInterface
-	Timeframes []_struct.TimeframeItem
-	State      State
-	prevState  State
-	Storage    storage.Storage
-	WebSocket  WebSocket
+	Config          Config
+	provider        domain.SpotDomainInterface
+	Timeframes      []_struct.TimeframeItem
+	TimeframeStates map[string]*entity.TimeframeState
+	State           State
+	prevState       State
+	Storage         storage.Storage
+	WebSocket       WebSocket
 }
 
 type State struct {
@@ -98,17 +100,6 @@ func (i *Investor) WaitDuration() time.Duration {
 
 func (i *Investor) getContext() (ctx context.Context) {
 	ctx = context.Background()
-	ctx = context.WithValue(ctx, _struct.CtxSetupKey, i)
-	ctx = context.WithValue(ctx, _struct.CtxMainCurrencyKey, i.Config.MainCurrency)
-	ctx = context.WithValue(ctx, _struct.CtxTradeCurrencyKey, i.Config.TradeCurrency)
-	ctx = context.WithValue(ctx, _struct.CtxCurrentPrice, i.State.CurrentPrice)
-
-	resolutions := make([]string, len(i.Timeframes))
-	for ii, timeFrameItem := range i.Timeframes {
-		resolutions[ii] = timeFrameItem.Config.Resolution
-	}
-	ctx = context.WithValue(ctx, _struct.CtxTimeframeResolutions, resolutions)
-
 	return
 }
 

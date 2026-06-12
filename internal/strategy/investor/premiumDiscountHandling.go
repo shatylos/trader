@@ -3,7 +3,6 @@ package investor
 import (
 	"context"
 	"fmt"
-	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
@@ -11,50 +10,41 @@ import (
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
-func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
+func (i *Investor) handlePremium(ctx context.Context, state *entity.TimeframeState, timeFrameItem *_struct.TimeframeItem) (err error) {
 	currentPrice := timeFrameItem.Candles[0].Close
-	priceToSell := dealRelation.PriceToSell
 
-	if dealRelation.Deal.Status != entity.DealStatusActive {
-		timeFrameItem.TradeStateMsg = "Handle premium. Deal is not active"
-		return
-	}
-
-	if dealRelation.PriceToSell == 0 {
+	if state.PriceToSell == 0 {
 		timeFrameItem.TradeStateMsg = "Handle premium. Will not sell"
 		return
 	}
 
-	for _, dealOrder := range dealRelation.Orders {
-		if i.isActiveOrder(dealOrder) {
-			timeFrameItem.TradeStateMsg = "There is an active order. Wait for fill the order"
-			return
-		}
-	}
-
-	if currentPrice < priceToSell {
-		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle premium. Expect higher price (%.2f) to sell", priceToSell)
+	if state.ActiveOrder != nil {
+		timeFrameItem.TradeStateMsg = "There is an active order. Wait for fill the order"
 		return
 	}
 
-	if dealRelation.QtyInTrade == 0 {
+	if currentPrice < state.PriceToSell {
+		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle premium. Expect higher price (%.2f) to sell", state.PriceToSell)
+		return
+	}
+
+	if state.QtyInTrade == 0 {
 		timeFrameItem.TradeStateMsg = "Handle premium. Qty in trade is 0. Will not sell"
 		return
 	}
 
-	if dealRelation.QtyInTrade < i.Config.MinQty {
-		dealRelation.Deal.SetClose()
-		err = i.Storage.SaveDeal(ctx, dealRelation.Deal)
+	if state.QtyInTrade < i.Config.MinQty {
+		err = i.resetTimeframeState(ctx, state)
 		if err != nil {
-			err = apperrors.Wrap(err, "error save deal. DealID: %v", dealRelation.Deal.Id)
+			err = apperrors.Wrap(err, "error reset timeframe state")
 			return
 		}
-		timeFrameItem.TradeStateMsg = "Handle premium. Not enough qty to sell. Deal closed."
+		timeFrameItem.TradeStateMsg = "Handle premium. Not enough qty to sell. State was reset."
 		return
 	}
 
 	var providerOrderId string
-	providerOrderId, err = i.doSell(ctx, timeFrameItem, dealRelation)
+	providerOrderId, err = i.doSell(ctx, timeFrameItem, state)
 	if err != nil {
 		if providerOrderId != "" {
 			i.Config.Enabled = false
@@ -69,33 +59,31 @@ func (i *Investor) handlePremium(ctx context.Context, dealRelation *entity.DealR
 	return
 }
 
-func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.DealRelation, timeFrameItem *_struct.TimeframeItem) (err error) {
+func (i *Investor) handleDiscount(ctx context.Context, state *entity.TimeframeState, timeFrameItem *_struct.TimeframeItem) (err error) {
 
 	if !timeFrameItem.Config.CanOpenNewOrder {
 		timeFrameItem.TradeStateMsg = "Open new order disabled in config"
 		return
 	}
 
-	if dealRelation.PriceToBuy == 0 {
+	if state.PriceToBuy == 0 {
 		timeFrameItem.TradeStateMsg = "Handle discount. Will not buy more"
 		return
 	}
 
 	currentPrice := timeFrameItem.Candles[0].Close
-	if currentPrice > dealRelation.PriceToBuy {
-		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle discount. Expect lower price (%.2f) to buy", dealRelation.PriceToBuy)
+	if currentPrice > state.PriceToBuy {
+		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle discount. Expect lower price (%.2f) to buy", state.PriceToBuy)
 		return
 	}
 
-	for _, dealOrder := range dealRelation.Orders {
-		if i.isActiveOrder(dealOrder) {
-			timeFrameItem.TradeStateMsg = "There is an active order"
-			return
-		}
+	if state.ActiveOrder != nil {
+		timeFrameItem.TradeStateMsg = "There is an active order"
+		return
 	}
 
 	var providerOrderId string
-	providerOrderId, err = i.doBuy(ctx, timeFrameItem, dealRelation)
+	providerOrderId, err = i.doBuy(ctx, timeFrameItem, state)
 	if err != nil {
 		if providerOrderId != "" {
 			i.Config.Enabled = false
@@ -107,18 +95,5 @@ func (i *Investor) handleDiscount(ctx context.Context, dealRelation *entity.Deal
 		return
 	}
 
-	return
-}
-
-func (i *Investor) isActiveOrder(dealOrder *entity.Order) (result bool) {
-	switch dealOrder.OrderStatus {
-	case structs.OrderStatuses.New,
-		structs.OrderStatuses.Open,
-		structs.OrderStatuses.PartiallyFilled:
-		if i.Config.Verbose {
-			logger.Info(fmt.Sprintf("Exists order to %s with status %s. Wait for fill the order.", dealOrder.Side, dealOrder.Side))
-		}
-		result = true
-	}
 	return
 }

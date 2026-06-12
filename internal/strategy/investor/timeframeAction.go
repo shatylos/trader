@@ -20,17 +20,10 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 		return
 	}
 
-	var deal *entity.Deal
-	deal, err = i.Storage.GetActiveDealByTimeframe(ctx, timeFrameItem)
+	var state *entity.TimeframeState
+	state, err = i.getTimeframeState(ctx, timeFrameItem)
 	if err != nil {
-		err = apperrors.Wrap(err, "error get active deal by timeframe %s", timeFrameItem.Config.Resolution)
-		return
-	}
-
-	var dealRelation *entity.DealRelation
-	dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
-	if err != nil {
-		err = apperrors.Wrap(err, "error get deal relation")
+		err = apperrors.Wrap(err, "error get timeframe state for timeframe %s", timeFrameItem.Config.Resolution)
 		return
 	}
 
@@ -55,20 +48,9 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	currentPrice := sidewaysKlines[0].Close
 	vwap := trading.CreateVWAP(sidewaysKlines)
 
-	err = i.calculateNextQtyAndPrices(ctx, timeFrameItem, dealRelation, &vwap)
+	err = i.calculateNextQtyAndPrices(ctx, timeFrameItem, state, &vwap)
 	if err != nil {
 		err = apperrors.Wrap(err, "error calculate next qty and prices")
-		return
-	}
-
-	if dealRelation.QtyToBuy == 0 && dealRelation.QtyToSell == 0 {
-		logger.Info("qty to buy and sell are 0. Close the deal")
-		deal.SetClose()
-		err = i.Storage.SaveDeal(ctx, deal)
-		if err != nil {
-			err = apperrors.Wrap(err, "error saving deal when try to close it")
-			return
-		}
 		return
 	}
 
@@ -81,36 +63,45 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 	}
 	timeFrameItem.Zone = zone
 
-	for _, dealOrder := range dealRelation.Orders {
-		switch dealOrder.OrderStatus {
-		case domainStructs.OrderStatuses.New,
-			domainStructs.OrderStatuses.Open,
-			domainStructs.OrderStatuses.PartiallyFilled:
-			timeFrameItem.TradeStateMsg = "Wait for fill the order"
-			err = i.updateOrder(ctx, dealRelation, dealOrder, timeFrameItem)
-			if err != nil {
-				err = apperrors.Wrap(err, "error update order")
-				return
-			}
-			if dealOrder.OrderStatus != domainStructs.OrderStatuses.Filled {
-
-				if (dealOrder.Side == domainStructs.OrderSideBuy && zone == trading.ZonePremium) ||
-					(dealOrder.Side == domainStructs.OrderSideSell && zone == trading.ZoneDiscount) {
-
-					err = i.doCancel(ctx, dealOrder)
-					if err != nil {
-						err = apperrors.Wrap(err, "error do cancel")
-						return
-					}
-					return
-				}
-
-				if i.Config.Verbose {
-					logger.Info(fmt.Sprintf("Wait for fill the order %s", dealOrder.OrderId))
-				}
-				return
-			}
+	if state.ActiveOrder != nil {
+		activeOrder := state.ActiveOrder
+		timeFrameItem.TradeStateMsg = "Wait for fill the order"
+		err = i.updateOrder(ctx, state, activeOrder, timeFrameItem)
+		if err != nil {
+			err = apperrors.Wrap(err, "error update order")
+			return
 		}
+		if activeOrder.OrderStatus == domainStructs.OrderStatuses.Filled {
+			// the state is changed by the fill, qty and prices will be recalculated on the next run
+			return
+		}
+
+		if (activeOrder.Side == domainStructs.OrderSideBuy && zone == trading.ZonePremium) ||
+			(activeOrder.Side == domainStructs.OrderSideSell && zone == trading.ZoneDiscount) {
+
+			err = i.doCancel(ctx, state, activeOrder)
+			if err != nil {
+				err = apperrors.Wrap(err, "error do cancel")
+				return
+			}
+			return
+		}
+
+		if i.Config.Verbose {
+			logger.Info(fmt.Sprintf("Wait for fill the order %s", activeOrder.OrderId))
+		}
+		return
+	}
+
+	if state.QtyToBuy == 0 && state.QtyToSell == 0 {
+		logger.Info("qty to buy and sell are 0. Reset the timeframe state")
+		err = i.resetTimeframeState(ctx, state)
+		if err != nil {
+			err = apperrors.Wrap(err, "error reset timeframe state")
+			return
+		}
+		timeFrameItem.TradeStateMsg = "Qty to buy and sell are 0. State was reset"
+		return
 	}
 
 	if !isSideways {
@@ -123,13 +114,13 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 
 	switch zone {
 	case trading.ZonePremium:
-		err = i.handlePremium(ctx, dealRelation, timeFrameItem)
+		err = i.handlePremium(ctx, state, timeFrameItem)
 		if err != nil {
 			err = apperrors.Wrap(err, "error handle premium")
 			return
 		}
 	case trading.ZoneDiscount:
-		err = i.handleDiscount(ctx, dealRelation, timeFrameItem)
+		err = i.handleDiscount(ctx, state, timeFrameItem)
 		if err != nil {
 			err = apperrors.Wrap(err, "error handle discount")
 			return

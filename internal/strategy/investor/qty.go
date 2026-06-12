@@ -10,13 +10,13 @@ import (
 	"github.com/shatylos/trader/tools/trading"
 )
 
-func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty float64, price float64) {
+func (i *Investor) getQtyAndPriceToBuy(state *entity.TimeframeState) (qty float64, price float64) {
 
-	qty = dealRelation.QtyToBuy
+	qty = state.QtyToBuy
 	qty = i.addCommission(qty, i.Config.CommissionBuy)
 	qty = math.RoundCell(qty, i.Config.QtyPrecision)
 
-	price = math.Round(dealRelation.PriceToBuy, i.Config.PricePrecision)
+	price = math.Round(state.PriceToBuy, i.Config.PricePrecision)
 
 	if price > 0 && price > i.State.CurrentPrice {
 		price = i.State.CurrentPrice
@@ -25,9 +25,9 @@ func (i *Investor) getQtyAndPriceToBuy(dealRelation *entity.DealRelation) (qty f
 	return
 }
 
-func (i *Investor) getQtyAndPriceToSell(dealRelation *entity.DealRelation) (qty, price float64) {
-	qty = dealRelation.QtyToSell
-	price = math.Round(dealRelation.PriceToSell, i.Config.PricePrecision)
+func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, price float64) {
+	qty = state.QtyToSell
+	price = math.Round(state.PriceToSell, i.Config.PricePrecision)
 
 	tradeAmountAvailable := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 	remainingBalance := tradeAmountAvailable - qty
@@ -53,42 +53,27 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 
 func (i *Investor) getTimeframeFullAmount(ctx context.Context, timeFrameItem *_struct.TimeframeItem) (tfFullAmount float64, err error) {
 	fullAmount := i.getMainCurrencyAvailable()
-	var deals []*entity.Deal
-	deals, err = i.Storage.GetActiveDeals(ctx)
-	if err != nil {
-		err = apperrors.Wrap(err, "error get active deals")
-		return
-	}
 
-	for _, deal := range deals {
-		var dealRelation *entity.DealRelation
-		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
+	for key := range i.Timeframes {
+		var state *entity.TimeframeState
+		state, err = i.getTimeframeState(ctx, &(i.Timeframes[key]))
 		if err != nil {
-			err = apperrors.Wrap(err, "error get deal relation")
+			err = apperrors.Wrap(err, "error get timeframe state")
 			return
 		}
-		for _, order := range dealRelation.Orders {
-			if order.OrderStatus == structs.OrderStatuses.PartiallyFilled {
-				err = apperrors.New("partially filled order. Wait for fill or cancel the order before calculate full amount")
-				return
-			}
-			if order.OrderStatus == structs.OrderStatuses.Filled {
-				if order.Side == structs.OrderSideBuy {
-					fullAmount += order.Amount()
-				}
-				if order.Side == structs.OrderSideSell {
-					fullAmount -= order.Amount()
-				}
-			}
+		if state.ActiveOrder != nil && state.ActiveOrder.OrderStatus == structs.OrderStatuses.PartiallyFilled {
+			err = apperrors.New("partially filled order. Wait for fill or cancel the order before calculate full amount")
+			return
 		}
+		// amount spent on coins that are still in trade minus realized profit of the current cycle
+		fullAmount += math.Mul(state.QtyInTrade, state.AverageBuyPrice) - state.RealizedPNL
 	}
 
-	//tfFullAmount = fullAmount / 100 * timeFrameItem.Config.FullAmountPercent
 	tfFullAmount = math.Mul(math.Div(fullAmount, 100), timeFrameItem.Config.FullAmountPercent)
 	return
 }
 
-func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem *_struct.TimeframeItem, dealRelation *entity.DealRelation, vwap *trading.VWAP) (err error) {
+func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem *_struct.TimeframeItem, state *entity.TimeframeState, vwap *trading.VWAP) (err error) {
 
 	var timeFrameFullAmount float64
 	timeFrameFullAmount, err = i.getTimeframeFullAmount(ctx, timeFrameItem)
@@ -98,93 +83,69 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 	}
 
 	currentPrice := i.State.CurrentPrice
-	var lastBuyOrder, lastSellOrder *entity.Order
-	var lastBuyOrders, lastSellOrders []*entity.Order
-	var isBuyFilled, isSellFilled bool
-	for key := len(dealRelation.Orders) - 1; key >= 0; key-- {
-		order := dealRelation.Orders[key]
-		if order.Side == structs.OrderSideBuy && !isBuyFilled {
-			lastBuyOrders = append(lastBuyOrders, order)
-			if len(lastSellOrders) > 0 {
-				isSellFilled = true
-			}
-		}
-		if order.Side == structs.OrderSideSell && !isSellFilled {
-			lastSellOrders = append(lastSellOrders, order)
-			if len(lastBuyOrders) > 0 {
-				isBuyFilled = true
-			}
-		}
-	}
-	for ii, j := 0, len(lastBuyOrders)-1; ii < j; ii, j = ii+1, j-1 {
-		lastBuyOrders[ii], lastBuyOrders[j] = lastBuyOrders[j], lastBuyOrders[ii]
-	}
-	for ii, j := 0, len(lastSellOrders)-1; ii < j; ii, j = ii+1, j-1 {
-		lastSellOrders[ii], lastSellOrders[j] = lastSellOrders[j], lastSellOrders[ii]
-	}
-	if len(lastSellOrders) > 0 {
-		lastSellOrder = lastSellOrders[len(lastSellOrders)-1]
-	}
-	if len(lastBuyOrders) > 0 {
-		lastBuyOrder = lastBuyOrders[len(lastBuyOrders)-1]
-	}
 
 	var buyOrderConfig, sellOrderConfig *_struct.OrderParams
-	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, lastSellOrder, lastBuyOrder)
+	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, state.LastSellOrder, state.LastBuyOrder)
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig, timeFrameItem, vwap)
-	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, dealRelation)
+	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, state.QtyInTrade)
 
 	if buyOrderConfig == nil {
-		dealRelation.QtyToBuy = 0
-		dealRelation.PriceToBuy = 0
-		dealRelation.NumOrderToBuy = 0
+		state.QtyToBuy = 0
+		state.PriceToBuy = 0
+		state.NumOrderToBuy = 0
 	} else {
-		dealRelation.NumOrderToBuy = buyOrderConfig.ConfigKey + 1
+		state.NumOrderToBuy = buyOrderConfig.ConfigKey + 1
+		state.QtyToBuy = 0
 		mainAmountAv := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 		avQtyToBuy := trading.MainCurrencyToTrade(mainAmountAv, currentPrice)
 
 		purposeAmount := math.Mul(math.Div(timeFrameFullAmount, 100), buyOrderConfig.Percentage)
 		purposeQty := trading.MainCurrencyToTrade(purposeAmount, currentPrice)
-		qtyInTrade := dealRelation.CalcQtyInTrade()
-		qtyToBuy := purposeQty - qtyInTrade
+		qtyToBuy := purposeQty - state.QtyInTrade
 
 		if avQtyToBuy >= qtyToBuy {
-			dealRelation.QtyToBuy = qtyToBuy
+			state.QtyToBuy = qtyToBuy
 		} else if avQtyToBuy >= i.Config.MinQty {
-			dealRelation.QtyToBuy = avQtyToBuy - i.Config.MinQty
+			state.QtyToBuy = avQtyToBuy - i.Config.MinQty
 		}
-		if dealRelation.QtyToBuy < i.Config.MinQty {
-			dealRelation.QtyToBuy = 0
+		if state.QtyToBuy < i.Config.MinQty {
+			state.QtyToBuy = 0
 		}
-		if dealRelation.QtyToBuy > 0 {
-			_, dealRelation.PriceToBuy = vwap.CalcDeviation(buyOrderConfig.VwapDeviations)
+		if state.QtyToBuy > 0 {
+			_, state.PriceToBuy = vwap.CalcDeviation(buyOrderConfig.VwapDeviations)
 		} else {
-			dealRelation.PriceToBuy = 0
+			state.PriceToBuy = 0
 		}
 	}
 
 	if sellOrderConfig == nil {
-		dealRelation.QtyToSell = 0
-		dealRelation.PriceToSell = 0
-		dealRelation.NumOrderToSell = 0
+		state.QtyToSell = 0
+		state.PriceToSell = 0
+		state.NumOrderToSell = 0
 	} else {
-		dealRelation.NumOrderToSell = sellOrderConfig.ConfigKey + 1
+		state.NumOrderToSell = sellOrderConfig.ConfigKey + 1
+		state.QtyToSell = 0
+		state.PriceToSell = 0
 		avQtySell := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 		purposeAmountInTrade := math.Mul(math.Div(timeFrameFullAmount, 100), sellOrderConfig.Percentage)
 		purposeQtyInTrade := trading.MainCurrencyToTrade(purposeAmountInTrade, currentPrice)
-		qtyInTrade := dealRelation.CalcQtyInTrade()
-		qtyToSell := qtyInTrade - purposeQtyInTrade
+		qtyToSell := state.QtyInTrade - purposeQtyInTrade
 		if avQtySell >= qtyToSell {
-			dealRelation.QtyToSell = qtyToSell
-			dealRelation.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
+			state.QtyToSell = qtyToSell
+			state.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
 		} else if avQtySell >= i.Config.MinQty {
-			dealRelation.QtyToSell = avQtySell - i.Config.MinQty
-			dealRelation.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
+			state.QtyToSell = avQtySell - i.Config.MinQty
+			state.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)
 		}
-		if dealRelation.QtyToSell < i.Config.MinQty {
-			dealRelation.QtyToSell = 0
-			dealRelation.PriceToSell = 0
+		if state.QtyToSell < i.Config.MinQty {
+			state.QtyToSell = 0
+			state.PriceToSell = 0
 		}
+	}
+
+	state.UnrealizedPNL = 0
+	if state.QtyInTrade > 0 {
+		state.UnrealizedPNL = math.Mul(state.QtyInTrade, currentPrice) - math.Mul(state.QtyInTrade, state.AverageBuyPrice)
 	}
 
 	return

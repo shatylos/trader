@@ -2,6 +2,7 @@ package investor
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/struct"
 	"github.com/shatylos/trader/tools/apperrors"
@@ -46,27 +47,37 @@ func (i *Investor) GetStats() (stats _struct.Stats, err error) {
 func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error) {
 	ctx := i.getContext()
 
-	var dealRelations []*entity.DealRelation
-	dealRelations, err = i.Storage.GetDealRelationsByPeriod(ctx, from, to)
+	var orders []*entity.Order
+	orders, err = i.Storage.GetOrdersByPeriod(ctx, from, to)
 	if err != nil {
-		err = apperrors.Wrap(err, "error get deal relations by period from %s to %s", from, to)
+		err = apperrors.Wrap(err, "error get orders by period from %s to %s", from, to)
 		return
 	}
 
 	revPerMonth := make(map[string]float64)
 	startAmounts := make(map[string]float64)
-	var amount float64
-	for _, dealRelation := range dealRelations {
-		if len(dealRelation.Orders) == 0 {
+	var amount, totalAmountBefore float64
+
+	// orders are sorted by CreatedTime ascending
+	for _, order := range orders {
+		if order.OrderStatus != structs.OrderStatuses.Filled {
 			continue
 		}
-		revenue := dealRelation.RevenueMainCur + trading.TradeCurrencyToMain(dealRelation.RevenueTradeCur, dealRelation.Orders[0].Price)
-		amount += revenue
 
-		date := dealRelation.Deal.ClosedTime
-		monthKey := fmt.Sprintf("%d-%d", date.Year(), date.Month())
-		revPerMonth[monthKey] += revenue
-		startAmounts[monthKey] = dealRelation.GetTotalAmountBefore(i.Config.MainCurrency, i.Config.TradeCurrency)
+		monthKey := fmt.Sprintf("%d-%d", order.CreatedTime.Year(), order.CreatedTime.Month())
+		if _, ok := startAmounts[monthKey]; !ok {
+			mainCurr := trading.CurrencyAmountTotal(&order.WalletBefore, i.Config.MainCurrency)
+			tradeCurr := trading.CurrencyAmountTotal(&order.WalletBefore, i.Config.TradeCurrency)
+			startAmounts[monthKey] = mainCurr + trading.TradeCurrencyToMain(tradeCurr, order.Price)
+		}
+		if totalAmountBefore == 0 {
+			totalAmountBefore = startAmounts[monthKey]
+		}
+
+		if order.Side == structs.OrderSideSell {
+			amount += order.RealizedPNL
+			revPerMonth[monthKey] += order.RealizedPNL
+		}
 	}
 
 	revPercAllMonths := 0.0
@@ -82,13 +93,9 @@ func (i *Investor) calculatePnl(from, to time.Time) (pnl _struct.Pnl, err error)
 	}
 
 	var pnlPercent float64
-	if len(dealRelations) > 0 {
-		lastDealRelation := dealRelations[len(dealRelations)-1]
-		totalAmountBefore := lastDealRelation.GetTotalAmountBefore(i.Config.MainCurrency, i.Config.TradeCurrency)
-		if totalAmountBefore > 0 && amount > 0 {
-			onePercent := math.Div(totalAmountBefore, 100)
-			pnlPercent = math.Div(amount, onePercent)
-		}
+	if totalAmountBefore > 0 && amount > 0 {
+		onePercent := math.Div(totalAmountBefore, 100)
+		pnlPercent = math.Div(amount, onePercent)
 	}
 
 	pnl = _struct.Pnl{

@@ -24,7 +24,8 @@ type ReportTemplateData struct {
 	WsLink                string
 	DateFrom              time.Time
 	DateTo                time.Time
-	DealsRelations        []*entity.DealRelation //@TODO: remove * from the list
+	Orders                map[string][]*entity.Order        //@TODO: remove * from the list
+	TimeframeStates       map[string]*entity.TimeframeState //@TODO: remove * from the list
 	MainCurrency          string
 	TradeCurrency         string
 	PricePrecision        int
@@ -103,33 +104,28 @@ func (i *Investor) GetReport(from time.Time, to time.Time) (report strategyStruc
 
 func (i *Investor) GetReportData(from time.Time, to time.Time) (data ReportTemplateData, err error) {
 	ctx := i.getContext()
-	var deals, closedDeals, activeDeals []*entity.Deal
-	closedDeals, err = i.Storage.GetDealsByPeriod(ctx, from, to)
+
+	var orders []*entity.Order
+	orders, err = i.Storage.GetOrdersByPeriod(ctx, from, to)
 	if err != nil {
-		err = apperrors.Wrap(err, "error get deals by period. From %s, to %s", from, to)
+		err = apperrors.Wrap(err, "error get orders by period. From %s, to %s", from, to)
 		return
 	}
 
-	now := time.Now()
-	if from.Year() == now.Year() && from.Month() == now.Month() {
-		activeDeals, err = i.Storage.GetActiveDeals(ctx)
-		if err != nil {
-			err = apperrors.Wrap(err, "error get active deals")
-			return
-		}
-		deals = append(deals, activeDeals...)
+	ordersByTimeframe := make(map[string][]*entity.Order)
+	for _, order := range orders {
+		ordersByTimeframe[order.Timeframe] = append(ordersByTimeframe[order.Timeframe], order)
 	}
-	deals = append(deals, closedDeals...)
 
-	var dealRelations []*entity.DealRelation
-	for _, deal := range deals {
-		var dealRelation *entity.DealRelation
-		dealRelation, err = i.Storage.GetDealRelation(ctx, deal)
+	timeframeStates := make(map[string]*entity.TimeframeState)
+	for key := range i.Timeframes {
+		var state *entity.TimeframeState
+		state, err = i.getTimeframeState(ctx, &(i.Timeframes[key]))
 		if err != nil {
-			err = apperrors.Wrap(err, "error get deal relation")
+			err = apperrors.Wrap(err, "error get timeframe state")
 			return
 		}
-		dealRelations = append(dealRelations, dealRelation)
+		timeframeStates[i.Timeframes[key].Config.Resolution] = state
 	}
 
 	var assets []*structs.AssetTransaction
@@ -138,12 +134,12 @@ func (i *Investor) GetReportData(from time.Time, to time.Time) (data ReportTempl
 		err = apperrors.Wrap(err, "error get asset transactions")
 	}
 
-	amounts := i.reportAmounts(from, dealRelations, assets)
-
 	isCurrentPeriod := false
 	if from.Before(time.Now()) && to.After(time.Now()) {
 		isCurrentPeriod = true
 	}
+
+	amounts := i.reportAmounts(orders, timeframeStates, assets, isCurrentPeriod)
 
 	availableMain := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.MainCurrency)
 	availableTrade := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
@@ -156,7 +152,8 @@ func (i *Investor) GetReportData(from time.Time, to time.Time) (data ReportTempl
 	data.WsLink = fmt.Sprintf("/%s/ws-report", i.GetId())
 	data.DateFrom = from
 	data.DateTo = to
-	data.DealsRelations = dealRelations
+	data.Orders = ordersByTimeframe
+	data.TimeframeStates = timeframeStates
 	data.MainCurrency = i.Config.MainCurrency
 	data.TradeCurrency = i.Config.TradeCurrency
 	data.PricePrecision = int(i.Config.PricePrecision)
@@ -184,26 +181,41 @@ func (i *Investor) GetReportData(from time.Time, to time.Time) (data ReportTempl
 	return
 }
 
-func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRelation, assets []*structs.AssetTransaction) (amounts ReportAmountsData) {
+func (i *Investor) reportAmounts(orders []*entity.Order, states map[string]*entity.TimeframeState, assets []*structs.AssetTransaction, isCurrentPeriod bool) (amounts ReportAmountsData) {
 
 	var firstOrder, lastOrder *entity.Order
+	lastFilledByTimeframe := make(map[string]*entity.Order)
 
-	for _, dealRelation := range dealRelations {
-		amounts.RealizedPnl += dealRelation.RealizedPNL
-		amounts.UnrealizedPnl += dealRelation.UnrealizedPNL
+	// orders are sorted by CreatedTime ascending
+	for _, order := range orders {
+		if order.OrderStatus != structs.OrderStatuses.Filled {
+			continue
+		}
+		if firstOrder == nil {
+			firstOrder = order
+		}
+		lastOrder = order
+		lastFilledByTimeframe[order.Timeframe] = order
 
-		for _, order := range dealRelation.Orders {
-			if (lastOrder == nil || order.CreatedTime.After(lastOrder.CreatedTime)) &&
-				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
+		if order.Side == structs.OrderSideSell {
+			amounts.RealizedPnl += order.RealizedPNL
+		}
+	}
 
-				lastOrder = order
+	if isCurrentPeriod {
+		for _, state := range states {
+			if state.QtyInTrade > 0 {
+				amounts.UnrealizedPnl += math.Mul(state.QtyInTrade, i.State.CurrentPrice) - math.Mul(state.QtyInTrade, state.AverageBuyPrice)
 			}
-			if (firstOrder == nil || order.CreatedTime.Before(firstOrder.CreatedTime)) &&
-				order.CreatedTime.Year() == from.Year() && order.CreatedTime.Month() == from.Month() {
-				firstOrder = order
+		}
+	} else {
+		for _, order := range lastFilledByTimeframe {
+			if order.QtyInTrade > 0 {
+				amounts.UnrealizedPnl += math.Mul(order.QtyInTrade, order.Price) - math.Mul(order.QtyInTrade, order.AverageBuyPrice)
 			}
 		}
 	}
+
 	if firstOrder == nil || lastOrder == nil {
 		return
 	}
@@ -215,8 +227,7 @@ func (i *Investor) reportAmounts(from time.Time, dealRelations []*entity.DealRel
 
 	amounts.BalanceTotalBefore = amounts.BalanceMainBefore + trading.TradeCurrencyToMain(amounts.BalanceTradeBefore, firstOrder.Price)
 	lastPrice := lastOrder.Price
-	now := time.Now()
-	if lastOrder.CreatedTime.Year() == now.Year() && lastOrder.CreatedTime.Month() == now.Month() {
+	if isCurrentPeriod {
 		lastPrice = i.State.CurrentPrice
 	}
 	amounts.BalanceTotalAfter = amounts.BalanceMainAfter + trading.TradeCurrencyToMain(amounts.BalanceTradeAfter, lastPrice)

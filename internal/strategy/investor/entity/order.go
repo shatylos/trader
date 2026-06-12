@@ -8,13 +8,16 @@ import (
 
 type Order struct {
 	domainStructs.DomainOrder `bson:",inline"`
-	DealId                    string                     `bson:"DealId"`
 	Timeframe                 string                     `bson:"Timeframe"`
 	CreatedTime               time.Time                  `bson:"CreatedTime"`
 	UpdatedTime               time.Time                  `bson:"UpdatedTime"`
 	WalletBefore              domainStructs.DomainWallet `bson:"WalletBefore"`
 	WalletAfter               domainStructs.DomainWallet `bson:"WalletAfter"`
 	ConfigKey                 int                        `bson:"ConfigKey"`
+	AverageBuyPrice           float64                    `bson:"AverageBuyPrice"`
+	QtyInTrade                float64                    `bson:"QtyInTrade"`
+	RealizedPNL               float64                    `bson:"RealizedPNL"`
+	StateApplied              bool                       `bson:"StateApplied"`
 }
 
 func (o *Order) Amount() float64 {
