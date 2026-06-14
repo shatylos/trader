@@ -20,7 +20,7 @@ type Investor struct {
 	Config          Config
 	provider        domain.SpotDomainInterface
 	Timeframes      []_struct.TimeframeItem
-	TimeframeStates map[string]*entity.TimeframeState
+	TimeframeStates map[string]*entity.TimeframeState //@TODO: Check if we can move inside TimeframeItem
 	State           State
 	prevState       State
 	Storage         storage.Storage
