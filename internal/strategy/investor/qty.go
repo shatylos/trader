@@ -2,10 +2,12 @@ package investor
 
 import (
 	"context"
+	"fmt"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
+	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 )
@@ -38,6 +40,7 @@ func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, pric
 	}
 
 	if price > 0 && price < i.State.CurrentPrice {
+		logger.Info(fmt.Sprintf("Modified sell price. Old price: %g. New price: %g.", price, i.State.CurrentPrice))
 		price = i.State.CurrentPrice
 	}
 
