@@ -39,6 +39,8 @@ func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, pric
 		}
 	}
 
+	price = state.PriceToSell
+
 	logger.Info(fmt.Sprintf("calculated price: %g", price))
 	logger.Info(fmt.Sprintf("current price: %g", i.State.CurrentPrice))
 
@@ -47,7 +49,7 @@ func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, pric
 		price = i.State.CurrentPrice
 	}
 
-	price = math.RoundCell(state.PriceToSell, i.Config.PricePrecision)
+	price = math.RoundCell(price, i.Config.PricePrecision)
 	qty = math.RoundFloor(qty, i.Config.QtyPrecision)
 	return
 }
