@@ -1,0 +1,36 @@
+package vwapReversion
+
+import (
+	domainStructs "github.com/shatylos/trader/internal/domain/structs"
+	"github.com/shatylos/trader/tools/apperrors"
+)
+
+func (v *VwapReversion) getCurrentPrice() (currentPrice float64, err error) {
+	var candles []domainStructs.DomainCandle
+	candles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.Resolution, 1)
+	if err != nil {
+		err = apperrors.Wrap(err, "error load candle history")
+		return
+	}
+	if len(candles) != 1 {
+		err = apperrors.New("unexpected length of candles (%d items). Expected 1 item", len(candles))
+		return
+	}
+	currentPrice = candles[0].Close
+	return
+}
+
+func (v *VwapReversion) getAvailableBalance() (balance float64, err error) {
+	var wallet domainStructs.DomainWallet
+	wallet, err = v.provider.GetWallet()
+	if err != nil {
+		err = apperrors.Wrap(err, "error get wallet")
+		return
+	}
+	for _, coin := range wallet.Available {
+		if coin.Coin == v.config.MainCurrency {
+			balance = coin.Amount
+		}
+	}
+	return
+}

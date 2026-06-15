@@ -80,6 +80,31 @@ strategy:
     position_too_much_time_hours: 168 # 24 * 7 - 1 week
     withdraw_percent: 50
 
+  - id:  BTC_USDT_VWAP_REVERSION_1
+    code: vwap_reversion
+    domain: bybit_features_demo_btc
+    enabled: 1
+    verbose: 0
+    telegram_notifier: 0
+    coin_pare: BTCUSDT
+    main_currency: USDT
+    trade_currency: BTC
+    min_depo: 10
+    leverage: 2
+    timeout_seconds: 10
+    resolution: "15m"
+    vwap_period: 100              # entry-tf candles used for the VWAP / bands
+    long_trend_resolution: "1h"
+    long_trend_candle_review: 168 # 24 * 7 - 1 week
+    price_precision: 2
+    qty_precision: 3
+    min_qty: 0.001
+    entry_sigma_mult: 2.0         # enter when price is this many sigma from VWAP
+    sl_sigma_mult: 3.0            # stop-loss this many sigma from VWAP (> entry)
+    require_confirmation: 1       # 1: wait for candle-color reversal confirmation
+    risk_percent: 2              # % of balance risked per trade (qty sizing)
+    withdraw_percent: 50
+
 domain:
   bybit_spot_demo_btc:
     code: bybitSpot

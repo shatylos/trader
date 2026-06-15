@@ -26,6 +26,7 @@ func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
 	return TrendUnknown
 }
 
+// @TODO: Review it
 func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend string, slope float64) {
 	if len(candles) < 2 {
 		trend = TrendUnknown
