@@ -129,8 +129,8 @@ func (v *VwapReversion) calculateQty(availableBalance float64, entry float64, st
 	riskAmount := math.Mul(math.Div(availableBalance, 100), v.config.RiskPercent)
 	qty = math.Div(riskAmount, priceDistance)
 	qty = math.Round(qty, v.config.QtyPrecision)
-	// @TODO: check available balance also
-	if qty < v.config.MinQty {
+	if qty < v.config.MinQty && v.config.IncreaseRiskToMinQty {
+		logger.Info(fmt.Sprintf("calculated qty %g is less than min qty %g. Increased risk", qty, v.config.MinQty))
 		qty = v.config.MinQty
 	}
 	return

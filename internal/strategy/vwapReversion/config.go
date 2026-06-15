@@ -34,6 +34,7 @@ type Config struct {
 	RequireConfirmation   bool
 	RiskPercent           float64
 	WithdrawPercent       float64
+	IncreaseRiskToMinQty  bool
 }
 
 var resolutions = map[string]int64{
@@ -180,6 +181,15 @@ func (v *VwapReversion) SetConfig(strategyConfig interface{}, domainConfig map[s
 	v.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
 	if err != nil {
 		return apperrors.Wrap(err, "the field withdraw_percent is empty")
+	}
+
+	if configMap["increase_resk_to_min_qty"] != nil {
+		var increaseRiskToMinQty int64
+		increaseRiskToMinQty, err = _type.ToInt64(configMap["increase_resk_to_min_qty"])
+		if err != nil {
+			return apperrors.Wrap(err, "the field increase_resk_to_min_qty is empty or contains not correct value type. Expects 1 or 0")
+		}
+		v.config.IncreaseRiskToMinQty = increaseRiskToMinQty == 1
 	}
 
 	err = v.applyDomainConfig(configMap, domainConfig)

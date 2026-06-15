@@ -103,6 +103,7 @@ strategy:
     sl_sigma_mult: 3.0            # stop-loss this many sigma from VWAP (> entry)
     require_confirmation: 1       # 1: wait for candle-color reversal confirmation
     risk_percent: 2              # % of balance risked per trade (qty sizing)
+    increase_resk_to_min_qty: 1
     withdraw_percent: 50
 
 domain:
