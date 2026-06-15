@@ -78,7 +78,7 @@ func (i *Investor) DoAction() (err error) {
 	for key := range i.Timeframes {
 		err = i.handleTimeframe(ctx, &(i.Timeframes[key]))
 		if err != nil {
-			err = apperrors.Wrap(err, "error handle timeframe")
+			err = apperrors.Wrap(err, "error handle timeframe %s", i.Timeframes[key].Config.Resolution)
 			return
 		}
 		if i.Timeframes[key].IsStatusChanged() {
