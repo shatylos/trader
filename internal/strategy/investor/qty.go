@@ -27,7 +27,6 @@ func (i *Investor) getQtyAndPriceToBuy(state *entity.TimeframeState) (qty float6
 
 func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, price float64) {
 	qty = state.QtyToSell
-	price = math.Round(state.PriceToSell, i.Config.PricePrecision)
 
 	tradeAmountAvailable := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
 	remainingBalance := tradeAmountAvailable - qty
@@ -37,6 +36,12 @@ func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, pric
 			qty = i.removeCommission(qty, i.Config.CommissionBuy)
 		}
 	}
+
+	if price > 0 && price < i.State.CurrentPrice {
+		price = i.State.CurrentPrice
+	}
+
+	price = math.RoundCell(state.PriceToSell, i.Config.PricePrecision)
 	qty = math.RoundFloor(qty, i.Config.QtyPrecision)
 	return
 }
