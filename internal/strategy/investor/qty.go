@@ -39,6 +39,9 @@ func (i *Investor) getQtyAndPriceToSell(state *entity.TimeframeState) (qty, pric
 		}
 	}
 
+	logger.Info(fmt.Sprintf("calculated price: %g", price))
+	logger.Info(fmt.Sprintf("current price: %g", i.State.CurrentPrice))
+
 	if price > 0 && price < i.State.CurrentPrice {
 		logger.Info(fmt.Sprintf("Modified sell price. Old price: %g. New price: %g.", price, i.State.CurrentPrice))
 		price = i.State.CurrentPrice
