@@ -2,10 +2,12 @@ package bybit
 
 import (
 	"fmt"
+	"github.com/shatylos/trader/internal/domain/domains/bybit/mapping"
 	"github.com/shatylos/trader/internal/domain/domains/bybit/request"
 	bybitStructs "github.com/shatylos/trader/internal/domain/domains/bybit/structs"
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/tools"
+	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/type"
 	"time"
@@ -132,8 +134,13 @@ func (d *DomainBybitFutures) GetWallet() (wallet structs.DomainWallet, err error
 }
 
 func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string, limit int64) ([]structs.DomainCandle, error) {
+	providerResolution, err := mapping.ToBybitInterval(resolution)
+	if err != nil {
+		err = apperrors.Wrap(err, "error mapping resolution \"%s\" to bybit interval", resolution)
+		return nil, err
+	}
 
-	candles, err := request.GetKlineList(symbol, resolution, limit, d.secrets)
+	candles, err := request.GetKlineList(symbol, providerResolution, limit, d.secrets)
 	if err != nil {
 		return nil, err
 	}
