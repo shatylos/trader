@@ -15,16 +15,11 @@ import (
 	"time"
 )
 
-// calculateNewPosition loads the recent candles, derives the long term trend
-// filter and the VWAP deviation bands, and produces a fresh internal position
-// holding the entry / take-profit / stop-loss levels and the risk sized qty.
-func (v *VwapReversion) calculateNewPosition() (position structs.Position, err error) {
-	var candles, ltCandles []domainStructs.DomainCandle
-	candles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.Resolution, v.config.VwapPeriod)
-	if err != nil {
-		err = apperrors.Wrap(err, "error load candle history")
-		return
-	}
+// calculateNewPosition derives the long term trend filter and the VWAP deviation
+// bands from the provided short-term candles, and produces a fresh internal
+// position holding the entry / take-profit / stop-loss levels and the risk sized qty.
+func (v *VwapReversion) calculateNewPosition(candles []domainStructs.DomainCandle) (position structs.Position, err error) {
+	var ltCandles []domainStructs.DomainCandle
 	ltCandles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.LongTrendResolution, v.config.LongTrendCandleReview)
 	if err != nil {
 		err = apperrors.Wrap(err, "error load long trend candle history")

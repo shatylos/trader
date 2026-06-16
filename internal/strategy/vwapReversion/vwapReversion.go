@@ -27,6 +27,7 @@ type State struct {
 	LowerBand         float64
 	CurrentPrice      float64
 	NewOrderCondition string
+	stCandles         []domainStructs.DomainCandle
 }
 
 func (v *VwapReversion) Init(mux *http.ServeMux) {
@@ -58,6 +59,12 @@ func (v *VwapReversion) DoAction() (err error) {
 		return
 	}
 
+	state.stCandles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.Resolution, v.config.VwapPeriod)
+	if err != nil {
+		err = apperrors.Wrap(err, "error load short term candle history")
+		return
+	}
+
 	var internalPosition structs.Position
 	var storage mongo.MongoStorage
 	storage, err = strategyStorage.GetStorage(v.config.Id)
@@ -78,12 +85,7 @@ func (v *VwapReversion) DoAction() (err error) {
 		return
 	}
 
-	var currentPrice float64
-	currentPrice, err = v.getCurrentPrice()
-	if err != nil {
-		err = apperrors.Wrap(err, "error get current price")
-		return
-	}
+	currentPrice := state.stCandles[0].Close
 
 	if providerPosition.Size == 0 {
 		if internalPosition.Id != nil && internalPosition.Status != structs.StatusClosed {
@@ -93,7 +95,7 @@ func (v *VwapReversion) DoAction() (err error) {
 				return
 			}
 		}
-		internalPosition, err = v.calculateNewPosition()
+		internalPosition, err = v.calculateNewPosition(state.stCandles)
 		if err != nil {
 			err = apperrors.Wrap(err, "error calculate new position")
 			return
@@ -111,7 +113,7 @@ func (v *VwapReversion) DoAction() (err error) {
 		return
 	}
 
-	err = v.actionByPosition(internalPosition, currentPrice)
+	err = v.actionByPosition(internalPosition, currentPrice, state.stCandles)
 	if err != nil {
 		err = apperrors.Wrap(err, "error action by position")
 		return
