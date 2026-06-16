@@ -14,8 +14,9 @@ import (
 )
 
 type DomainBybitSpot struct {
-	code    string
-	secrets bybitStructs.Secrets
+	code        string
+	secrets     bybitStructs.Secrets
+	rateLimiter rateLimiter
 }
 
 func (d *DomainBybitSpot) GetCode() string {
@@ -82,6 +83,7 @@ func (d *DomainBybitSpot) SetConfig(config map[interface{}]interface{}) (err err
 
 func (d *DomainBybitSpot) GetWallet() (wallet structs.DomainWallet, err error) {
 	var walletBalances *map[string]request.SpotWalletBalance
+	d.rateLimiter.throttle()
 	walletBalances, err = request.GetSpotWalletBalance(d.secrets)
 	if err != nil {
 		err = apperrors.Wrap(err, "error get spot wallet balance")
@@ -128,6 +130,7 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, li
 		err = apperrors.Wrap(err, "error mapping resolution \"%s\" to bybit interval", resolution)
 		return nil, err
 	}
+	d.rateLimiter.throttle()
 	candles, err := request.GetSpotKlineList(symbol, providerResolution, limit, d.secrets)
 	if err != nil {
 		err = apperrors.Wrap(err, "error get spot kline list. Symbol: %s, providerResolution: %s, limit: %d", symbol, providerResolution, limit)
@@ -182,6 +185,7 @@ func (d *DomainBybitSpot) LoadCandleHistory(symbol string, resolution string, li
 
 func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainOrder, err error) {
 	var order request.SpotOrderResponseTimeStr
+	d.rateLimiter.throttle()
 	order, err = request.GetSpotOrder(domainId, d.secrets)
 	if err != nil {
 		err = apperrors.Wrap(err, "error get spot order. DomainId: %s", domainId)
@@ -239,6 +243,7 @@ func (d *DomainBybitSpot) GetOrder(domainId string) (domainOrder structs.DomainO
 }
 
 func (d *DomainBybitSpot) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
+	d.rateLimiter.throttle()
 	orders, err := request.GetSpotOpenOrderList(coinPare, d.secrets)
 	if err != nil {
 		err = apperrors.Wrap(err, "error get spot open order list. coinPare: %s", coinPare)
@@ -323,6 +328,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 	}
 
 	var order request.CreateSpotOrderResponse
+	d.rateLimiter.throttle()
 	order, err = request.CreateSpotOrder(domainOrderRequest, d.secrets)
 	if err != nil {
 		err = apperrors.Wrap(err, "error create spot order, domainOrderRequest: %s", domainOrderRequest)
@@ -333,6 +339,7 @@ func (d *DomainBybitSpot) OpenOrder(orderRequest structs.DomainOrderRequest) (or
 }
 
 func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
+	d.rateLimiter.throttle()
 	err := request.CancelSpotOrder(orderId, d.secrets, coinPare)
 	if err != nil {
 		err = apperrors.Wrap(err, "error cancel spot order, orderId: %s", orderId)
@@ -342,6 +349,7 @@ func (d *DomainBybitSpot) CancelOrder(orderId string, coinPare string) error {
 }
 
 func (d *DomainBybitSpot) GetHistoryOrders(limit int64, coinPare string) ([]structs.DomainOrder, error) {
+	d.rateLimiter.throttle()
 	orders, err := request.GetSpotOrderHistory(limit, d.secrets, coinPare)
 	if err != nil {
 		err = apperrors.Wrap(err, "error get spot order history, limit: %s, coinPare: %s", limit, coinPare)

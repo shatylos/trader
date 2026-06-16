@@ -29,9 +29,10 @@ const (
 )
 
 type DomainBybitFutures struct {
-	code     string
-	secrets  bybitStructs.Secrets
-	leverage int64
+	code        string
+	secrets     bybitStructs.Secrets
+	leverage    int64
+	rateLimiter rateLimiter
 }
 
 func (d *DomainBybitFutures) GetCode() string {
@@ -103,6 +104,7 @@ func (d *DomainBybitFutures) SetConfig(config map[interface{}]interface{}) error
 
 func (d *DomainBybitFutures) GetWallet() (wallet structs.DomainWallet, err error) {
 	var walletBalance request.MarginWalletBalance
+	d.rateLimiter.throttle()
 	walletBalance, err = request.GetFuturesWalletBalance(d.secrets)
 	if err != nil {
 		return
@@ -140,6 +142,7 @@ func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string,
 		return nil, err
 	}
 
+	d.rateLimiter.throttle()
 	candles, err := request.GetKlineList(symbol, providerResolution, limit, d.secrets)
 	if err != nil {
 		return nil, err
@@ -188,6 +191,7 @@ func (d *DomainBybitFutures) LoadCandleHistory(symbol string, resolution string,
 
 func (d *DomainBybitFutures) GetOrder(orderId string, coinPare string) (order structs.DomainOrder, err error) {
 	var orders []*request.OrderResponse
+	d.rateLimiter.throttle()
 	orders, err = request.GetOrderList("", orderId, d.secrets)
 	if err != nil {
 		return
@@ -203,6 +207,7 @@ func (d *DomainBybitFutures) GetOrder(orderId string, coinPare string) (order st
 }
 
 func (d *DomainBybitFutures) GetOpenOrderList(coinPare string) ([]structs.DomainOrder, error) {
+	d.rateLimiter.throttle()
 	orders, err := request.GetOrderList(coinPare, "", d.secrets)
 	if err != nil {
 		return nil, err
@@ -298,6 +303,7 @@ func (d *DomainBybitFutures) mapStatus(providerStatus string) string {
 
 func (d *DomainBybitFutures) GetPosition(coinPare string) (resultPosition structs.DomainPosition, err error) {
 	var providerPosition request.Position
+	d.rateLimiter.throttle()
 	providerPosition, err = request.GetPosition(coinPare, d.secrets)
 	if err != nil {
 		return
@@ -369,6 +375,7 @@ func (d *DomainBybitFutures) setLeverage(symbol string, leverage int64) (err err
 		SellLeverage: leverage,
 	}
 
+	d.rateLimiter.throttle()
 	err = request.SetLeverage(leverageRequest, d.secrets)
 	return
 }
@@ -409,6 +416,7 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 	}
 
 	var order *request.OrderResponse
+	d.rateLimiter.throttle()
 	order, err = request.CreateOrder(orderRequest, d.secrets)
 	if err != nil {
 		return
@@ -425,6 +433,7 @@ func (d *DomainBybitFutures) ModifyTpSl(tpSlRequest structs.TpSlRequest) (err er
 		StopLoss:   tpSlRequest.StopLoss,
 		TpSlMode:   "Full",
 	}
+	d.rateLimiter.throttle()
 	err = request.ModifyTpSl(requestData, d.secrets)
 	return
 }
