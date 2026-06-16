@@ -27,7 +27,6 @@ type Config struct {
 	MinCoinReservePercent float64
 	MinQty                float64
 	WithdrawPercent       float64
-	RequestDelay          time.Duration
 }
 
 func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string]interface{}) (err error) {
@@ -146,13 +145,6 @@ func (i *Investor) SetConfig(strategyConfig interface{}, domainConfig map[string
 		err = apperrors.Wrap(err, "the field withdraw_percent is empty")
 		return
 	}
-
-	i.Config.RequestDelay, err = _type.ToTimeDuration(configMap["request_delay"])
-	if err != nil {
-		err = apperrors.Wrap(err, "the field request_delay is empty")
-		return
-	}
-	i.Config.RequestDelay = i.Config.RequestDelay * time.Second
 
 	err = i.applyTimeframeConfig(configMap["timeframes"])
 	if err != nil {

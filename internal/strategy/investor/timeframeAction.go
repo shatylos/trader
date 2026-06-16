@@ -142,7 +142,6 @@ func (i *Investor) loadCandles(timeFrame _struct.Timeframe) (err error) {
 		}
 		timeFrame.SetCandles(candles)
 		i.State.CurrentPrice = timeFrame.GetCandles()[0].Close
-		time.Sleep(i.Config.RequestDelay)
 	}
 
 	return
