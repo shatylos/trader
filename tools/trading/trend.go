@@ -41,7 +41,7 @@ func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
 func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend string, slope float64) {
 	const (
 		// minimum relative slope (per candle) to call a trend, ~0.05% per candle
-		slopeThreshold = 0.0005
+		slopeThreshold = 0.0003
 		// minimum R²: how much of the price variance the line explains
 		minRSquared = 0.5
 	)
