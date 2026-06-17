@@ -43,7 +43,7 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend strin
 		// minimum relative slope (per candle) to call a trend, ~0.05% per candle
 		slopeThreshold = 0.0005
 		// minimum R²: how much of the price variance the line explains
-		minRSquared = 0.3
+		minRSquared = 0.2
 	)
 
 	trend = TrendUnknown
