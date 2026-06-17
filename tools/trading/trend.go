@@ -101,9 +101,6 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend strin
 
 	// Normalize: fraction of mean price moved per candle.
 	relativeSlope := rawSlope / meanClose
-
-	logger.Info(fmt.Sprintf("relativeSlope: %f", relativeSlope))
-
 	if relativeSlope > slopeThreshold {
 		trend = TrendLong
 	} else if relativeSlope < -slopeThreshold {
