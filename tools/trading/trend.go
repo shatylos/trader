@@ -26,53 +26,85 @@ func GetFullTrend(candles []domainStructs.DomainCandle, verbose bool) string {
 	return TrendUnknown
 }
 
-// @TODO: Review it
+// GetTrendLinearRegression fits an ordinary least-squares line to the
+// candle close prices and classifies the trend.
+//
+// Two safeguards make the result usable across instruments of any price scale:
+//   - the slope is normalized by the mean price, so the threshold is relative
+//     (fraction of price per candle) rather than absolute price units;
+//   - the coefficient of determination (R²) must clear a minimum, so a series
+//     that merely drifts through noise is reported as UNKNOWN rather than a trend.
+//
+// Candles follow the project convention: index 0 is the newest candle,
+// index len-1 is the oldest. We iterate oldest→newest so a rising price
+// yields a positive slope.
 func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend string, slope float64) {
+	const (
+		// minimum relative slope (per candle) to call a trend, ~0.05% per candle
+		slopeThreshold = 0.0005
+		// minimum R²: how much of the price variance the line explains
+		minRSquared = 0.5
+	)
+
+	trend = TrendUnknown
 	if len(candles) < 2 {
-		trend = TrendUnknown
 		return
 	}
 
-	reversed := make([]domainStructs.DomainCandle, len(candles))
-	for i := range candles {
-		reversed[i] = candles[len(candles)-1-i]
-	}
+	candleCount := float64(len(candles))
+	var sumTime, sumClose, sumTimeClose, sumTimeSquared float64
 
-	n := float64(len(reversed))
-	var sumX, sumY, sumXY, sumXX float64
+	// Walk oldest→newest. Newest is candles[0], oldest is candles[len-1],
+	// so timeIndex grows as we move backwards through the slice.
+	for idx := 0; idx < len(candles); idx++ {
+		timeIndex := float64(idx)
+		closePrice := candles[len(candles)-1-idx].Close
 
-	for i, c := range reversed {
-		x := float64(i)
-		y := c.Close
-
-		sumX += x
-		sumY += y
-		sumXY += x * y
-		sumXX += x * x
+		sumTime += timeIndex
+		sumClose += closePrice
+		sumTimeClose += timeIndex * closePrice
+		sumTimeSquared += timeIndex * timeIndex
 	}
 
 	// Slope (m) of best-fit line: m = (N*ΣXY - ΣX*ΣY) / (N*ΣX² - (ΣX)²)
-	numerator := n*sumXY - sumX*sumY
-	denominator := n*sumXX - sumX*sumX
-
+	denominator := candleCount*sumTimeSquared - sumTime*sumTime
 	if denominator == 0 {
-		trend = TrendUnknown
 		return
 	}
 
-	slope = numerator / denominator
+	rawSlope := (candleCount*sumTimeClose - sumTime*sumClose) / denominator
+	slope = rawSlope
 
-	const threshold = 0.01 // small buffer to ignore noise
+	meanClose := sumClose / candleCount
+	if meanClose == 0 {
+		return
+	}
 
-	if slope > threshold {
+	// R² = 1 - SSres/SStot, computed in a second pass.
+	intercept := (sumClose - rawSlope*sumTime) / candleCount
+	var sumSquaredResiduals, sumSquaredDeviations float64
+	for idx := 0; idx < len(candles); idx++ {
+		timeIndex := float64(idx)
+		closePrice := candles[len(candles)-1-idx].Close
+		predicted := intercept + rawSlope*timeIndex
+		sumSquaredResiduals += (closePrice - predicted) * (closePrice - predicted)
+		sumSquaredDeviations += (closePrice - meanClose) * (closePrice - meanClose)
+	}
+	if sumSquaredDeviations == 0 {
+		return // flat line, no trend
+	}
+	rSquared := 1 - sumSquaredResiduals/sumSquaredDeviations
+	if rSquared < minRSquared {
+		return // fit too weak to trust
+	}
+
+	// Normalize: fraction of mean price moved per candle.
+	relativeSlope := rawSlope / meanClose
+	if relativeSlope > slopeThreshold {
 		trend = TrendLong
-		return
-	} else if slope < -threshold {
+	} else if relativeSlope < -slopeThreshold {
 		trend = TrendShort
-		return
 	}
-
-	trend = TrendUnknown
 	return
 }
 
@@ -94,7 +126,8 @@ func GetTrendSimpleCompare(candles []domainStructs.DomainCandle) string {
 
 	if maxCandle.Time > minCandle.Time {
 		return TrendLong
-	} else {
+	} else if maxCandle.Time < minCandle.Time {
 		return TrendShort
 	}
+	return TrendUnknown
 }
