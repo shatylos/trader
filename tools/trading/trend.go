@@ -43,7 +43,7 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend strin
 		// minimum relative slope (per candle) to call a trend, ~0.05% per candle
 		slopeThreshold = 0.0005
 		// minimum R²: how much of the price variance the line explains
-		minRSquared = 0.02
+		minRSquared = 0.5
 	)
 
 	trend = TrendUnknown
@@ -94,14 +94,16 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend strin
 		return // flat line, no trend
 	}
 	rSquared := 1 - sumSquaredResiduals/sumSquaredDeviations
-	logger.Info(fmt.Sprintf("rSquared: %f", rSquared))
+
 	if rSquared < minRSquared {
-		logger.Info(fmt.Sprintf("exit rSquared: %f", rSquared))
 		return // fit too weak to trust
 	}
 
 	// Normalize: fraction of mean price moved per candle.
 	relativeSlope := rawSlope / meanClose
+
+	logger.Info(fmt.Sprintf("relativeSlope: %f", relativeSlope))
+
 	if relativeSlope > slopeThreshold {
 		trend = TrendLong
 	} else if relativeSlope < -slopeThreshold {
