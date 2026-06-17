@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-const minRequestInterval = 500 * time.Millisecond
+const minRequestInterval = 1 * time.Second
 
 type rateLimiter struct {
 	lastRequestTime time.Time
