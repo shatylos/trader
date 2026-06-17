@@ -96,6 +96,7 @@ func GetTrendLinearRegression(candles []domainStructs.DomainCandle) (trend strin
 	rSquared := 1 - sumSquaredResiduals/sumSquaredDeviations
 	logger.Info(fmt.Sprintf("rSquared: %f", rSquared))
 	if rSquared < minRSquared {
+		logger.Info(fmt.Sprintf("exit rSquared: %f", rSquared))
 		return // fit too weak to trust
 	}
 
