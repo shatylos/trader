@@ -109,7 +109,8 @@ func (v *VwapReversion) DoAction() (err error) {
 			return
 		}
 	} else {
-		logger.Info("Wait for close current provider position")
+		// @TODO: Move the message to state to show it in report
+		//logger.Info("Wait for close current provider position")
 		return
 	}
 
