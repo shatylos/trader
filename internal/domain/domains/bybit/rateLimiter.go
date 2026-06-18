@@ -1,6 +1,7 @@
 package bybit
 
 import (
+	"github.com/shatylos/trader/tools/logger"
 	"time"
 )
 
@@ -20,4 +21,5 @@ func (r *rateLimiter) throttle() {
 		time.Sleep(minRequestInterval - elapsed)
 	}
 	r.lastRequestTime = time.Now()
+	logger.Info("throttle")
 }
