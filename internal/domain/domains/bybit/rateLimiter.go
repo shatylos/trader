@@ -2,24 +2,27 @@ package bybit
 
 import (
 	"github.com/shatylos/trader/tools/logger"
+	"sync"
 	"time"
 )
 
 const minRequestInterval = 1 * time.Second
 
-type rateLimiter struct {
+var (
+	throttleMu      sync.Mutex
 	lastRequestTime time.Time
-}
+)
 
-func (r *rateLimiter) throttle() {
-	if r.lastRequestTime.IsZero() {
-		r.lastRequestTime = time.Now()
-		return
+func throttle() {
+	throttleMu.Lock()
+	defer throttleMu.Unlock()
+
+	if !lastRequestTime.IsZero() {
+		elapsed := time.Since(lastRequestTime)
+		if elapsed < minRequestInterval {
+			time.Sleep(minRequestInterval - elapsed)
+		}
 	}
-	elapsed := time.Since(r.lastRequestTime)
-	if elapsed < minRequestInterval {
-		time.Sleep(minRequestInterval - elapsed)
-	}
-	r.lastRequestTime = time.Now()
+	lastRequestTime = time.Now()
 	logger.Info("throttle")
 }
