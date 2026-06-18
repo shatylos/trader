@@ -1,7 +1,6 @@
 package bybit
 
 import (
-	"github.com/shatylos/trader/tools/logger"
 	"sync"
 	"time"
 )
@@ -24,5 +23,4 @@ func throttle() {
 		}
 	}
 	lastRequestTime = time.Now()
-	logger.Info("throttle")
 }
