@@ -51,6 +51,22 @@ func (s *TimeframeState) ApplyFilledOrder(order *Order, minQty float64) {
 	s.LastFilledOrder = order
 }
 
+// ApplyMovedSell closes the moved qty out of the child cycle with exactly 0
+// PNL (the loss is deferred to the parent timeframe, not realized here). The
+// resulting state values are written into the order so it restores from DB the
+// same way as a live fill.
+func (s *TimeframeState) ApplyMovedSell(order *Order, minQty float64) {
+	order.RealizedPNL = 0
+	s.QtyInTrade -= order.Qty
+	if s.QtyInTrade <= minQty {
+		s.closeCycle()
+	}
+	order.AverageBuyPrice = s.AverageBuyPrice
+	order.QtyInTrade = s.QtyInTrade
+	order.StateApplied = true
+	s.LastFilledOrder = order
+}
+
 // ApplyStoredOrder restores the state from the values saved in a filled order.
 func (s *TimeframeState) ApplyStoredOrder(order *Order) {
 	s.AverageBuyPrice = order.AverageBuyPrice

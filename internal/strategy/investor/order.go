@@ -163,6 +163,90 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.TimeframeI
 	return
 }
 
+// doMoveSell handles a sell that would realize a loss for a timeframe that has
+// a parent. Instead of selling on the provider side, the position is "moved" to
+// the parent: a SELL is saved for the child with 0 PNL (closing the child cycle
+// at the average buy price) and a matching BUY is saved for the parent, which
+// then owns the qty and books the real PNL on its own later sell. No real
+// provider order is created.
+func (i *Investor) doMoveSell(ctx context.Context, timeFrameItem *_struct.TimeframeItem, state *entity.TimeframeState) (err error) {
+	qty, _ := i.getQtyAndPriceToSell(state)
+	if qty < i.Config.MinQty {
+		timeFrameItem.TradeStateMsg = "Handle premium. Not enough qty to move to parent"
+		return
+	}
+
+	// Selling at the average buy price yields exactly 0 PNL for the child.
+	price := math.RoundCell(state.AverageBuyPrice, i.Config.PricePrecision)
+
+	walletSnapshot := *i.State.Wallet
+
+	childSell := entity.Order{
+		DomainOrder: domainStructs.DomainOrder{
+			OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
+			OrderStatus: domainStructs.OrderStatuses.Filled,
+			OrderType:   domainStructs.OrderTypes.Limit,
+			Price:       price,
+			Qty:         qty,
+			Side:        domainStructs.OrderSideSell,
+			Symbol:      i.Config.CoinPare,
+		},
+		Timeframe:    timeFrameItem.Config.Resolution,
+		WalletBefore: walletSnapshot,
+		WalletAfter:  walletSnapshot,
+		ConfigKey:    state.NumOrderToSell - 1,
+		Moved:        true,
+	}
+	state.ApplyMovedSell(&childSell, i.Config.MinQty)
+	state.ActiveOrder = nil
+	state.LastSellOrder = &childSell
+	err = i.Storage.SaveOrder(ctx, &childSell)
+	if err != nil {
+		err = apperrors.Wrap(err, "error save moved sell order")
+		return
+	}
+
+	var parentState *entity.TimeframeState
+	parentState, err = i.getTimeframeState(ctx, timeFrameItem.Parent)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get parent timeframe state")
+		return
+	}
+
+	parentBuy := entity.Order{
+		DomainOrder: domainStructs.DomainOrder{
+			OrderId:     strconv.FormatInt(time.Now().UnixNano(), 10),
+			OrderStatus: domainStructs.OrderStatuses.Filled,
+			OrderType:   domainStructs.OrderTypes.Limit,
+			Price:       price,
+			Qty:         qty,
+			Side:        domainStructs.OrderSideBuy,
+			Symbol:      i.Config.CoinPare,
+		},
+		Timeframe:    timeFrameItem.Parent.Config.Resolution,
+		WalletBefore: walletSnapshot,
+		WalletAfter:  walletSnapshot,
+		ConfigKey:    0,
+		Moved:        true,
+	}
+	parentState.ApplyFilledOrder(&parentBuy, i.Config.MinQty)
+	parentState.LastBuyOrder = &parentBuy
+	err = i.Storage.SaveOrder(ctx, &parentBuy)
+	if err != nil {
+		err = apperrors.Wrap(err, "error save moved buy order")
+		return
+	}
+
+	msg := fmt.Sprintf("[%s] Moved %g %s from timeframe %s to parent %s by price %g", i.Config.Id, qty, i.Config.TradeCurrency, timeFrameItem.Config.Resolution, timeFrameItem.Parent.Config.Resolution, price)
+	logger.Info(msg)
+	if i.Config.TelegramNotifier {
+		tgNotifier.Notify(msg)
+	}
+	timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle premium. Moved %g %s to parent %s", qty, i.Config.TradeCurrency, timeFrameItem.Parent.Config.Resolution)
+
+	return
+}
+
 func (i *Investor) updateOrder(ctx context.Context, state *entity.TimeframeState, order *entity.Order, timeFrame _struct.Timeframe) (err error) {
 
 	var updatedOrder domainStructs.DomainOrder

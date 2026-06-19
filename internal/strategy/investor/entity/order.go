@@ -18,6 +18,7 @@ type Order struct {
 	QtyInTrade                float64                    `bson:"QtyInTrade"`
 	RealizedPNL               float64                    `bson:"RealizedPNL"`
 	StateApplied              bool                       `bson:"StateApplied"`
+	Moved                     bool                       `bson:"Moved"`
 }
 
 func (o *Order) Amount() float64 {

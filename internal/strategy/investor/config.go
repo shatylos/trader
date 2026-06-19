@@ -195,6 +195,13 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 
+		timeframe.Config.Parent, err = _type.ToString(tfMap["parent"])
+		if err != nil && !errors.Is(err, _type.EmptyValueError) {
+			err = apperrors.Wrap(err, "the field parent contains not correct value type")
+			return
+		}
+		err = nil
+
 		var canOpenNewOrder int64
 		canOpenNewOrder, err = _type.ToInt64(tfMap["can_open_new_order"])
 		if err != nil {
@@ -277,6 +284,44 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 
 		i.Timeframes = append(i.Timeframes, timeframe)
+	}
+
+	err = i.linkTimeframeTree()
+	if err != nil {
+		err = apperrors.Wrap(err, "error link timeframe tree")
+		return
+	}
+
+	return
+}
+
+func (i *Investor) linkTimeframeTree() (err error) {
+	byResolution := make(map[string]*_struct.TimeframeItem, len(i.Timeframes))
+	for key := range i.Timeframes {
+		resolution := i.Timeframes[key].Config.Resolution
+		if _, exists := byResolution[resolution]; exists {
+			err = apperrors.New("duplicate timeframe resolution %s. Resolutions must be unique", resolution)
+			return
+		}
+		byResolution[resolution] = &i.Timeframes[key]
+	}
+
+	for key := range i.Timeframes {
+		tf := &i.Timeframes[key]
+		if tf.Config.Parent == "" {
+			continue
+		}
+		if tf.Config.Parent == tf.Config.Resolution {
+			err = apperrors.New("timeframe %s references itself as parent", tf.Config.Resolution)
+			return
+		}
+		parent, ok := byResolution[tf.Config.Parent]
+		if !ok {
+			err = apperrors.New("timeframe %s references unknown parent %s", tf.Config.Resolution, tf.Config.Parent)
+			return
+		}
+		tf.Parent = parent
+		parent.Children = append(parent.Children, tf)
 	}
 
 	return

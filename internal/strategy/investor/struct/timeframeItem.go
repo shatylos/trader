@@ -6,17 +6,20 @@ import (
 )
 
 type TimeframeItem struct {
-	Config          TimeframeItemConfig
-	CandleTime      time.Time
-	Candles         []domainStructs.DomainCandle
-	TrendSlope      float64
-	HigherTimeframe Timeframe
-	IsSidewaysState bool
-	SidewaysFrom    time.Time
-	Zone            string
-	Trend           string
-	TradeStateMsg   string
-	prevValues      struct {
+	Config             TimeframeItemConfig
+	CandleTime         time.Time
+	Candles            []domainStructs.DomainCandle
+	TrendSlope         float64
+	HigherTimeframe    Timeframe
+	Parent             *TimeframeItem
+	Children           []*TimeframeItem
+	AllowedChildAmount float64
+	IsSidewaysState    bool
+	SidewaysFrom       time.Time
+	Zone               string
+	Trend              string
+	TradeStateMsg      string
+	prevValues         struct {
 		IsSidewaysState bool
 		SidewaysFrom    time.Time
 		Zone            string
@@ -28,6 +31,7 @@ type TimeframeItem struct {
 
 type TimeframeItemConfig struct {
 	Resolution               string
+	Parent                   string
 	CanOpenNewOrder          bool
 	FullAmountPercent        float64
 	CandleReview             int64
@@ -50,6 +54,21 @@ func (t *TimeframeItem) GetConfig() TimeframeConfig {
 
 func (t *TimeframeItem) Resolution() string {
 	return t.Config.Resolution
+}
+
+func (t *TimeframeItem) HasChildren() bool {
+	return len(t.Children) > 0
+}
+
+func (t *TimeframeItem) HasParent() bool {
+	return t.Parent != nil
+}
+
+func (t *TimeframeItem) ChildShareAmount() float64 {
+	if t.Parent == nil || len(t.Parent.Children) == 0 {
+		return 0
+	}
+	return t.Parent.AllowedChildAmount / float64(len(t.Parent.Children))
 }
 
 func (t *TimeframeItem) SetCandles(candles []domainStructs.DomainCandle) {

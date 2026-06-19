@@ -226,9 +226,9 @@
                 <tr>
                     <td>#{{ add $i 1 }}</td>
                     {{ if eq $order.Side "BUY" }}
-                    <td class="bg-success">{{ $order.Side }}</td>
+                    <td class="bg-success">{{ $order.Side }}{{ if $order.Moved }} <span title="Moved between timeframes">🔁</span>{{ end }}</td>
                     {{ else }}
-                    <td class="bg-danger">{{ $order.Side }}</td>
+                    <td class="bg-danger">{{ $order.Side }}{{ if $order.Moved }} <span title="Moved between timeframes">🔁</span>{{ end }}</td>
                     {{ end }}
                     <td>{{ $order.OrderStatus }}</td>
                     <td>{{ add $order.ConfigKey 1 }}</td>

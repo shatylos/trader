@@ -62,6 +62,48 @@ func TestApplyFilledOrderBuySellCycle(t *testing.T) {
 	}
 }
 
+func TestApplyMovedSellDefersLossWithZeroPNL(t *testing.T) {
+	minQty := 0.0001
+
+	// child holds 2 coins bought at avg 200
+	child := &TimeframeState{Timeframe: "30m"}
+	child.ApplyFilledOrder(makeFilledOrder(structs.OrderSideBuy, 2, 200), minQty)
+
+	// move 1 coin to parent at a price below avg buy (would be a loss if sold)
+	movedSell := makeFilledOrder(structs.OrderSideSell, 1, 180)
+	movedSell.Moved = true
+	child.ApplyMovedSell(movedSell, minQty)
+
+	if movedSell.RealizedPNL != 0 {
+		t.Fatalf("moved sell must have 0 PNL, got %g", movedSell.RealizedPNL)
+	}
+	if child.RealizedPNL != 0 {
+		t.Fatalf("child realized PNL must stay 0 after move, got %g", child.RealizedPNL)
+	}
+	if child.QtyInTrade != 1 || child.AverageBuyPrice != 200 {
+		t.Fatalf("child after move: qty %g avg %g", child.QtyInTrade, child.AverageBuyPrice)
+	}
+	if !movedSell.StateApplied || movedSell.QtyInTrade != 1 || movedSell.AverageBuyPrice != 200 {
+		t.Fatalf("moved sell stored values: applied %v qty %g avg %g", movedSell.StateApplied, movedSell.QtyInTrade, movedSell.AverageBuyPrice)
+	}
+
+	// parent receives the moved qty as a normal buy and later books the real loss
+	parent := &TimeframeState{Timeframe: "4h"}
+	movedBuy := makeFilledOrder(structs.OrderSideBuy, 1, 180)
+	movedBuy.Moved = true
+	parent.ApplyFilledOrder(movedBuy, minQty)
+	if parent.QtyInTrade != 1 || parent.AverageBuyPrice != 180 {
+		t.Fatalf("parent after moved buy: qty %g avg %g", parent.QtyInTrade, parent.AverageBuyPrice)
+	}
+
+	// parent sells lower: the deferred loss surfaces here
+	parentSell := makeFilledOrder(structs.OrderSideSell, 1, 170)
+	parent.ApplyFilledOrder(parentSell, minQty)
+	if parentSell.RealizedPNL != -10 {
+		t.Fatalf("parent realized loss expected -10, got %g", parentSell.RealizedPNL)
+	}
+}
+
 func TestApplyStoredOrderRestoresState(t *testing.T) {
 	buy := makeFilledOrder(structs.OrderSideBuy, 2, 150)
 	buy.AverageBuyPrice = 150

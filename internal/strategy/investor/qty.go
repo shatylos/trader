@@ -62,6 +62,12 @@ func (i *Investor) removeCommission(qty, commission float64) (calculatedQty floa
 }
 
 func (i *Investor) getTimeframeFullAmount(ctx context.Context, timeFrameItem *_struct.TimeframeItem) (tfFullAmount float64, err error) {
+
+	if timeFrameItem.HasParent() {
+		tfFullAmount = timeFrameItem.ChildShareAmount()
+		return
+	}
+
 	fullAmount := i.getMainCurrencyAvailable()
 
 	for key := range i.Timeframes {

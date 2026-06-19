@@ -59,6 +59,8 @@ func ToFloat64(value interface{}) (newVal float64, err error) {
 
 func ToString(value interface{}) (string, error) {
 	switch value.(type) {
+	case nil:
+		return "", apperrors.Wrap(EmptyValueError, "the value is empty")
 	case string:
 		return value.(string), nil
 	case int:

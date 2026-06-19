@@ -7,6 +7,7 @@ import (
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
 	"github.com/shatylos/trader/tools/logger"
+	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/tgNotifier"
 )
 
@@ -40,6 +41,15 @@ func (i *Investor) handlePremium(ctx context.Context, state *entity.TimeframeSta
 			return
 		}
 		timeFrameItem.TradeStateMsg = "Handle premium. Not enough qty to sell. State was reset."
+		return
+	}
+
+	if timeFrameItem.HasParent() && state.PriceToSell < state.AverageBuyPrice {
+		err = i.doMoveSell(ctx, timeFrameItem, state)
+		if err != nil {
+			err = apperrors.Wrap(err, "error do move sell")
+			return
+		}
 		return
 	}
 
@@ -79,6 +89,12 @@ func (i *Investor) handleDiscount(ctx context.Context, state *entity.TimeframeSt
 
 	if state.ActiveOrder != nil {
 		timeFrameItem.TradeStateMsg = "There is an active order"
+		return
+	}
+
+	if timeFrameItem.HasChildren() {
+		timeFrameItem.AllowedChildAmount = math.Mul(state.QtyToBuy, state.PriceToBuy)
+		timeFrameItem.TradeStateMsg = fmt.Sprintf("Handle discount. Distribute %.2f %s to %d child timeframe(s)", timeFrameItem.AllowedChildAmount, i.Config.MainCurrency, len(timeFrameItem.Children))
 		return
 	}
 
