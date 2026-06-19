@@ -215,7 +215,10 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 
 		timeframe.Config.FullAmountPercent, err = _type.ToFloat64(tfMap["full_amount_percent"])
-		if err != nil || timeframe.Config.FullAmountPercent == 0 {
+		if err != nil && errors.Is(err, _type.EmptyValueError) && timeframe.Config.Parent != "" {
+			err = nil
+		}
+		if err != nil {
 			err = apperrors.Wrap(err, "empty value full_amount_percent")
 			return
 		}
