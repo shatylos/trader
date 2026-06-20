@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const minRequestInterval = 500 * time.Millisecond
+const minRequestInterval = 1000 * time.Millisecond
 
 var (
 	throttleMu      sync.Mutex
