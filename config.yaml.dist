@@ -96,6 +96,7 @@ strategy:
     vwap_period: 100              # entry-tf candles used for the VWAP / bands
     long_trend_resolution: "1h"
     long_trend_candle_review: 168 # 24 * 7 - 1 week
+    long_trend_candles_cache_ttl: 60
     price_precision: 2
     qty_precision: 3
     min_qty: 0.001

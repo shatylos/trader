@@ -20,7 +20,7 @@ import (
 // position holding the entry / take-profit / stop-loss levels and the risk sized qty.
 func (v *VwapReversion) calculateNewPosition(candles []domainStructs.DomainCandle) (position structs.Position, err error) {
 	var ltCandles []domainStructs.DomainCandle
-	ltCandles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.LongTrendResolution, v.config.LongTrendCandleReview)
+	ltCandles, err = v.LoadLTCandleHistory()
 	if err != nil {
 		err = apperrors.Wrap(err, "error load long trend candle history")
 		return

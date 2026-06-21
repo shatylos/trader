@@ -35,6 +35,7 @@ type Config struct {
 	RiskPercent           float64
 	WithdrawPercent       float64
 	IncreaseRiskToMinQty  bool
+	LTCandlesCacheTTL     time.Duration
 }
 
 var resolutions = map[string]int64{
@@ -191,6 +192,12 @@ func (v *VwapReversion) SetConfig(strategyConfig interface{}, domainConfig map[s
 		}
 		v.config.IncreaseRiskToMinQty = increaseRiskToMinQty == 1
 	}
+
+	v.config.LTCandlesCacheTTL, err = _type.ToTimeDuration(configMap["long_trend_candles_cache_ttl"])
+	if err != nil {
+		return apperrors.Wrap(err, "the field long_trend_candles_cache_ttl is empty or contains not correct value")
+	}
+	v.config.LTCandlesCacheTTL = v.config.LTCandlesCacheTTL * time.Second
 
 	err = v.applyDomainConfig(configMap, domainConfig)
 	if err != nil {

@@ -14,9 +14,10 @@ import (
 )
 
 type VwapReversion struct {
-	config   Config
-	provider domain.FuturesDomainInterface
-	state    State
+	config      Config
+	provider    domain.FuturesDomainInterface
+	state       State
+	candleCache map[string]candleCacheEntry
 }
 
 type State struct {
@@ -59,7 +60,7 @@ func (v *VwapReversion) DoAction() (err error) {
 		return
 	}
 
-	state.stCandles, err = v.provider.LoadCandleHistory(v.config.CoinPare, v.config.Resolution, v.config.VwapPeriod)
+	state.stCandles, err = v.LoadSTCandleHistory()
 	if err != nil {
 		err = apperrors.Wrap(err, "error load short term candle history")
 		return
