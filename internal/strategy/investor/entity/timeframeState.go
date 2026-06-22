@@ -24,6 +24,7 @@ type TimeframeState struct {
 	LastSellOrder   *Order
 	LastFilledOrder *Order
 	ActiveOrder     *Order
+	IsReset         bool
 }
 
 // ApplyFilledOrder updates the state with a filled order and writes the
@@ -99,4 +100,5 @@ func (s *TimeframeState) Reset() {
 	s.QtyToSell = 0
 	s.NumOrderToBuy = 0
 	s.NumOrderToSell = 0
+	s.IsReset = true
 }

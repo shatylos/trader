@@ -76,6 +76,7 @@ func (i *Investor) doBuy(ctx context.Context, timeFrameItem *_struct.TimeframeIt
 
 	state.ActiveOrder = &order
 	state.LastBuyOrder = &order
+	state.IsReset = false
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
 		err = i.updateOrder(ctx, state, &order, timeFrameItem)
@@ -151,6 +152,7 @@ func (i *Investor) doSell(ctx context.Context, timeFrameItem *_struct.TimeframeI
 
 	state.ActiveOrder = &order
 	state.LastSellOrder = &order
+	state.IsReset = false
 
 	if order.OrderStatus == domainStructs.OrderStatuses.Filled {
 		err = i.updateOrder(ctx, state, &order, timeFrameItem)
