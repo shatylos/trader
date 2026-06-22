@@ -287,9 +287,33 @@ func (i *Investor) updateOrder(ctx context.Context, state *entity.TimeframeState
 		var msg string
 		switch order.Side {
 		case domainStructs.OrderSideBuy:
-			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig # %d", i.Config.Id, order.Side, i.Config.PricePrecision, order.DomainOrder.Price, i.Config.MainCurrency, i.Config.QtyPrecision, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution(), order.ConfigKey+1)
+			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig # %d",
+				i.Config.Id,
+				order.Side,
+				i.Config.PricePrecision,
+				order.DomainOrder.Price,
+				i.Config.MainCurrency,
+				i.Config.QtyPrecision,
+				order.DomainOrder.Qty,
+				i.Config.TradeCurrency,
+				timeFrame.Resolution(),
+				order.ConfigKey+1,
+			)
 		case domainStructs.OrderSideSell:
-			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig: #%d\nPNL: %.*f", i.Config.Id, order.Side, i.Config.PricePrecision, order.DomainOrder.Price, i.Config.MainCurrency, i.Config.QtyPrecision, order.DomainOrder.Qty, i.Config.TradeCurrency, timeFrame.Resolution(), order.ConfigKey+1, order.RealizedPNL)
+			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig: #%d\nPNL: %.*f",
+				i.Config.Id,
+				order.Side,
+				i.Config.PricePrecision,
+				order.DomainOrder.Price,
+				i.Config.MainCurrency,
+				i.Config.QtyPrecision,
+				order.DomainOrder.Qty,
+				i.Config.TradeCurrency,
+				timeFrame.Resolution(),
+				order.ConfigKey+1,
+				i.Config.PricePrecision,
+				order.RealizedPNL,
+			)
 		}
 		logger.Success(msg)
 		if i.Config.TelegramNotifier {
