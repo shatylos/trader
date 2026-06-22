@@ -27,6 +27,9 @@ func (i *Investor) getTimeframeState(ctx context.Context, timeFrame _struct.Time
 
 	state = &entity.TimeframeState{Timeframe: timeFrame.Resolution()}
 	for _, order := range orders {
+		if order.OrderStatus == structs.OrderStatuses.Canceled {
+			continue
+		}
 		if order.Side == structs.OrderSideBuy {
 			state.LastBuyOrder = order
 		}
