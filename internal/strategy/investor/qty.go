@@ -143,9 +143,21 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 		state.QtyToSell = 0
 		state.PriceToSell = 0
 		avQtySell := trading.CurrencyAmountAvailable(i.State.Wallet, i.Config.TradeCurrency)
-		purposeAmountInTrade := math.Mul(math.Div(timeFrameFullAmount, 100), sellOrderConfig.Percentage)
-		purposeQtyInTrade := trading.MainCurrencyToTrade(purposeAmountInTrade, currentPrice)
-		qtyToSell := state.QtyInTrade - purposeQtyInTrade
+		var qtyToSell float64
+		if timeFrameItem.HasParent() {
+			prevPercentage := sellOrderConfig.Percentage + sellOrderConfig.PercentageDiff
+			onePercentQty := math.Div(state.QtyInTrade, prevPercentage)
+			purposeQtyInTrade := math.Mul(onePercentQty, sellOrderConfig.Percentage)
+			qtyToSell = state.QtyInTrade - purposeQtyInTrade
+			if sellOrderConfig.Percentage == 0.0 {
+				qtyToSell = state.QtyInTrade
+			}
+		} else {
+			purposeAmountInTrade := math.Mul(math.Div(timeFrameFullAmount, 100), sellOrderConfig.Percentage)
+			purposeQtyInTrade := trading.MainCurrencyToTrade(purposeAmountInTrade, currentPrice)
+			qtyToSell = state.QtyInTrade - purposeQtyInTrade
+		}
+
 		if avQtySell >= qtyToSell {
 			state.QtyToSell = qtyToSell
 			state.PriceToSell, _ = vwap.CalcDeviation(sellOrderConfig.VwapDeviations)

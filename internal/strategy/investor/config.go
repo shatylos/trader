@@ -8,6 +8,7 @@ import (
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
 	"github.com/shatylos/trader/tools/apperrors"
 	_type "github.com/shatylos/trader/tools/type"
+	"math"
 	"time"
 )
 
@@ -258,9 +259,10 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 		timeframe.Config.SellOrders = make([]_struct.OrderParams, len(rawSellOrders))
+		sellPrevPercentage := 100.0
 		for ii, item := range rawSellOrders {
 			var orderParams _struct.OrderParams
-			orderParams, err = parseOrderParams(item)
+			orderParams, err = parseOrderParams(item, &sellPrevPercentage)
 			if err != nil {
 				err = apperrors.Wrap(err, "invalid sell_orders config")
 				return
@@ -275,9 +277,10 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 			return
 		}
 		timeframe.Config.BuyOrders = make([]_struct.OrderParams, len(rawBuyOrders))
+		buyPrevPercentage := 0.0
 		for ii, item := range rawBuyOrders {
 			var orderParams _struct.OrderParams
-			orderParams, err = parseOrderParams(item)
+			orderParams, err = parseOrderParams(item, &buyPrevPercentage)
 			if err != nil {
 				err = apperrors.Wrap(err, "invalid buy_orders config")
 				return
@@ -365,7 +368,7 @@ func (i *Investor) applyDomainConfig(configMap map[interface{}]interface{}, doma
 	return nil
 }
 
-func parseOrderParams(val interface{}) (orderParams _struct.OrderParams, err error) {
+func parseOrderParams(val interface{}, prevPercentage *float64) (orderParams _struct.OrderParams, err error) {
 	valMap, ok := val.(map[interface{}]interface{})
 	if !ok {
 		err = apperrors.New("invalid order param: %v", val)
@@ -384,9 +387,13 @@ func parseOrderParams(val interface{}) (orderParams _struct.OrderParams, err err
 		return
 	}
 
+	percentageDiff := math.Abs(*prevPercentage - percentage)
+	*prevPercentage = percentage
+
 	orderParams = _struct.OrderParams{
 		VwapDeviations: vwap,
 		Percentage:     percentage,
+		PercentageDiff: percentageDiff,
 	}
 	return
 }

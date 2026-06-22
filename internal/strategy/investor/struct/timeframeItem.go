@@ -45,6 +45,7 @@ type TimeframeItemConfig struct {
 type OrderParams struct {
 	VwapDeviations float64
 	Percentage     float64
+	PercentageDiff float64
 	ConfigKey      int
 }
 
