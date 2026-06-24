@@ -287,11 +287,14 @@ func (i *Investor) updateOrder(ctx context.Context, state *entity.TimeframeState
 		var msg string
 		switch order.Side {
 		case domainStructs.OrderSideBuy:
-			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig # %d",
+			msg = fmt.Sprintf("Filled the order\n%s\nSide: %s\nPrice: %.*f %s\nAmount: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig # %d",
 				i.Config.Id,
 				order.Side,
 				i.Config.PricePrecision,
 				order.DomainOrder.Price,
+				i.Config.MainCurrency,
+				i.Config.PricePrecision,
+				order.Amount(),
 				i.Config.MainCurrency,
 				i.Config.QtyPrecision,
 				order.DomainOrder.Qty,
@@ -300,11 +303,14 @@ func (i *Investor) updateOrder(ctx context.Context, state *entity.TimeframeState
 				order.ConfigKey+1,
 			)
 		case domainStructs.OrderSideSell:
-			msg = fmt.Sprintf("[%s] Filled the %s order\nPrice: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig: #%d\nPNL: %.*f",
+			msg = fmt.Sprintf("Filled the order\n%s\nSide: %s\nPrice: %.*f %s\nAmount: %.*f %s\nQty: %.*f %s\nTimeframe: %s\nConfig: #%d\nPNL: %.*f",
 				i.Config.Id,
 				order.Side,
 				i.Config.PricePrecision,
 				order.DomainOrder.Price,
+				i.Config.MainCurrency,
+				i.Config.PricePrecision,
+				order.Amount(),
 				i.Config.MainCurrency,
 				i.Config.QtyPrecision,
 				order.DomainOrder.Qty,
