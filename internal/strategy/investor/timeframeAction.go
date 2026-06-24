@@ -93,9 +93,9 @@ func (i *Investor) handleTimeframe(ctx context.Context, timeFrameItem *_struct.T
 		return
 	}
 
-	if state.QtyToBuy == 0 && state.QtyToSell == 0 {
+	if state.QtyInTrade <= i.Config.MinQty {
 		if state.IsReset {
-			timeFrameItem.TradeStateMsg = "Qty to buy and sell are 0. State already reset"
+			timeFrameItem.TradeStateMsg = "State already reset"
 			return
 		}
 		logger.Info(fmt.Sprintf("qty to buy and sell are 0. Reset the timeframe state for timeframe %s", timeFrameItem.Config.Resolution))
