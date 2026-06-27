@@ -418,6 +418,7 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 	throttle()
 	order, err = request.CreateOrder(orderRequest, d.secrets)
 	if err != nil {
+		err = apperrors.Wrap(err, "error creating new order")
 		return
 	}
 

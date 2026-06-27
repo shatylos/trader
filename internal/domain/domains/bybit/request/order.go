@@ -48,6 +48,7 @@ type OrderResponse struct {
 	CumExecQty     string  `json:"cumExecQty"`     // -> 0
 	TpTriggerBy    string  `json:"tpTriggerBy"`    // -> LastPrice
 	OrderId        string  `json:"orderId"`        // -> 10772450-26ce-4c92-8bf6-5cf29d190a50
+	OrderLinkId    string  `json:"orderLinkId"`    //
 	Qty            string  `json:"qty"`            // -> 0.005
 	CumExecFee     string  `json:"cumExecFee"`     // -> 0
 	UpdatedTime    string  `json:"updatedTime"`    // -> 2022-08-17T20:45:45Z
