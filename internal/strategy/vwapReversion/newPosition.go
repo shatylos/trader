@@ -169,8 +169,10 @@ func (v *VwapReversion) openNewPosition(internalPosition structs.Position, side 
 		Type:       domainStructs.PositionTypes.Market,
 	})
 	if err != nil {
-		err = apperrors.Wrap(err, "error opening new position. Leverage: %d. Qty: %g. Side: %s. TakeProfit: %g. StopLoss: %g",
+		errMsg := fmt.Sprintf("error opening new position. Leverage: %d. Qty: %g. Side: %s. TakeProfit: %g. StopLoss: %g",
 			v.config.Leverage, qty, side, takeProfit, stopLoss)
+		tgNotifier.Notify(errMsg)
+		err = apperrors.Wrap(err, errMsg)
 		return
 	}
 
