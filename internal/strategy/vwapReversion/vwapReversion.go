@@ -62,7 +62,7 @@ func (v *VwapReversion) DoAction() (err error) {
 
 	state.stCandles, err = v.LoadSTCandleHistory()
 	if err != nil {
-		err = apperrors.Wrap(err, "error load short term candle history")
+		err = apperrors.WrapExcuse(err, "error load short term candle history")
 		return
 	}
 

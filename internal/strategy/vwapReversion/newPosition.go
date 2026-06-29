@@ -22,7 +22,7 @@ func (v *VwapReversion) calculateNewPosition(candles []domainStructs.DomainCandl
 	var ltCandles []domainStructs.DomainCandle
 	ltCandles, err = v.LoadLTCandleHistory()
 	if err != nil {
-		err = apperrors.Wrap(err, "error load long trend candle history")
+		err = apperrors.WrapExcuse(err, "error load long trend candle history")
 		return
 	}
 

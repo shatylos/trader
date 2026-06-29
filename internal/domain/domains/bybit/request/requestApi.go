@@ -161,7 +161,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 		case 110043.0:
 			err = apperrors.Wrap(LeverageNotModifiedApiError, "ByBit API error: %s", dat["retMsg"])
 		default:
-			err = apperrors.Wrap(RequestApiError, "ByBit API error: %s", dat["retMsg"])
+			err = apperrors.WrapExcuse(RequestApiError, "ByBit API error: %s", dat["retMsg"])
 		}
 		return nil, err
 	}
