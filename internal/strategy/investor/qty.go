@@ -103,15 +103,15 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 	var buyOrderConfig, sellOrderConfig *_struct.OrderParams
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, state.LastSellOrder, state.LastBuyOrder)
 	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
-		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByPrevOrders: %+v", sellOrderConfig))
+		logger.Info(fmt.Sprintf("buyOrderConfig updateOrderConfigsByPrevOrders: %+v", buyOrderConfig))
 	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig, timeFrameItem, vwap)
 	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
-		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByPrice: %+v", sellOrderConfig))
+		logger.Info(fmt.Sprintf("buyOrderConfig updateOrderConfigsByPrice: %+v", buyOrderConfig))
 	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, state.QtyInTrade)
 	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
-		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByQty: %+v", sellOrderConfig))
+		logger.Info(fmt.Sprintf("buyOrderConfig updateOrderConfigsByQty: %+v", buyOrderConfig))
 	}
 
 	if buyOrderConfig == nil {
