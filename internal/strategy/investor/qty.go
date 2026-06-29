@@ -102,8 +102,17 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 
 	var buyOrderConfig, sellOrderConfig *_struct.OrderParams
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, state.LastSellOrder, state.LastBuyOrder)
+	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
+		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByPrevOrders: %+v", sellOrderConfig))
+	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig, timeFrameItem, vwap)
+	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
+		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByPrice: %+v", sellOrderConfig))
+	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, state.QtyInTrade)
+	if i.GetId() == "BTC_USDT_INVESTOR_MAIN" && timeFrameItem.Config.Resolution == "30m" {
+		logger.Info(fmt.Sprintf("sellOrderConfig updateOrderConfigsByQty: %+v", sellOrderConfig))
+	}
 
 	if buyOrderConfig == nil {
 		state.QtyToBuy = 0
