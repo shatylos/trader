@@ -239,7 +239,22 @@ func (i *Investor) doMoveSell(ctx context.Context, timeFrameItem *_struct.Timefr
 		return
 	}
 
-	msg := fmt.Sprintf("[%s] Moved %g %s from timeframe %s to parent %s by price %g", i.Config.Id, qty, i.Config.TradeCurrency, timeFrameItem.Config.Resolution, timeFrameItem.Parent.Config.Resolution, price)
+	msg := fmt.Sprintf("Moved the order\n"+
+		"%s\n"+
+		"Qty: %g %s\n"+
+		"Amount: %g %s\n"+
+		"From timeframe: %s\n"+
+		"To timeframe: %s\n"+
+		"By price: %g",
+		i.Config.Id,
+		qty,
+		i.Config.TradeCurrency,
+		parentBuy.Amount(),
+		i.Config.MainCurrency,
+		timeFrameItem.Config.Resolution,
+		timeFrameItem.Parent.Config.Resolution,
+		price,
+	)
 	logger.Info(msg)
 	if i.Config.TelegramNotifier {
 		tgNotifier.Notify(msg)
