@@ -126,7 +126,7 @@ func apiQuery(uri string, params ApiParams, secrets bybitStructs.Secrets, method
 	client := getClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		err = apperrors.New("ByBit API error get request")
+		err = apperrors.NewExcuse("ByBit API error sending request")
 		return
 	}
 	defer resp.Body.Close()
