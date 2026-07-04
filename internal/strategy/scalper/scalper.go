@@ -112,6 +112,23 @@ func (s *Scalper) DoAction() (err error) {
 		return
 	}
 
+	// The entry limit order may still rest in the order book while no provider
+	// position exists yet, so don't close the internal position or open a new
+	// one until the order is executed or canceled.
+	if internalPosition.Id != nil && internalPosition.Status == structs.StatusActive &&
+		internalPosition.Order.OrderStatus == domainStructs.OrderStatuses.Open {
+		var isPending bool
+		isPending, err = s.handlePendingEntryOrder(&internalPosition)
+		if err != nil {
+			err = apperrors.Wrap(err, "error handle pending entry order")
+			return
+		}
+		if isPending {
+			s.state.SkippedMessage = "Wait for limit entry order execution"
+			return
+		}
+	}
+
 	if internalPosition.Id != nil && internalPosition.Status != structs.StatusClosed {
 		err = s.closeInternalPosition(internalPosition)
 		if err != nil {

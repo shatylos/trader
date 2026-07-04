@@ -126,7 +126,7 @@ func (s *Scalper) calculateSignal() (snapshot signalSnapshot, err error) {
 // entryTpSl derives the bracket levels from the ATR: the stop-loss sits
 // SlAtrMult ATRs away from the entry, the take-profit TpAtrMult ATRs.
 func (s *Scalper) entryTpSl(snapshot signalSnapshot) (entry, takeProfit, stopLoss float64) {
-	entry = snapshot.CurrentPrice
+	entry = math.Round(snapshot.CurrentPrice, s.config.PricePrecision)
 	atr := snapshot.Chart.Atr
 	if snapshot.Signal == domainStructs.PositionSideLong {
 		takeProfit = math.Round(entry+math.Mul(atr, s.config.TpAtrMult), s.config.PricePrecision)
@@ -206,14 +206,14 @@ func (s *Scalper) openNewPosition(snapshot signalSnapshot) (err error) {
 	var orderId string
 	orderId, err = s.provider.OpenPosition(domainStructs.DomainPositionRequest{
 		Leverage:   s.config.Leverage,
-		Price:      0,
+		Price:      entry,
 		Qty:        qty,
 		ReduceOnly: false,
 		Side:       snapshot.Signal,
 		StopLoss:   stopLoss,
 		Symbol:     s.config.CoinPare,
 		TakeProfit: takeProfit,
-		Type:       domainStructs.PositionTypes.Market,
+		Type:       domainStructs.PositionTypes.Limit,
 	})
 	if err != nil {
 		errMsg := fmt.Sprintf("error opening new position. Leverage: %d. Qty: %g. Side: %s. TakeProfit: %g. StopLoss: %g",
@@ -255,6 +255,40 @@ func (s *Scalper) openNewPosition(snapshot signalSnapshot) (err error) {
 		tgNotifier.Notify(fmt.Sprintf("Created new position\nSide: %s\nQty: %g\nEntry Price: %g\nTP: %g\nSL: %g",
 			newOrder.Side, newOrder.Qty, newOrder.Price, takeProfit, stopLoss))
 	}
+	return
+}
+
+// handlePendingEntryOrder refreshes the entry limit order of an active
+// internal position that has no provider position yet. It returns true while
+// the entry order still has a chance to be executed (anything but canceled),
+// so the caller must not close the internal position or open a new one.
+func (s *Scalper) handlePendingEntryOrder(internalPosition *structs.Position) (isPending bool, err error) {
+	var order domainStructs.DomainOrder
+	order, err = s.provider.GetOrder(internalPosition.Order.OrderId, s.config.CoinPare)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get order %s", internalPosition.Order.OrderId)
+		return
+	}
+
+	if order.OrderStatus != internalPosition.Order.OrderStatus {
+		internalPosition.Order = order
+
+		var storage mongo.MongoStorage
+		storage, err = strategyStorage.GetStorage(s.config.Id)
+		if err != nil {
+			err = apperrors.Wrap(err, "error get storage")
+			return
+		}
+		*internalPosition, err = storage.SaveInternalPosition(*internalPosition)
+		if err != nil {
+			err = apperrors.Wrap(err, "error save internal position")
+			return
+		}
+	}
+
+	// A just filled order is still pending here: the provider position was not
+	// visible in this tick yet, so let the next tick pick it up.
+	isPending = order.OrderStatus != domainStructs.OrderStatuses.Canceled
 	return
 }
 
