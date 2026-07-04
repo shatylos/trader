@@ -2,6 +2,7 @@ package scalper
 
 import (
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/shatylos/trader/internal/domain"
 	domainStructs "github.com/shatylos/trader/internal/domain/structs"
 	strategyStorage "github.com/shatylos/trader/internal/strategy/scalper/storage"
@@ -17,7 +18,9 @@ type Scalper struct {
 	config      Config
 	provider    domain.FuturesDomainInterface
 	state       State
+	prevState   State
 	candleCache map[string]candleCacheEntry
+	webSocket   WebSocket
 }
 
 type State struct {
@@ -34,6 +37,10 @@ type State struct {
 }
 
 func (s *Scalper) Init(mux *http.ServeMux) {
+	s.webSocket = WebSocket{
+		Clients: make(map[*websocket.Conn]bool),
+	}
+	mux.HandleFunc(fmt.Sprintf("GET /%s/ws-report", s.GetId()), s.webSocket.WsHandler)
 }
 
 func (s *Scalper) GetId() string {
@@ -60,6 +67,14 @@ func (s *Scalper) DoAction() (err error) {
 		}
 		return
 	}
+
+	// Push the "current state" block to the report page on every state change,
+	// whatever path DoAction returns through.
+	defer func() {
+		if s.IsStateChanged() {
+			s.webSocket.SendState(s)
+		}
+	}()
 
 	var internalPosition structs.Position
 	var storage mongo.MongoStorage
@@ -91,6 +106,7 @@ func (s *Scalper) DoAction() (err error) {
 				err = apperrors.Wrap(err, "error save internal position")
 				return
 			}
+			s.webSocket.SendPositions(s)
 		}
 		s.state.SkippedMessage = "Wait for close current provider position"
 		return
@@ -102,12 +118,19 @@ func (s *Scalper) DoAction() (err error) {
 			err = apperrors.Wrap(err, "error close internal position")
 			return
 		}
+		s.webSocket.SendPositions(s)
+		s.webSocket.SendPNL(s)
 	}
 
 	err = s.calculateAndAction()
 	if err != nil {
 		err = apperrors.Wrap(err, "error calculate and action")
 		return
+	}
+
+	if s.state.Signal != "" {
+		// An entry signal fired, so a new position may have been opened.
+		s.webSocket.SendPositions(s)
 	}
 
 	return
@@ -155,4 +178,10 @@ func (s *Scalper) calculateAndAction() (err error) {
 
 func (s *Scalper) WaitDuration() time.Duration {
 	return time.Second * s.config.TimeoutSeconds
+}
+
+func (s *Scalper) IsStateChanged() (isChanged bool) {
+	isChanged = s.state != s.prevState
+	s.prevState = s.state
+	return
 }

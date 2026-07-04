@@ -18,6 +18,7 @@ import (
 type ReportTemplateData struct {
 	PrevPeriodLink  string
 	NextPeriodLink  string
+	WsLink          string
 	DateFrom        time.Time
 	DateTo          time.Time
 	Positions       []structs.Position
@@ -31,6 +32,7 @@ type ReportTemplateData struct {
 	DepoAmount      float64
 	WithdrawAmount  float64
 	State           State
+	IsCurrentPeriod bool
 }
 
 func (s *Scalper) GetReport(from time.Time, to time.Time) (report _struct.Report, err error) {
@@ -40,6 +42,30 @@ func (s *Scalper) GetReport(from time.Time, to time.Time) (report _struct.Report
 		return
 	}
 
+	var data ReportTemplateData
+	data, err = s.GetReportData(from, to)
+	if err != nil {
+		err = apperrors.Wrap(err, "error get report data")
+		return
+	}
+
+	var resultBuilder strings.Builder
+	err = tmpl.Execute(&resultBuilder, data)
+	if err != nil {
+		err = apperrors.Wrap(err, "error execute template")
+		return
+	}
+
+	htmlStr := resultBuilder.String()
+
+	report = _struct.Report{
+		InnerHtml: template.HTML(htmlStr),
+		SetupId:   s.GetId(),
+	}
+	return
+}
+
+func (s *Scalper) GetReportData(from time.Time, to time.Time) (data ReportTemplateData, err error) {
 	var storage mongo.MongoStorage
 	storage, err = strategyStorage.GetStorage(s.config.Id)
 	if err != nil {
@@ -62,9 +88,16 @@ func (s *Scalper) GetReport(from time.Time, to time.Time) (report _struct.Report
 	}
 	totalPnl, totalPnlPercent, balanceBefore, balanceAfter, depoAmount, withdrawAmount := s.reportAmounts(positions, assets)
 
-	data := ReportTemplateData{
+	now := time.Now()
+	isCurrentPeriod := false
+	if from.Before(now) && to.After(now) {
+		isCurrentPeriod = true
+	}
+
+	data = ReportTemplateData{
 		PrevPeriodLink:  fmt.Sprintf("/report/%s/%s/", s.GetId(), from.AddDate(0, 0, -1).Format("2006-01")),
 		NextPeriodLink:  fmt.Sprintf("/report/%s/%s/", s.GetId(), from.AddDate(0, 1, 0).Format("2006-01")),
+		WsLink:          fmt.Sprintf("/%s/ws-report", s.GetId()),
 		DateFrom:        from,
 		DateTo:          to,
 		Positions:       positions,
@@ -78,20 +111,7 @@ func (s *Scalper) GetReport(from time.Time, to time.Time) (report _struct.Report
 		DepoAmount:      depoAmount,
 		WithdrawAmount:  withdrawAmount,
 		State:           s.state,
-	}
-
-	var resultBuilder strings.Builder
-	err = tmpl.Execute(&resultBuilder, data)
-	if err != nil {
-		err = apperrors.Wrap(err, "error execute template")
-		return
-	}
-
-	htmlStr := resultBuilder.String()
-
-	report = _struct.Report{
-		InnerHtml: template.HTML(htmlStr),
-		SetupId:   s.GetId(),
+		IsCurrentPeriod: isCurrentPeriod,
 	}
 	return
 }
