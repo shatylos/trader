@@ -124,8 +124,10 @@ strategy:
     risk_percent: 1               # % of balance risked per trade (qty sizing)
     increase_risk_to_min_qty: 1
     withdraw_percent: 50
+    fee_percent: 0.11             # round trip commission as % of notional (ByBit linear: taker 0.055% x 2)
+    min_tp_fee_ratio: 3           # take-profit distance must be at least this multiple of fee_percent
     # entry (lower) timeframe
-    entry_resolution: "1m"
+    entry_resolution: "5m"
     entry_candle_review: 150      # candles loaded for the entry indicators
     ltf_ema_period: 21            # pullback EMA on the entry timeframe
     rsi_period: 14
@@ -133,17 +135,17 @@ strategy:
     rsi_overbought: 65            # skip long entries above this RSI (chasing)
     rsi_oversold: 35              # skip short entries below this RSI (chasing)
     atr_period: 14
-    min_atr_percent: 0.05         # skip entries when ATR < this % of price (dead market)
+    min_atr_percent: 0.15         # skip entries when ATR < this % of price (dead market)
     pullback_lookback: 5          # closed candles scanned for the pullback / RSI flip
-    tp_atr_mult: 1.5              # take-profit distance in ATRs
-    sl_atr_mult: 1.0              # stop-loss distance in ATRs
+    tp_atr_mult: 2.0              # take-profit distance in ATRs
+    sl_atr_mult: 1.5              # stop-loss distance in ATRs
     # bias (higher) timeframe
-    bias_resolution: "15m"
+    bias_resolution: "1h"
     bias_candle_review: 100       # candles loaded for the bias indicators
     bias_candles_cache_ttl: 60    # seconds to cache the bias timeframe candles
     htf_ema_fast_period: 21
     htf_ema_slow_period: 50
-    require_trend_confirmation: 0 # 1: linear regression trend must not oppose the EMA bias
+    require_trend_confirmation: 1 # 1: linear regression trend must not oppose the EMA bias
 
 domain:
   bybit_spot_demo_btc:

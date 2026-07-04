@@ -223,3 +223,17 @@ func TestIsVolatilityEnough(t *testing.T) {
 		t.Error("expected not enough volatility for zero price")
 	}
 }
+
+func TestIsTpWorthFees(t *testing.T) {
+	// TP = 2 x ATR 200 = 0.4% of price, fee floor 0.11% x 3 = 0.33%: worth it.
+	if !isTpWorthFees(200, 2, 100000, 0.11, 3) {
+		t.Error("expected take profit to cover the fees")
+	}
+	// TP = 1.5 x ATR 39 = 0.093% of price, fee floor 0.33%: fees eat the profit.
+	if isTpWorthFees(39, 1.5, 62900, 0.11, 3) {
+		t.Error("expected take profit to not cover the fees")
+	}
+	if isTpWorthFees(200, 2, 0, 0.11, 3) {
+		t.Error("expected not worth fees for zero price")
+	}
+}

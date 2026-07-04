@@ -10,6 +10,9 @@ type DomainPositionRequest struct {
 	Symbol     string
 	TakeProfit float64
 	Type       string
+	// TpOrderType makes the attached take profit execute as this order type
+	// when set to PositionTypes.Limit (maker fee); empty means market order.
+	TpOrderType string
 }
 
 type TpSlRequest struct {

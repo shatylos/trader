@@ -110,6 +110,12 @@ func (s *Scalper) calculateSignal() (snapshot signalSnapshot, err error) {
 		return
 	}
 
+	if !isTpWorthFees(atr, s.config.TpAtrMult, snapshot.CurrentPrice, s.config.FeePercent, s.config.MinTpFeeRatio) {
+		snapshot.SkippedMessage = fmt.Sprintf("Take profit %g ATRs (%.4f%%) does not cover round trip fee %g%% x ratio %g",
+			s.config.TpAtrMult, math.Mul(atr, s.config.TpAtrMult)/snapshot.CurrentPrice*100, s.config.FeePercent, s.config.MinTpFeeRatio)
+		return
+	}
+
 	snapshot.Signal = detectEntrySignal(snapshot.Bias, closedEntryCandles, ltfEma, rsi, entryParams{
 		PullbackLookback: s.config.PullbackLookback,
 		RsiMomentumLevel: s.config.RsiMomentumLevel,
@@ -205,15 +211,16 @@ func (s *Scalper) openNewPosition(snapshot signalSnapshot) (err error) {
 
 	var orderId string
 	orderId, err = s.provider.OpenPosition(domainStructs.DomainPositionRequest{
-		Leverage:   s.config.Leverage,
-		Price:      entry,
-		Qty:        qty,
-		ReduceOnly: false,
-		Side:       snapshot.Signal,
-		StopLoss:   stopLoss,
-		Symbol:     s.config.CoinPare,
-		TakeProfit: takeProfit,
-		Type:       domainStructs.PositionTypes.Limit,
+		Leverage:    s.config.Leverage,
+		Price:       entry,
+		Qty:         qty,
+		ReduceOnly:  false,
+		Side:        snapshot.Signal,
+		StopLoss:    stopLoss,
+		Symbol:      s.config.CoinPare,
+		TakeProfit:  takeProfit,
+		Type:        domainStructs.PositionTypes.Limit,
+		TpOrderType: domainStructs.PositionTypes.Limit,
 	})
 	if err != nil {
 		errMsg := fmt.Sprintf("error opening new position. Leverage: %d. Qty: %g. Side: %s. TakeProfit: %g. StopLoss: %g",

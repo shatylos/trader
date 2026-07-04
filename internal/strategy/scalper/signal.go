@@ -136,3 +136,14 @@ func isVolatilityEnough(atr float64, currentPrice float64, minAtrPercent float64
 	}
 	return atr/currentPrice*100 >= minAtrPercent
 }
+
+// isTpWorthFees checks the fee floor of an entry: the take-profit distance
+// (TpAtrMult ATRs) as a percent of price must be at least minTpFeeRatio times
+// the round-trip commission, otherwise even a winning trade loses money.
+func isTpWorthFees(atr float64, tpAtrMult float64, currentPrice float64, feePercent float64, minTpFeeRatio float64) bool {
+	if currentPrice <= 0 {
+		return false
+	}
+	tpDistancePercent := atr * tpAtrMult / currentPrice * 100
+	return tpDistancePercent >= feePercent*minTpFeeRatio
+}

@@ -20,6 +20,9 @@ type OrderRequest struct {
 	StopLoss       float64 //			not mandatory
 	SlTriggerBy    string  //			not mandatory
 	TpTriggerBy    string  //			not mandatory
+	TpslMode       string  //			not mandatory	Full | Partial; Partial is required for a limit take profit
+	TpOrderType    string  //			not mandatory	Market | Limit
+	TpLimitPrice   float64 //			not mandatory	limit price of the take profit order, requires TpslMode Partial and TpOrderType Limit
 }
 
 type TpSlRequest struct {
@@ -81,6 +84,15 @@ func CreateOrder(orderRequest OrderRequest, secrets bybitStructs.Secrets) (order
 	}
 	if orderRequest.SlTriggerBy != "" {
 		params["slTriggerBy"] = orderRequest.SlTriggerBy
+	}
+	if orderRequest.TpslMode != "" {
+		params["tpslMode"] = orderRequest.TpslMode
+	}
+	if orderRequest.TpOrderType != "" {
+		params["tpOrderType"] = orderRequest.TpOrderType
+	}
+	if orderRequest.TpLimitPrice > 0 {
+		params["tpLimitPrice"] = fmt.Sprintf("%g", orderRequest.TpLimitPrice)
 	}
 
 	uri := "/v5/order/create"

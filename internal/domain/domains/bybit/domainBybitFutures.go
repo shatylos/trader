@@ -414,6 +414,14 @@ func (d *DomainBybitFutures) OpenPosition(positionRequest structs.DomainPosition
 		TpTriggerBy: "LastPrice",
 	}
 
+	if positionRequest.TpOrderType == structs.PositionTypes.Limit && positionRequest.TakeProfit > 0 {
+		// ByBit executes a limit take profit only in Partial tp/sl mode; the
+		// stop loss keeps the default market execution.
+		orderRequest.TpslMode = "Partial"
+		orderRequest.TpOrderType = "Limit"
+		orderRequest.TpLimitPrice = positionRequest.TakeProfit
+	}
+
 	var order *request.OrderResponse
 	throttle()
 	order, err = request.CreateOrder(orderRequest, d.secrets)

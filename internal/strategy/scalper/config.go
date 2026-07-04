@@ -26,6 +26,8 @@ type Config struct {
 	RiskPercent          float64
 	WithdrawPercent      float64
 	IncreaseRiskToMinQty bool
+	FeePercent           float64
+	MinTpFeeRatio        float64
 
 	// entry (lower) timeframe
 	EntryResolution   string
@@ -148,6 +150,16 @@ func (s *Scalper) SetConfig(strategyConfig interface{}, domainConfig map[string]
 	s.config.WithdrawPercent, err = _type.ToFloat64(configMap["withdraw_percent"])
 	if err != nil {
 		return apperrors.Wrap(err, "the field withdraw_percent is empty")
+	}
+
+	s.config.FeePercent, err = _type.ToFloat64(configMap["fee_percent"])
+	if err != nil || s.config.FeePercent <= 0 {
+		return apperrors.Wrap(err, "the field fee_percent is empty or contains not correct value type. Expects the round trip commission as percent of notional, more than 0")
+	}
+
+	s.config.MinTpFeeRatio, err = _type.ToFloat64(configMap["min_tp_fee_ratio"])
+	if err != nil || s.config.MinTpFeeRatio < 1 {
+		return apperrors.Wrap(err, "the field min_tp_fee_ratio is empty or contains not correct value type. Expects float64 value 1 or more")
 	}
 
 	if configMap["increase_risk_to_min_qty"] != nil {
