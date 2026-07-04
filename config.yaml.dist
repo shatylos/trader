@@ -107,6 +107,44 @@ strategy:
     increase_resk_to_min_qty: 1
     withdraw_percent: 50
 
+  - id:  BTC_USDT_SCALPER_1
+    code: scalper
+    domain: bybit_features_demo_btc
+    enabled: 1
+    verbose: 0
+    telegram_notifier: 0
+    coin_pare: BTCUSDT
+    main_currency: USDT
+    trade_currency: BTC
+    leverage: 2
+    timeout_seconds: 10
+    price_precision: 2
+    qty_precision: 3
+    min_qty: 0.001
+    risk_percent: 1               # % of balance risked per trade (qty sizing)
+    increase_risk_to_min_qty: 1
+    withdraw_percent: 50
+    # entry (lower) timeframe
+    entry_resolution: "1m"
+    entry_candle_review: 150      # candles loaded for the entry indicators
+    ltf_ema_period: 21            # pullback EMA on the entry timeframe
+    rsi_period: 14
+    rsi_momentum_level: 50        # RSI must flip through this level after the pullback
+    rsi_overbought: 65            # skip long entries above this RSI (chasing)
+    rsi_oversold: 35              # skip short entries below this RSI (chasing)
+    atr_period: 14
+    min_atr_percent: 0.05         # skip entries when ATR < this % of price (dead market)
+    pullback_lookback: 5          # closed candles scanned for the pullback / RSI flip
+    tp_atr_mult: 1.5              # take-profit distance in ATRs
+    sl_atr_mult: 1.0              # stop-loss distance in ATRs
+    # bias (higher) timeframe
+    bias_resolution: "15m"
+    bias_candle_review: 100       # candles loaded for the bias indicators
+    bias_candles_cache_ttl: 60    # seconds to cache the bias timeframe candles
+    htf_ema_fast_period: 21
+    htf_ema_slow_period: 50
+    require_trend_confirmation: 0 # 1: linear regression trend must not oppose the EMA bias
+
 domain:
   bybit_spot_demo_btc:
     code: bybitSpot
