@@ -164,7 +164,6 @@ func (s *Scalper) calculateQty(availableBalance float64, entry float64, stopLoss
 }
 
 func (s *Scalper) openNewPosition(snapshot signalSnapshot) (err error) {
-	return
 	if snapshot.Signal != domainStructs.PositionSideShort && snapshot.Signal != domainStructs.PositionSideLong {
 		err = apperrors.New("unexpected signal value: %s", snapshot.Signal)
 		return
