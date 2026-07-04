@@ -181,7 +181,7 @@ func mapOrderResponse(queryResp interface{}) (orderResponse *OrderResponse, err 
 	}
 
 	response := OrderResponse{}
-	err = json.Unmarshal(orderResponseBytes, response)
+	err = json.Unmarshal(orderResponseBytes, &response)
 	if err != nil {
 		err = apperrors.Wrap(err, "can not unmarshal order response for ByBit, orderResponseBytes: %s", orderResponseBytes)
 		return
