@@ -255,7 +255,7 @@ func (i *Investor) doMoveSell(ctx context.Context, timeFrameItem *_struct.Timefr
 		timeFrameItem.Parent.Config.Resolution,
 		price,
 	)
-	logger.Info(msg)
+	logger.Success(msg)
 	if i.Config.TelegramNotifier {
 		tgNotifier.Notify(msg)
 	}
