@@ -225,8 +225,8 @@ func (i *Investor) applyTimeframeConfig(timeframesConfig interface{}) (err error
 		}
 
 		timeframe.Config.CandleReview, err = _type.ToInt64(tfMap["candle_review"])
-		if err != nil || timeframe.Config.CandleReview < 10 {
-			err = apperrors.Wrap(err, "the field candle_review is empty or contains not correct value type. Expects int64 value more than 10")
+		if err != nil || timeframe.Config.CandleReview < 1 {
+			err = apperrors.Wrap(err, "the field candle_review is empty or contains not correct value type. Expects int64 value more than 0")
 			return
 		}
 
