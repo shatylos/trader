@@ -1,8 +1,11 @@
 package investor
 
 import (
+	"fmt"
+
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
+	"github.com/shatylos/trader/tools/logger"
 	"github.com/shatylos/trader/tools/math"
 	"github.com/shatylos/trader/tools/trading"
 )
@@ -78,6 +81,8 @@ func (i *Investor) updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig *_str
 			if qtyToBuy >= i.Config.MinQty {
 				resBuyOrderConfig = &timeFrameItem.Config.BuyOrders[ii]
 				break
+			} else if i.Config.Verbose {
+				logger.Info(fmt.Sprintf("ID: %s. Timeframe %s. Calculated qty to buy %g. This is less then min qty", i.GetId(), timeFrameItem.Resolution(), qtyToBuy))
 			}
 		}
 	}
@@ -91,6 +96,8 @@ func (i *Investor) updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig *_str
 			if qtyToSell >= i.Config.MinQty {
 				resSellOrderConfig = &timeFrameItem.Config.SellOrders[ii]
 				break
+			} else if i.Config.Verbose {
+				logger.Info(fmt.Sprintf("ID: %s. Timeframe %s. Calculated qty to sell %g. This is less then min qty", i.GetId(), timeFrameItem.Resolution(), qtyToSell))
 			}
 		}
 	}
