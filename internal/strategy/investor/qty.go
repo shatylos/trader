@@ -104,15 +104,42 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 	var buyOrderConfig, sellOrderConfig *_struct.OrderParams
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, state.LastSellOrder, state.LastBuyOrder)
 	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
-		logger.Info(fmt.Sprintf("Check 1, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+		if buyOrderConfig == nil {
+			logger.Info("Check 1. Buy is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 1, Buy: %d", buyOrderConfig.ConfigKey))
+		}
+		if sellOrderConfig == nil {
+			logger.Info("Check 1. Sell is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 1, Sell: %d", sellOrderConfig.ConfigKey))
+		}
 	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig, timeFrameItem, vwap)
 	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
-		logger.Info(fmt.Sprintf("Check 2, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+		if buyOrderConfig == nil {
+			logger.Info("Check 2. Buy is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 2, Buy: %d", buyOrderConfig.ConfigKey))
+		}
+		if sellOrderConfig == nil {
+			logger.Info("Check 2. Sell is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 2, Sell: %d", sellOrderConfig.ConfigKey))
+		}
 	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, state.QtyInTrade)
 	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
-		logger.Info(fmt.Sprintf("Check 3, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+		if buyOrderConfig == nil {
+			logger.Info("Check 3. Buy is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 3, Buy: %d", buyOrderConfig.ConfigKey))
+		}
+		if sellOrderConfig == nil {
+			logger.Info("Check 3. Sell is nil")
+		} else {
+			logger.Info(fmt.Sprintf("Check 3, Sell: %d", sellOrderConfig.ConfigKey))
+		}
 	}
 
 	if buyOrderConfig == nil {
