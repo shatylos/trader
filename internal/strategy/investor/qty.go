@@ -3,6 +3,7 @@ package investor
 import (
 	"context"
 	"fmt"
+
 	"github.com/shatylos/trader/internal/domain/structs"
 	"github.com/shatylos/trader/internal/strategy/investor/entity"
 	_struct "github.com/shatylos/trader/internal/strategy/investor/struct"
@@ -102,8 +103,17 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 
 	var buyOrderConfig, sellOrderConfig *_struct.OrderParams
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrevOrders(timeFrameItem, state.LastSellOrder, state.LastBuyOrder)
+	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
+		logger.Info(fmt.Sprintf("Check 1, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByPrice(buyOrderConfig, sellOrderConfig, timeFrameItem, vwap)
+	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
+		logger.Info(fmt.Sprintf("Check 2, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+	}
 	buyOrderConfig, sellOrderConfig = i.updateOrderConfigsByQty(buyOrderConfig, sellOrderConfig, timeFrameFullAmount, timeFrameItem, state.QtyInTrade)
+	if i.GetId() == "BTC_USDT_INVESTOR_DAR" && timeFrameItem.Config.Resolution == "4h" {
+		logger.Info(fmt.Sprintf("Check 3, Buy: %d, Sell: %d", buyOrderConfig.ConfigKey, sellOrderConfig.ConfigKey))
+	}
 
 	if buyOrderConfig == nil {
 		state.QtyToBuy = 0
