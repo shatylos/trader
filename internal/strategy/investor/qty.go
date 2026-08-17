@@ -119,9 +119,6 @@ func (i *Investor) calculateNextQtyAndPrices(ctx context.Context, timeFrameItem 
 		purposeAmount := math.Mul(math.Div(timeFrameFullAmount, 100), buyOrderConfig.Percentage)
 		purposeQty := trading.MainCurrencyToTrade(purposeAmount, currentPrice)
 		qtyToBuy := purposeQty - state.QtyInTrade
-		if timeFrameItem.HasChildren() {
-			qtyToBuy = purposeQty
-		}
 
 		if avQtyToBuy >= qtyToBuy {
 			state.QtyToBuy = qtyToBuy
