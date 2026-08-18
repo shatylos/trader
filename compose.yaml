@@ -1,0 +1,14 @@
+name: trader
+
+services:
+  ferretdb:
+    image: ghcr.io/ferretdb/ferretdb:1.24.0
+    environment:
+      FERRETDB_HANDLER: sqlite
+      FERRETDB_SQLITE_URL: file:/state/
+      FERRETDB_LISTEN_ADDR: 0.0.0.0:27017
+      FERRETDB_TELEMETRY: disable
+    ports:
+      - "17027:27017"
+    volumes:
+      - ./var/ferretdb:/state
